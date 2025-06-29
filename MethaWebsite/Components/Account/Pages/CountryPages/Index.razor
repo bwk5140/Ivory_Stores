@@ -1,0 +1,38 @@
+﻿@page "/countries"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@implements IAsyncDisposable
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+<div class="container-sm mt-5">
+    <h1>Coutries</h1>
+
+    <p>
+        <a href="/Account/countries/create">Create New</a>
+    </p>
+
+    <QuickGrid Class="table" Items="context.Country">
+        <PropertyColumn Property="country => country.Name" />
+
+        <TemplateColumn Context="country">
+            <a href="@($"countries/edit?id={country.Id}")">Edit</a> |
+            <a href="@($"countries/details?id={country.Id}")">Details</a> |
+            <a href="@($"countries/delete?id={country.Id}")">Delete</a>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

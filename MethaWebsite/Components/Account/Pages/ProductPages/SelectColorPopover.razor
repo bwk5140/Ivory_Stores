@@ -1,0 +1,80 @@
+﻿@using System.Globalization
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+
+@rendermode InteractiveServer
+<div class="container-sm">
+    @{
+        var showAddSizeClass = showAddNewSize ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showAddSizeClass" data-bs-autohide="true" data-bs-delay="5000"
+         style="top: 70%; left: 20%;" draggable="true">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["AddMultipleSizes"]</strong>
+                <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                        aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body">
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <label class="form-label me-1" style="color: gray;">@Loc["SelectProductColor"]:</label>
+                    </div>
+                    <div class="col-sm-2">
+                        <InputSelect id="category" @bind-Value="CurrentProductSizeColor" class="form-select-sm">
+                            <option value="@Loc["Select"]">@Loc["Select"]</option>
+                            <option value="@Loc["All"]">@Loc["All"]</option>
+                            @foreach (var product in MultiColoredProducts!)
+                            {
+                                <option value="@product.Color">@product.Color</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <button type="button" class="btn btn-primary" @onclick="AddNewSize" style="background-color:#2f4f4f;
+                                            border-radius: 5px;" data-bs-toggle="tooltip" title=@Loc["AddMultipleSizes"]>
+                        @Loc["Add"]
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="@showAddSizeClass darker-background"></div>
+</div>
+@code {
+    [CascadingParameter]
+    private List<Product>? MultiColoredProducts { get; set; }
+
+    [Parameter]
+    public bool showAddNewSize { get; set; }
+
+    [CascadingParameter]
+    public string? CurrentProductSizeColor { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnNewSizeAdded { get; set; }
+
+    public void Show()
+    {
+        showAddNewSize = true;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        showAddNewSize = false;
+        StateHasChanged();
+    }
+    private async Task AddNewSize()
+    {
+        if (CurrentProductSizeColor != null)
+        {
+            await OnNewSizeAdded.InvokeAsync();
+        }
+    }
+}

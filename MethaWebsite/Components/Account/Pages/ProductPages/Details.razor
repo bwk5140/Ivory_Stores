@@ -1,0 +1,480 @@
+﻿@page "/Account/products/details"
+@using MethaWebsite.Data.Contexts
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@using System.Globalization
+@using Stripe.Checkout
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Details</PageTitle>
+
+<div class="container-sm mt-5">
+    @if (product is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else
+    {
+        <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                @if (Categories is not null)
+                {
+                    for (int i = Categories.Count - 1; i >= 0; i--)
+                    {
+                        @if (Categories[i] != category)
+                        {
+                            <li class="breadcrumb-item">
+                                <a href="@($"searchresults?filter=All&search={Categories[i].Name}")" style="text-decoration: none;
+                                        font-size: small;">
+                                    @Categories[i].Name
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="breadcrumb-item active" aria-current="page" style="font-size: small; padding: 3px;">@category.Name</li>
+                        }
+                    }
+                }
+            </ol>
+        </nav>
+        <div class="row">
+            <div class="col-sm-1" style="max-width: 80px; max-height: 600px;">
+                @if (Images is not null)
+                {
+                    @foreach (var Image in Images)
+                    {
+                        <div class="row">
+                            <button class="btn" @onclick="@(() => OnCurrentImageClicked(Image))">
+                                <div class="card" style="padding: 0px;">
+                                    <div class="card-body" style="padding: 0px;">
+                                        <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(Image.Image!)))"
+                                             alt=@Loc["ProductImage"] style="width:30px; height:50px;object-fit:fill;" />
+                                    </div>
+                                </div>
+
+                            </button>
+                        </div>
+                    }
+                }
+            </div>
+            <div class="col-lg" style="height: 600px;">
+                @if (CurrentImage is not null)
+                {
+                    <CascadingValue Value="Images">
+                        <CascadingValue Value="CurrentImage">
+                            <CascadingValue Value="product">
+                                <ProductImagesPopOver @ref="ProductImagesPopOver" />
+                            </CascadingValue>
+                        </CascadingValue>
+                    </CascadingValue>
+                    <button class="btn" @onclick="@(() => OnDetailsClicked(CurrentImage))" @onblur="Close">
+                        <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                             alt=@Loc["ProductImage"] style="width:100%; height:600px; object-fit:contain;" />
+                    </button>
+                }
+            </div>
+            <div class="col-md">
+                <div>
+                    <a href="@($"searchresults?search={product.Brand}")" class="btn btn-link" style="text-decoration: none; padding: 0px;">
+                        @Loc["Shop"] @product.Brand
+                    </a>
+                </div>
+                <h4 class="header mt-1">@product.Name</h4>
+                <div style="display: inline-block;">
+                    @if (product.Rating > 0)
+                    {
+                        <strong class="me-1">@product.Rating</strong>
+                    }
+                    @if (product.Rating == 0)
+                    {
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            <img src="star.svg" />
+                        }
+                        <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
+                            color: dodgerblue;">(0)</button>
+                    }
+                    else
+                    {
+                        @for (int i = 0; i < product.Rating; i++)
+                        {
+                            <img src="star-fill.svg" />
+                        }
+                        var rating_difference = 5 - product.Rating;
+                        @if (rating_difference > 0)
+                        {
+                            if (rating_difference > 1)
+                            {
+                                @for (int i = 0; i < (5 - product.Rating); i++)
+                                {
+                                    <img src="star.svg" />
+                                }
+                                if (rating_difference.GetType() != typeof(int))
+                                {
+                                    <img src="star-half.svg" />
+                                }
+                            }
+                            else
+                            {
+                                <img src="star-half.svg" />
+                            }
+                        }
+                        <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent; 
+                            color: dodgerblue;">(@product.Rating)</button>
+                    }
+                </div>
+                <hr/>
+                <div style="display: inline-block;">
+                    @{
+                        string price = product.Price.ToString();
+                        string price_w_curr = product.Price.ToString("C2");
+                        char leading_char = price[0];
+                        int index = price_w_curr.IndexOf(leading_char);
+                    }
+                    <label tyle="font-size: smaller; vertical-align: text-top;">@product.Price.ToString("C2").Substring(0, index)</label>
+                    <strong style="font-size: x-large;">@product.Price.ToString("C2").Substring(index)</strong>
+                    
+                </div>
+                <div class="mt-3 mb-3">
+                    <button class="btn" style="border: unset; outline:none; background-color: transparent; color: dodgerblue; padding: 0px;">
+                        @Loc["ReturnPolicy"]
+                    </button>
+                </div>
+                
+                <div class="mt-2 mb-2">
+                    <label for="product.Size" class="form-label" style="color: gray;">@Loc["Size"]:</label>
+                    <InputSelect id="category" @bind-Value="CurrentSize" class="form-select-sm">
+                        @foreach (var filtr in Sizes)
+                        {
+                            <option value="@filtr">@filtr</option>
+                        }
+                    </InputSelect>
+                </div>
+                @if (products is not null && products.Count() > 0)
+                {
+                    <div class="mt-3 mb-1 me-3">
+                        <label for="product.Color" class="form-label" style="color: gray;">@Loc["Color"]:</label>
+                        <strong>@product.Color</strong>
+                    </div>
+                    <div class="row">
+                        @foreach (var prod in products)
+                        {
+                            <div class="col-sm-2">
+                                <button class="btn btn-sm btn-secondary mb-2" style="background-color: transparent;
+                                                               border-color: lightgray;width: fit-content; height: fit-content;"
+                                        @onclick="@(() => ChangeProduct(prod))">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="@prod.Color"
+                                         class="bi bi-circle-fill" viewBox="0 0 16 16">
+                                        <circle cx="8" cy="8" r="8" fill="gray" />
+                                        <circle cx="8" cy="8" r="7.5" fill="@prod.Color" />
+                                    </svg>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+                <div class="mt-3">
+                    <button class="btn" style="border: unset; outline:none; background-color: transparent;
+                                            color: dodgerblue; padding: 0px;" @onclick="OnSizeChartClicked">
+                        @Loc["SizeChart"]
+                    </button>
+                    <CascadingValue Value="productGroup">
+                        <MethaWebsite.Components.SizeGuidePages.TrousersSizeGuidePages.TrouserSizeGuidePopover @ref="TrouserSizeGuidePopUp" />
+                        <MethaWebsite.Components.SizeGuidePages.ShirtsSizeGuidePages.ShirtSizeGuidePopover @ref="ShirtSizeGuidePopUp" />
+                        <MethaWebsite.Components.SizeGuidePages.ShoesSizeGuidePages.ShoeSizeGuidePopover @ref="ShoeSizeGuidePopUp" />
+                    </CascadingValue>
+                </div>
+                <div class="mt-3">
+                   <h5>@Loc["ProductDetails"]</h5>
+                    <dl class="row mt-3 mb-2" style="color: #2f4f4f; font-size: smaller;">
+                        <dt class="col-sm-5">
+                            @Loc["Fabric"]
+                        </dt>
+                        <dd class="col-sm-5">
+                            @product.Fabric
+                        </dd>
+                        <dt class="col-sm-5">
+                            @Loc["WashInstructions"]
+                        </dt>
+                        <dd class="col-sm-5">
+                            @product.WashInstructions
+                        </dd>
+                    </dl>
+                    <hr />
+                </div>
+                <div class="mt-3">
+                    <h5>@Loc["MoreInfo"]</h5>
+                    <p style="font-size: smaller; font-weight: 450;">@((MarkupString)product.Description)</p>
+                    
+                </div>
+                <div class="mt-3">
+                    <button class="btn" style="border: unset; outline:none; background-color: transparent;
+                                        color: dodgerblue;">
+                        <img src="chat-right-text.svg"/>
+                        @Loc["ProductIssue"]
+                    </button>
+                    <hr />
+                </div>
+            </div>
+            <div class="col-sm" style="max-width: fit-content;">
+                <div class="card">
+                    <div class="card-body">
+                        <label tyle="font-size: smaller; vertical-align: text-top;">@product.Price.ToString("C2").Substring(0, index)</label>
+                        <strong style="font-size: x-large;">@product.Price.ToString("C2").Substring(index)</strong>
+                        <div class="mt-3 mb-3">
+                            <button style="border: unset; outline:none; background-color: transparent; color: dodgerblue;">
+                                @Loc["ReturnPolicy"]
+                            </button>
+                        </div>
+                        <div class="mt-3 mb-3">
+                            <button style="border-bottom-left-radius: 10px; border-top-left-radius: 10px; border: unset;">
+                                <img src="dash.svg"/>
+                            </button>
+                            <strong>@Count</strong>
+                            <button style="border-bottom-right-radius: 10px; border-top-right-radius: 10px; border: unset;">
+                                <img src="plus.svg" />
+                            </button>
+                        </div>
+                        <div class="mt-3 mb-3">
+                            <div class="mb-2">
+                                <button class="btn" style="border-radius: 10px; border: unset; background-color: lightgray; 
+                                        min-width: 99%;">
+                                    @Loc["AddToCart"]
+                                </button>
+                            </div>
+                            <div class="mb-2">
+                                <form method="post" @formname="checkout" @onsubmit="Checkout">
+                                    <button class="btn" type="submit" style="border-radius: 10px; background-color: #2f4f4f; color:#F5F5F5;
+                                                        border: unset; min-width: 99%;">
+                                        @Loc["BuyNow"]
+                                    </button>
+                                    <AntiforgeryToken />
+                                </form>
+                            </div>
+                        </div>
+                        <div style="color: #2f4f4f;">
+                            @Loc["FreeShipping"]
+                            <button style="border: unset; outline:none; background-color: transparent; color: dodgerblue;">
+                                @Loc["SelectLocation"]
+                            </button>
+                        </div>
+                        <dl class="row mt-3 mb-2" style="color: #2f4f4f; font-size: x-small;">
+                            <dd class="col-sm-5">
+                                @Loc["ShipsFrom"]
+                            </dd>
+                            <dt class="col-sm-4">
+                                @Loc["CompanyLogo"]
+                            </dt>
+                            <dd class="col-sm-5">
+                                @Loc["SoldBy"]
+                            </dd>
+                            <dt class="col-sm-4">
+                                @Loc["CompanyLogo"]
+                            </dt>
+                        </dl>
+                        <dl class="row mt-3">
+                            <dd class="col-sm-9 mt-3" style="color: #2f4f4f; font-size: small;">
+                                <label class="form-label" style="text-align: left;">@Loc["AddToList"]:</label>
+                            </dd>
+                            <dt class="col-sm-2">
+                                <button type="button" class="btn" @onclick="OnAddToListClicked" data-bs-toggle="tooltip" title=@Loc["AddToList"]>
+                                    <img src="plus-square.svg" />
+                                </button>
+                            </dt>
+                            <MethaWebsite.Components.Account.Pages.ProductListPages.Create @ref=AddListPopUp />
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private Product? product;
+    public ProductGroup? productGroup;
+
+    [Parameter]
+    public List<ProductImage>? Images { get; set; }
+
+    [Parameter]
+    public ProductImage? CurrentImage { get; set; }
+
+    [Parameter]
+    public int Count { get; set; } = 1;
+
+    [Parameter]
+    public List<Product>? SimilarProducts { get; set; }
+
+    [Parameter]
+    public List<string>? Sizes { get; set; } = new List<string>();
+
+    [Parameter]
+    public string? CurrentSize { get; set; }
+
+    [Parameter]
+    public List<Category>? Categories { get; set; } = new List<Category>();
+
+    [Parameter]
+    public List<Product>? products { get; set; } = new List<Product>();
+
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    private Category? category { get; set; }
+
+    private delegate bool TryFindSizeGuide(string id, DbContext context);
+    private record SizeGuideHandler(TryFindSizeGuide TryFind, Action Action);
+
+    private SizeGuidePages.TrousersSizeGuidePages.TrouserSizeGuidePopover? TrouserSizeGuidePopUp;
+    private SizeGuidePages.ShirtsSizeGuidePages.ShirtSizeGuidePopover? ShirtSizeGuidePopUp;
+    private SizeGuidePages.ShoesSizeGuidePages.ShoeSizeGuidePopover? ShoeSizeGuidePopUp;
+    private ProductListPages.Create? AddListPopUp;
+    private ProductImagesPopOver? ProductImagesPopOver;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        product = await context.Product.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (product is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        else
+        {
+            Sizes.Add(product.Size);
+            if (Images is null)
+            {
+                Images = context.ProductImage.Where(i => i.ProductColorGroupId == product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
+                if (Images.Count > 0)
+                {
+                    CurrentImage = Images[0];
+                }
+            }
+
+            productGroup = await context.ProductGroup.FirstOrDefaultAsync(p => p.Name == product.Name);
+
+            var product_color_groups = context.ProductColorGroup.Where(p => p.Name == product.Name);
+
+            foreach (var product_color_group in product_color_groups)
+            {
+                var prods = context.Product.Where(p => p.ProductColorGroupID == product_color_group.Id);
+                products.AddRange(prods);
+            }
+
+            foreach (var prod in products)
+            {
+                if (!Sizes.Contains(prod.Size))
+                {
+                    Sizes.Add(prod.Size);
+                }  
+            }
+            products.Clear();
+            foreach (var product_color_group in product_color_groups)
+            {
+                var prod = await context.Product.FirstOrDefaultAsync(p => p.ProductColorGroupID == product_color_group.Id);
+                if (!products.Contains(prod)){
+                    products.Add(prod);
+                }
+            }
+            category = await context.Category.FirstOrDefaultAsync(c => c.Id == product.CategoryId);
+            Categories.Add(category);
+            var ParentCat = await context.Category.FirstOrDefaultAsync(c => c.Id == category.ParentID);
+            while (ParentCat is not null)
+            {
+                Categories.Add(ParentCat);
+                ParentCat = await context.Category.FirstOrDefaultAsync(c => c.Id == ParentCat.ParentID);
+            }
+        }
+    }
+    public void OnAddToListClicked()
+    {
+        AddListPopUp.Show();
+    }
+    private async Task OnSizeChartClicked()
+    {
+        if (product.SizeGuideId is not null)
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+
+            var sizeGuideHandlers = new List<SizeGuideHandler>
+        {
+            new SizeGuideHandler(
+                (id, ctx) => context.ShirtsSizeGuide.Any(s => s.Id == id),
+                () => ShirtSizeGuidePopUp!.Show()
+            ),
+            new SizeGuideHandler(
+                (id, ctx) => context.ShoesSizeGuide.Any(s => s.Id == id),
+                () => ShoeSizeGuidePopUp!.Show()
+            ),
+            new SizeGuideHandler(
+                (id, ctx) => context.TrousersSizeGuide.Any(s => s.Id == id),
+                () => TrouserSizeGuidePopUp!.Show()
+            )
+        };
+
+            foreach (var handler in sizeGuideHandlers)
+            {
+                if (handler.TryFind(product.SizeGuideId, context))
+                {
+                    handler.Action();
+                    break;
+                }
+            }
+        }
+    }
+    public void OnDetailsClicked(ProductImage image)
+    {
+        ProductImagesPopOver.Show();
+    }
+    public void Close()
+    {
+        //ProductImagesPopOver.Close();
+    }
+    public void OnCurrentImageClicked(ProductImage image)
+    {
+        CurrentImage = image;
+        StateHasChanged();
+    }
+    private async Task ChangeProduct(Product prod)
+    {
+        product = prod;
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        Images = context.ProductImage.Where(i => i.ProductColorGroupId == product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
+        if (Images.Count > 0)
+        {
+            CurrentImage = Images[0];
+        }
+        StateHasChanged();
+    }
+    private async Task Checkout()
+    {
+        var domain = "https://localhost:44338";
+        var options = new SessionCreateOptions
+        {
+            LineItems = new List<SessionLineItemOptions>
+            {
+                new()
+                {
+                    // Provide the exact Price ID
+                    Price = "price_1RdgKhR5Q65HyKGx3WY0WKgt",
+                    Quantity = 1,
+                },
+            },
+            Mode = "payment",
+            SuccessUrl = domain + "/Account/OrderComplete",
+            CancelUrl = domain + "/Account/OrderAbandoned"
+        };
+        var service = new SessionService();
+        var session = await service.CreateAsync(options);
+        NavigationManager.NavigateTo(session.Url);
+    }
+}

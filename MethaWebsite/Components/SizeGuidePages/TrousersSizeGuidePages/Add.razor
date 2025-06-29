@@ -1,0 +1,121 @@
+﻿@page "/trouserssizeguides/create"
+@using System.Globalization
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Create</PageTitle>
+
+<div class="container-sm">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["TrousersSizeGuide"]</strong>
+                <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                        aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body">
+                <EditForm method="post" Model="TrousersSizeGuide" OnValidSubmit="AddTrousersSizeGuide" FormName="create" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" role="alert" />
+                    <div class="form form-floating mb-3">
+                        <InputText id="seatsize" @bind-Value="TrousersSizeGuide.SeatSize" class="form-control" />
+                        <label for="seatsize" class="form-label">@Loc["Seat"] (cm):</label>
+                        <ValidationMessage For="() => TrousersSizeGuide.SeatSize" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="inseamlength" @bind-Value="TrousersSizeGuide.InSeamLength" class="form-control" />
+                        <label for="inseamlength" class="form-label">@Loc["Inseam"] (cm):</label>
+                        <ValidationMessage For="() => TrousersSizeGuide.InSeamLength" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="brandsize" @bind-Value="TrousersSizeGuide.BrandSize" class="form-control" placeholder=""/>
+                        <label for="brandsize" class="form-label">@Loc["BrandSize"]:</label>
+                        <ValidationMessage For="() => TrousersSizeGuide.BrandSize" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="waistsize" @bind-Value="TrousersSizeGuide.WaistSize" class="form-control" />
+                        <label for="waistsize" class="form-label">@Loc["Waist"] (cm):</label>
+                        <ValidationMessage For="() => TrousersSizeGuide.WaistSize" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="hipsize" @bind-Value="TrousersSizeGuide.HipSize" class="form-control" />
+                        <label for="hipsize" class="form-label">@Loc["Hip"] (cm):</label>
+                        <ValidationMessage For="() => TrousersSizeGuide.HipSize" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="length" @bind-Value="TrousersSizeGuide.Length" class="form-control" />
+                        <label for="length" class="form-label">@Loc["Length"] (cm):</label>
+                        <ValidationMessage For="() => TrousersSizeGuide.Length" class="text-danger" />
+                    </div>
+                    <div style="text-align: right;">
+                        <button type="submit" class="btn btn-primary" style="background-color:#2f4f4f;
+                                    border-radius: 5px;" data-bs-toggle="tooltip" title=@Loc["Add"]>
+                            @Loc["Add"]
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background"></div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private TrousersSizeGuide TrousersSizeGuide { get; set; } = new();
+
+    [CascadingParameter]
+    private ProductGroup? ProductGroup { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnTrouserSizeGuideAdded { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddTrousersSizeGuide()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        if (ProductGroup is not null && ProductGroup.ProductColorGroups is not null)
+        {
+            foreach (var product in ProductGroup.ProductColorGroups.SelectMany(cg => cg.Products))
+            {
+                TrousersSizeGuide.ProductId = product.Id;
+                product.SizeGuideId = TrousersSizeGuide.Id;
+
+                if (!context.TrousersSizeGuide.Contains(TrousersSizeGuide))
+                {
+                    context.TrousersSizeGuide.Add(TrousersSizeGuide);
+                    await context.SaveChangesAsync();
+                }
+                await OnTrouserSizeGuideAdded.InvokeAsync();
+            }
+        }
+        TrousersSizeGuide = new TrousersSizeGuide();
+        Close();
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

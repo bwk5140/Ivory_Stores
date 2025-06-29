@@ -1,0 +1,130 @@
+﻿@page "/shoppingcart/confirmation"
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Services
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+
+@inject ApplicationUserService ApplicationUserService
+@inject ShoppingCartService ShoppingCartService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject IStringLocalizer<SharedResource> Loc
+
+@if (product is null)
+{
+    <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+}
+else
+{
+    <div class="row mt-5">
+        <div class="col" style="text-align: center;">
+            <div class="card" style="height: 200px;">
+                <div class="card-body">
+                    <div style="display: inline-block;">
+                        @{
+                            var Images = context.ProductImage.Where(i => i.ProductColorGroupId == product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
+                        }
+                        @if (Images.Count > 0)
+                        {
+                            var CurrentImage = Images[0];
+                            var Id = product.Id;
+                            <a href="@($"product/details?id={product.Id}")" class="btn">
+                                <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                     alt=@Loc["ProductImage"] style="width:150px; height:150px; object-fit:contain;" />
+                            </a>
+                        }
+                    </div>
+                    <div style="display: inline-block;">
+                        <div style="display: inline-block">
+                            <img src="check-circle-fill.svg" />
+                        </div>
+                        <div style="display: inline-block">
+                            <h5>@Loc["AddedToCart"]</h5>
+                        </div>
+                        <div style="text-align: start;"><strong>@Loc["Size"]: </strong>@product.Size</div>
+                        <div style="text-align: start;"><strong>@Loc["Color"]: </strong>@product.Color</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card" style="height: 200px;">
+                <div class="card-body">
+                    <div style="display: inline-block">
+                        <h5 >@Loc["CartTotal"]:</h5>
+                    </div>
+                    <div style=" display: inline-block">
+                        <h5 style="font-weight: 450;">@ShoppingCart.Subtotal.ToString("C2")</h5>
+                    </div>
+                    <div>
+                        <button class="mb-3" style="border-bottom-left-radius: 15px; border-top-left-radius: 15px; border-bottom-right-radius: 15px;
+                                    border-top-right-radius: 15px; border: unset; background-color: #2f4f4f; color: white; padding: 5px; width: 250px;">
+                            @Loc["ProceedToCheckout"] (@ShoppingCart.ProductIds.Count() @Loc["Items"])
+                        </button>
+                    </div>
+                    <div>
+                        <a href="/shoppingcart" class="mb-3 btn btn-secondary" style="border-bottom-left-radius: 15px; border-top-left-radius: 15px; border-bottom-right-radius: 15px;
+                                    border-top-right-radius: 15px; border: unset; padding: 5px; width: 250px;">
+                            @Loc["GoToCart"]
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    [Parameter]
+    public Product? product { get; set; }
+
+    private ApplicationUser? ApplicationUser { get; set; }
+    [Parameter]
+    public List<Product>? Products { get; set; } = new List<Product>();
+    private ShoppingCart? ShoppingCart { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+        product = await context.Product.FirstOrDefaultAsync(m => m.Id == Id);;
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+
+        if (ApplicationUser is not null)
+        {
+            ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == ApplicationUser.Id);
+            if (ShoppingCart is null)
+            {
+                ShoppingCart = ShoppingCartService.getShoppingCart();
+            }
+            foreach (var Id in ShoppingCart!.ProductIds)
+            {
+                var product = await context.Product.FirstOrDefaultAsync(p => p.Id == Id);
+                if (!Products.Contains(product))
+                {
+                    Products.Add(product);
+                }
+            }
+        }
+        else
+        {
+            ShoppingCart = ShoppingCartService.getShoppingCart();
+            foreach (var Id in ShoppingCart?.ProductIds)
+            {
+                var product = await context.Product.FirstOrDefaultAsync(p => p.Id == Id);
+                if (!Products.Contains(product))
+                {
+                    Products.Add(product);
+                }
+            }
+        }
+    }
+}

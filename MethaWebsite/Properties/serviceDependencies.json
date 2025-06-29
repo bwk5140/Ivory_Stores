@@ -1,0 +1,58 @@
+{
+  "dependencies": {
+    "mssql1": {
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:DefaultConnection1",
+      "dynamicId": null
+    },
+    "secrets1": {
+      "type": "secrets",
+      "connectionId": "VaultUri"
+    },
+    "mssql3": {
+      "ignored": "true",
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:ProductContext"
+    },
+    "mssql4": {
+      "ignored": "true",
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:ProductImageContext"
+    },
+    "mssql5": {
+      "ignored": "true",
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:CategoryContext"
+    },
+    "mssql7": {
+      "ignored": "true",
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:SizeGuideContext"
+    },
+    "mssql6": {
+      "ignored": "true",
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:ShoeSizeGuideContext"
+    },
+    "mssql8": {
+      "ignored": "true",
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:ProductGroupContext"
+    },
+    "mssql9": {
+      "ignored": "true",
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:TrouserSizeGuideContext"
+    },
+    "mssql10": {
+      "ignored": "true",
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:ProductColorGroupContext"
+    },
+    "mssql11": {
+      "ignored": "true",
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:ShirtSizeGuideContext"
+    }
+  }
+}

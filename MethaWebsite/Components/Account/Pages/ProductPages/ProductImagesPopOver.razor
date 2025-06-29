@@ -1,0 +1,91 @@
+﻿@using System.Globalization
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+
+<div class="container-sm" style="justify-content: center;">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container toast-container-img @showClass" data-bs-autohide="true" data-bs-delay="5000">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="min-width:fit-content; max-width: 600px; max-height: 950px; background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["Images"]</strong>
+                <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                        aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body" style="background-color: white; max-height: 900px;">
+                <div class="row">
+                    <div class="col-lg">
+                        <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                             alt=@Loc["ProductImage"] style="width:100%; max-height:850px; object-fit:contain;" />
+                    </div>
+                    <div class="col-md" style="max-width: 50%;">
+                        <div class="row">
+                            <h5>@Product.Name</h5>
+                            <hr/>
+                        </div>
+                        <dl class="row">
+                            <dt class="col-sm-2" style="color: gray;">@Loc["Fabric"]:</dt>
+                            <dd class="col-lg-6" style="color: gray;">@Product.Fabric</dd>
+                        </dl>
+                        <dl class="row">
+                            <dt class="col-sm-2" style="color: gray;">@Loc["Color"]:</dt>
+                            <dd class="col-lg-2" style="color: gray;">@Product.Color</dd>
+                        </dl>
+                        <div class="row">
+                            @if (Images is not null)
+                            {
+                                @foreach (var Image in Images)
+                                {
+                                    <div class="col">
+                                        <button class="btn" @onclick="@(() => OnCurrentImageClicked(Image))">
+                                            <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(Image.Image!)))"
+                                                 alt=@Loc["ProductImage"] style="width:100%; height:100%; object-fit:contain;" />
+                                        </button>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background"></div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [CascadingParameter]
+    public ProductImage? CurrentImage { get; set; }
+
+    [CascadingParameter]
+    public Product? Product { get; set; }
+
+    [CascadingParameter]
+    private List<ProductImage>? Images { get; set; }
+
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+    public void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+    public void OnCurrentImageClicked(ProductImage image)
+    {
+        CurrentImage = image;
+        StateHasChanged();
+    }
+}

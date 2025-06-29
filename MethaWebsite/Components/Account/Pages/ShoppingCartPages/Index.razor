@@ -1,0 +1,44 @@
+﻿@page "/shoppingcart/items"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@implements IAsyncDisposable
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<div class="container-xxl mt-5">
+    <QuickGrid Class="table" Items="context.ShoppingCart">
+        <PropertyColumn Property="shoppingcart => shoppingcart.Subtotal" />
+        <PropertyColumn Property="shoppingcart => shoppingcart.IsSelected" />
+
+        <TemplateColumn Context="shoppingcart">
+            <a href="@($"shoppingcarts/edit?id={shoppingcart.Id}")">Edit</a> |
+            <a href="@($"shoppingcarts/details?id={shoppingcart.Id}")">Details</a> |
+            <a href="@($"shoppingcarts/delete?id={shoppingcart.Id}")">Delete</a>
+        </TemplateColumn>
+    </QuickGrid>
+    <div class="row">
+        <div class="col-lg-9">
+
+        </div>
+        <div class="col-sm-3">
+
+        </div>
+
+    </div>
+</div>
+
+
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

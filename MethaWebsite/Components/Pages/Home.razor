@@ -1,0 +1,399 @@
+﻿@page "/"
+
+@rendermode InteractiveServer
+
+<PageTitle>Home</PageTitle>
+
+<div class="container-xxl">
+    <div id="carouselExampleFade" class="carousel slide carousel-fade">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="WebsiteBanner.png" class="d-block w-100" alt="...">
+            </div>
+
+            <div class="carousel-item">
+                <img src="TBMPOY_puffer.png" class="d-block w-100" alt="...">
+            </div>
+            <div class="carousel-item">
+                <img src="WebsiteBanner.png" class="d-block w-100" alt="...">
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleFade" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleFade" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+    <div class="container-sm mb-4" style="background-image: linear-gradient(180deg, #A66624 0%, #d79c60 30%, #b29d8200 90%);">
+        <div class="me-3" style="display: inline-block;">
+            <div class="card " style="border-radius: 0px; height: 430px;">
+                <div class="card-header" style="background-color: transparent; border: none; padding-bottom: 0px;">
+                    <h4 style="font:bolder;">Find similar items</h4>
+                </div>
+
+                <div class="card-body" style="padding-top: 0px;">
+                    <div>
+                        <img class="me-5 mb-2 card-overlay-img" src="DarkOrangeVValanchPolo.jpg" />
+                        <img class="me-2 mb-2 card-overlay-img" src="AzurePoloAmazon.jpg" />
+                    </div>
+                    <div>
+                        <img class="me-5 mb-2 card-overlay-img" src="BluePaulJonesPolo.jpg" />
+                        <img class="me-2 mb-2 card-overlay-img" src="DarkRedVValanchPolo.jpg" />
+                    </div>
+                </div>
+                <div class="card-footer" style="border: none; background-color: transparent; padding-top: 0px;">
+                    <a style="text-decoration: none; font-size: smaller;" href="@($"/searchresults?filter=All&search=polo")">Shop all</a>
+                </div>
+            </div>
+        </div>
+        <div class="me-3" style="display: inline-block;">
+            <div class="card " style="border-radius: 0px; height: 430px;">
+                <div class="card-header" style="background-color: transparent; border: none; padding-bottom: 0px;">
+                    <h4>Beat the cold</h4>
+                </div>
+                <div class="card-body" style="padding-top: 0px;">
+                    <div>
+                        <div class="me-3 mb-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="black_sweater.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Sweaters</a>
+                            </div>
+                        </div>
+                        <div class="me-3 mb-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="TBMPOY_puffer.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Puffer jackets</a>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div>
+                        <div class="me-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="ChelseaBoot.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Chelsea boots</a>
+                            </div>
+                        </div>
+                        <div class="me-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="IZODJeans.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Jeans</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer" style="border: none; background-color: transparent; padding-top: 0px;">
+                    <a style="text-decoration: none; font-size: smaller;" href="@($"/searchresults?filter=All&search=polo")">Shop all</a>
+                </div>
+            </div>
+        </div>
+        <div class="me-3" style="display: inline-block;">
+            <div class="card " style="border-radius: 0px; height: 430px;">
+                <div class="card-header" style="background-color: transparent; border: none; padding-bottom: 0px;">
+                    <h4>Hand Picked Cosmetics</h4>
+                </div>
+                <div class="card-body" style="padding-top: 0px;">
+                    <div>
+                        <div class="me-3 mb-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #DECFBF;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="MoroccanOilMustHaves.jpg" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Moroccan oils</a>
+                            </div>
+                        </div>
+                        <div class="me-3 mb-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #DECFBF;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="JOONCosmetics.jpg" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Saffron hair elixir</a>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div>
+                        <div class="me-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #DECFBF;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="LANZACosmetics.jpg" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Travel set</a>
+                            </div>
+                        </div>
+                        <div class="me-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #DECFBF;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="OUAICosmetics.jpg" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Hair & body care</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer" style="border: none; background-color: transparent; padding-top: 0px;">
+                    <a style="text-decoration: none; font-size: smaller;" href="@($"/searchresults?filter=All&search=polo")">Shop all</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-sm">
+        <div class="me-3" style="display: inline-block;">
+            <div class="card " style="border-radius: 0px; height: 430px;">
+                <div class="card-header" style="background-color: transparent; border: none; padding-bottom: 0px;">
+                    <h4>Dresses for her</h4>
+                </div>
+                <div class="card-body" style="padding-top: 0px;">
+                    <div>
+                        <div class="me-3 mb-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #EDD9CE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="CiderDress.jpg" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Sundresses</a>
+                            </div>
+                        </div>
+                        <div class="me-3 mb-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #EDD9CE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="WDIRARADress.jpg" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Vintage</a>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div>
+                        <div class="me-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #EDD9CE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="SolyHuxDress.jpg" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Floral</a>
+                            </div>
+                        </div>
+                        <div class="me-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #EDD9CE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="CiderBlackDress.jpg" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Vacation</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer" style="border: none; background-color: transparent; padding-top: 0px;">
+                    <a style="text-decoration: none; font-size: smaller;" href="@($"/searchresults?filter=All&search=polo")">Shop all</a>
+                </div>
+            </div>
+        </div>
+        <div class="me-3" style="display: inline-block;">
+            <div class="card " style="border-radius: 0px; height: 430px;">
+                <div class="card-header" style="background-color: transparent; border: none; padding-bottom: 0px;">
+                    <h4>Ready for the next work out</h4>
+                </div>
+                <div class="card-body" style="padding-top: 0px;">
+                    <div>
+                        <div class="me-3 mb-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="black_sweater.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Sweaters</a>
+                            </div>
+                        </div>
+                        <div class="me-3 mb-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="TBMPOY_puffer.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Puffer jackets</a>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div>
+                        <div class="me-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="ChelseaBoot.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Chelsea boots</a>
+                            </div>
+                        </div>
+                        <div class="me-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="IZODJeans.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Jeans</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer" style="border: none; background-color: transparent; padding-top: 0px;">
+                    <a style="text-decoration: none; font-size: smaller;" href="@($"/searchresults?filter=All&search=polo")">Shop all</a>
+                </div>
+            </div>
+        </div>
+        <div class="me-3" style="display: inline-block;">
+            <div class="card " style="border-radius: 0px; height: 430px;">
+                <div class="card-header" style="background-color: transparent; border: none; padding-bottom: 0px;">
+                    <h4>Beat the cold</h4>
+                </div>
+                <div class="card-body" style="padding-top: 0px;">
+                    <div>
+                        <div class="me-3 mb-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="black_sweater.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Sweaters</a>
+                            </div>
+                        </div>
+                        <div class="me-3 mb-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="TBMPOY_puffer.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Puffer jackets</a>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div>
+                        <div class="me-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="ChelseaBoot.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Chelsea boots</a>
+                            </div>
+                        </div>
+                        <div class="me-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="IZODJeans.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Jeans</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer" style="border: none; background-color: transparent; padding-top: 0px;">
+                    <a style="text-decoration: none; font-size: smaller;" href="@($"/searchresults?filter=All&search=polo")">Shop all</a>
+                </div>
+            </div>
+        </div>
+        <div class="me-3" style="display: inline-block;">
+            <div class="card " style="border-radius: 0px; height: 430px;">
+                <div class="card-header" style="background-color: transparent; border: none; padding-bottom: 0px;">
+                    <h4>Beat the cold</h4>
+                </div>
+                <div class="card-body" style="padding-top: 0px;">
+                    <div>
+                        <div class="me-3 mb-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="black_sweater.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Sweaters</a>
+                            </div>
+                        </div>
+                        <div class="me-3 mb-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="TBMPOY_puffer.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Puffer jackets</a>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div>
+                        <div class="me-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="ChelseaBoot.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Chelsea boots</a>
+                            </div>
+                        </div>
+                        <div class="me-3" style="display: inline-block;">
+                            <div class="card" style="border-radius: 0px; background-color: #D1CCBE;">
+                                <div class="card-body">
+                                    <img class="smaller_card-overlay-img" src="IZODJeans.png" />
+                                </div>
+                            </div>
+                            <div>
+                                <a href="/" style="text-decoration: none; font-size: smaller; color: black;">Jeans</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer" style="border: none; background-color: transparent; padding-top: 0px;">
+                    <a style="text-decoration: none; font-size: smaller;" href="@($"/searchresults?filter=All&search=polo")">Shop all</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

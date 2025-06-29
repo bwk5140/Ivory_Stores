@@ -1,0 +1,71 @@
+﻿@page "/Account/countries/create"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Create</PageTitle>
+
+<div class="container-sm mt-5" style="display: flex; justify-content: center;">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="width: fit-content; max-width: 550px; max-height: 600px; overflow-y: auto;
+                    background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["CreateCountry"]</strong>
+                <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                        aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body">
+                <EditForm method="post" Model="Country" OnValidSubmit="AddCountry" FormName="create" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" role="alert" />
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name:</label>
+                        <InputText id="name" @bind-Value="Country.Name" class="form-control" />
+                        <ValidationMessage For="() => Country.Name" class="text-danger" />
+                    </div>
+                    <div class="ms-1" style="text-align: right;">
+                        <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                            border-color:transparent; border-radius: 5px;">
+                            @Loc["Add"]
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Country Country { get; set; } = new();
+
+    [Parameter]
+    public bool IsVisible { get; set; } = true;
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddCountry()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Country.Add(Country);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/countries");
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

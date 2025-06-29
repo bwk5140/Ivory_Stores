@@ -1,0 +1,419 @@
+﻿@using MethaWebsite.Data
+@using MethaWebsite.Services
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Caching.Memory
+@using System.Globalization
+@using PSC.Blazor.Components.Icons
+
+@inject IStringLocalizer<SharedResource> Loc
+@implements IDisposable
+@inject NavigationManager NavigationManager
+@inject ApplicationUserService ApplicationUserService
+@inject ShoppingCartService ShoppingCartService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject LayoutRefreshService RefreshService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject IJSRuntime JS
+
+@rendermode InteractiveServer
+
+@if (!NavigationManager.Uri.Contains("Login") && !NavigationManager.Uri.Contains("Register") &&
+    !NavigationManager.Uri.Contains("ConfirmEmail") && !NavigationManager.Uri.Contains("Invalid") && 
+    !NavigationManager.Uri.Contains("AccessDenied") && !NavigationManager.Uri.Contains("Lockout") && 
+    !NavigationManager.Uri.Contains("EmailConfirmation") && !NavigationManager.Uri.Contains("Forgot"))
+{
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark top-row">
+        <a class="navbar-brand ms-2" href="/">@Loc["CompanyLogo"]</a>
+        <form class="container-fluid">
+            <div class="input-group input-group-sm">
+                <InputSelect @bind-Value="filter" class="search_filter form-select" style="max-width:fit-content;
+                        border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                    @foreach (var filtr in filters)
+                    {
+                        <option value="@filtr">@Loc[filtr]</option>
+                    }
+                </InputSelect>
+                <InputText class="input-no-focus form-control" @bind-Value="search" typeof="search" placeholder="@Loc["SearchCompany"]"
+                           aria-label="Search" @bind-Value:after="Search">
+                </InputText>
+                <button class="btn btn-outline-success" style="background-color: #89c182; border-top-right-radius: 8px;
+                                    border-bottom-right-radius: 8px; border-color: #89c182;" type="submit" @onclick=Search>
+                    <i class="search_icon"></i>
+                </button>
+            </div>
+        </form>
+        <div class="dropdown">
+            @{
+                var language = selectedCulture.Name.Substring(0, selectedCulture.Name.IndexOf('-'));
+                var countrycode = selectedCulture.Name.Substring(selectedCulture.Name.IndexOf('-') + 1);
+            }
+            <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                    style="background-color:transparent; color: white;" @onmouseover="@(() => SetChecked(selectedCulture))"
+                    @onclick="e => this.show = !this.show">
+                <SVGFlag CountryCode="@countrycode" FlagType="FlagType.Wide" Width="25" Height="15" />
+                @language.ToUpper()
+            </button>
+            <ul class="dropdown-menu @(show ? "show" : "")" @onmouseleave="e => this.show = !this.show" style="left: -50%; top: 120%;">
+                <li class="list-group-item dropdown-item ms-2 me-2 mb-1" style="background-color: transparent;">
+                    <input class="form-check-input me-1 mb-1" type="radio" name="listGroupRadio" value="culture"
+                           id="culture" @onclick="@(() => ApplySelectedCultureAsync(selectedCulture, check))"
+                           checked=@check[Array.IndexOf(supportedCultures, selectedCulture)]>
+                    <label class="form-check-label stretched-link" for="firstRadio"
+                           @onclick="@(() => ApplySelectedCultureAsync(selectedCulture, check))">
+                        @cultureDict[selectedCulture.Name]
+                    </label>
+                </li>
+                <li><hr style="color: lightgray;" class="dropdown-divider ms-2 me-2 mb-1"></li>
+                @foreach (var culture in supportedCultures)
+                {
+                    @if (culture.Name != selectedCulture.Name)
+                    {
+                        <li class="list-group-item dropdown-item ms-2 me-2 mb-1" style="background-color: transparent;">
+                            <input class="form-check-input me-1 mb-1" type="radio" name="listGroupRadio" value="culture"
+                                   id="culture" @onclick="@(() => ApplySelectedCultureAsync(culture, check))"
+                                   checked=@check[Array.IndexOf(supportedCultures, culture)]>
+                            <label class="form-check-label stretched-link" for="firstRadio"
+                                   @onclick="@(() => ApplySelectedCultureAsync(culture, check))">
+                                @cultureDict[culture.Name]
+                            </label>
+                        </li>
+                    }
+                }
+            </ul>
+        </div>
+        <div class="container-fluid" style="display:flex; align-content:flex-end; max-width: fit-content;">
+            <AuthorizeView>
+                <NotAuthorized>
+                    <div class="dropdown">
+                        <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                style="background-color:transparent; color: white;" @onmouseover="@(() => SetChecked(selectedCulture))"
+                                @onclick="e => this.showAccountOptions = !this.showAccountOptions">
+                            <img src="person.svg" />
+                            @Loc["Hello"],
+                            @Loc["Login"]
+                        </button>
+                        <div class="dropdown-menu @(showAccountOptions ? "show" : "")" @onmouseleave="e => this.showAccountOptions = !this.showAccountOptions"
+                            style="left: -50%; top: 120%;">
+                            <div class="list-group-item dropdown-item ms-3 me-3 mb-2 row" style="background-color: transparent; width: max-content;
+                                        max-width: 400px;">
+                                <div style="display: flex; justify-content: center; padding: 5px;">
+                                    <button type="button" class="btn btn-md" @onclick=OnSignInClicked style="background-color: #2f4f4f; color:white;">
+                                        @Loc["Login"]
+                                    </button>
+                                </div>
+                                <div style="display: flex; justify-content: center; padding: 5px;">
+                                    <p style="font-size: small;">@Loc["NoAccount"]? <a style="text-decoration: none; font-size: small;" href="/Account/Register">@Loc["Register"]</a></p>
+                                    
+                                </div>
+                                <hr />
+                                <table class="table table-bordered ms-4 me-4" style="border-top-color: transparent; border-bottom-color: transparent; border-left-color: transparent;
+                                                      border-right-color: transparent; width: fit-content;">
+                                    <thead>
+                                        <tr>
+                                            <th class="border-end" style="padding-right: 40px;" scope="col">@Loc["YourLists"]</th>
+                                            <th class="ms-4" style="padding-left: 40px;" scope="col">@Loc["YourAccount"]</th>
+
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="border-end" style="padding-right: 40px;">
+                                                <div>
+                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/productlists/create">@Loc["CreateList"]</a>
+                                                </div>
+                                            </td>
+                                            <td style="padding-left: 40px;">
+                                                <div>
+                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["Account"]</a>
+                                                </div>
+                                                <div>
+                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["Orders"]</a>
+                                                </div>
+                                                <div>
+                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["CustomerService"]</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </NotAuthorized>
+                <Authorized>
+                    <div class="dropdown">
+                        <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                style="background-color:transparent; color: white;" @onmouseover="@(() => SetChecked(selectedCulture))"
+                                @onclick="e => this.showAccountOptions = !this.showAccountOptions">
+                            <img src="person.svg" />
+                            @Loc["Hello"],
+                            @if (ApplicationUser is not null)
+                            {
+                                @ApplicationUser.UserName
+                            }
+                        </button>
+                        <div class="dropdown-menu @(showAccountOptions ? "show" : "")" @onmouseleave="e => this.showAccountOptions = !this.showAccountOptions">
+                            <div class="list-group-item dropdown-item ms-3 me-3 mb-2 row" style="background-color: transparent; width: max-content;
+                                    max-width: 400px;">
+                                <table class="table table-bordered ms-4 me-4" style="border-top-color: transparent; border-bottom-color: transparent; border-left-color: transparent;
+                                                  border-right-color: transparent; width: fit-content;">
+                                    <thead>
+                                        <tr>
+                                            <th class="border-end" style="padding-right: 40px;" scope="col">@Loc["YourLists"]</th>
+                                            <th class="ms-4" style="padding-left: 40px;" scope="col">@Loc["YourAccount"]</th>
+                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="border-end" style="padding-right: 40px;">
+                                                <button type="submit" class="btn btn-sm" style="background-color: transparent; width: fit-content; padding: 0px;">
+                                                    @Loc["CreateList"]
+                                                </button>
+                                            </td>
+                                            <td style="padding-left: 40px;">
+                                                <form action="Account/Logout" method="post">
+                                                    <AntiforgeryToken />
+                                                    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                                                    <button type="submit" class="btn btn-sm" style="background-color: transparent; width: fit-content; padding: 0px;">
+                                                        @Loc["Logout"]
+                                                    </button>
+                                                    <hr class="dropdown-divider">
+                                                </form>
+                                                <div>
+                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["Account"]</a>
+                                                </div>
+                                                <div>
+                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["Orders"]</a>
+                                                </div>
+                                                <div>
+                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["CustomerService"]</a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+            <button class="btn btn-sm ms-3" style="background-color: transparent; border-top-right-radius: 10px;
+                    border-bottom-right-radius: 10px; color:white; max-width: 25%; text-wrap:auto;" type="button" @onclick=Search>
+                @Loc["ReturnsAndOrders"]
+            </button>
+            <a href="/shoppingcart" class="btn btn-sm ms-3 me-4 mb-1 position-relative" style="background-color: transparent;" type="button">
+                <img src="cart.svg" />
+                @if (ShoppingCart is not null && ShoppingCart.ProductIds.Any())
+                {
+                    <span class="position-absolute top-0 start-52 translate-middle badge rounded-pill bg-danger">
+                        @ShoppingCart.ProductIds.Count()
+                        <span class="visually-hidden">cart items</span>
+                    </span>
+                }
+                <span class="position-absolute top-50 start-100 translate-middle badge ms-2 me-3" style="font-size: medium;">
+                    @Loc["Cart"]
+                    <span class="visually-hidden">cart items</span>
+                </span>
+            </a>
+        </div>
+    </nav>
+
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark second-top-row">
+        <div class="container-fluid">
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item me-2">
+                        <button class="btn btn-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasWithBothOptions" 
+                        aria-controls="offcanvasWithBothOptions" style="background-color: transparent; border: none;"
+                                @onclick="e => showOffCanvas = !showOffCanvas">
+                            <img src="list.svg" alt="OffCanvasMenu" />
+                        </button>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link" href="/Account/Products" style="color: white; font-size: medium;">@Loc["DealsAndDiscounts"]</a>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link" href="#" style="color: white; font-size: medium;">@Loc["Cosmetics"]</a>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link" href="#" style="color: white; font-size: medium;">@Loc["Shirts"]</a>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link" href="#" style="color: white; font-size: medium;">@Loc["Shoes"]</a>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link" href="#" style="color: white; font-size: medium;">@Loc["MatchingOutfits"]</a>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link" href="#" style="color: white; font-size: medium;">@Loc["PersonalRecommendations"]</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    var showOffCanvasClass = showOffCanvas ? "d-block" : "d-none";
+    <div class="offcanvas offcanvas-start @showOffCanvasClass" data-bs-scroll="true" tabindex="-1" id="offcanvasWithBothOptions" aria-labelledby="offcanvasWithBothOptionsLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">Backdrop with scrolling</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <p>Try scrolling the rest of the page to see this option in action.</p>
+        </div>
+    </div>
+
+
+}
+
+
+@code {
+    string? currentUrl { get; set; }
+    private bool show = false;
+    private bool showAccountOptions = false;
+    private bool showOffCanvas { get; set; } = false;
+    private bool[] check = new bool[13];
+
+    [Parameter]
+    public ApplicationUser? ApplicationUser { get; set; }
+
+    [SupplyParameterFromForm]
+    private string? filter { get; set; } = "All";
+
+    [SupplyParameterFromForm]
+    public string? search { get; set; }
+
+    private Dictionary<string, string> cultureDict =
+        new()
+        {
+            { "en-KE", "English (Kenya)" },
+            { "en-US", "English (United States)" },
+            { "en-GB", "English (United Kingdom)" },
+            { "es-US", "Spanish (United States)" },
+            { "es-ES", "Spanish (Spain)" },
+            { "fr-FR", "French (France)" },
+            { "fr-CA", "French (Canada)" },
+            { "ar-SA", "Arabic (Saudia Arabia)" },
+            { "zh-Hant", "Chinese (Traditional)" },
+            { "de-DE", "German (Germany)" },
+            { "ja-JP", "Japanese" },
+            { "it-IT", "Italian (Italy)" },
+            { "sw-KE", "Kiswahili" }
+        };
+
+    private CultureInfo[] supportedCultures =
+        [
+            new CultureInfo("en-KE"),
+            new CultureInfo("en-US"),
+            new CultureInfo("en-GB"),
+            new CultureInfo("es-US"),
+            new CultureInfo("es-ES"),
+            new CultureInfo("fr-FR"),
+            new CultureInfo("fr-CA"),
+            new CultureInfo("ar-SA"),
+            new CultureInfo("zh-Hant"),
+            new CultureInfo("de-DE"),
+            new CultureInfo("ja-JP"),
+            new CultureInfo("it-IT"),
+            new CultureInfo("sw-KE")
+        ];
+
+    private CultureInfo? selectedCulture;
+    private System.Security.Claims.ClaimsPrincipal? claimsPrincipal { get; set; }
+
+    private ShoppingCart? ShoppingCart { get; set; }
+
+    private string[] filters = { "All", "Men", "Women", "Boys", "Girls", "Babies", "Unisex" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        selectedCulture = CultureInfo.CurrentCulture;
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+        RefreshService.OnRefreshRequested += RefreshLayout;
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        if (ApplicationUser is not null)
+        {
+            ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == ApplicationUser.Id);
+
+            if (ShoppingCart is null)
+            {
+                ShoppingCart = ShoppingCartService.getShoppingCart();
+            }
+        }
+        else
+        {
+            ShoppingCart = ShoppingCartService.getShoppingCart();
+        }
+    }
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+        RefreshService.OnRefreshRequested -= RefreshLayout;
+    }
+    private void Search()
+    {
+        NavigationManager.NavigateTo($"searchresults?search={search}");
+    }
+    private void OnSignInClicked()
+    {
+        NavigationManager.NavigateTo("Account/Login");
+    }
+    private void SetChecked(CultureInfo culture)
+    {
+        check[Array.IndexOf(supportedCultures, culture)] = true;
+    }
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Code == "Enter" || e.Code == "NumpadEnter")
+        {
+            Search();
+        }
+    }
+    private void RefreshLayout()
+    {
+        if (ApplicationUser is not null)
+        {
+            using var context = DbFactory.CreateDbContext();
+            ShoppingCart = context.ShoppingCart.FirstOrDefault(s => s.UserId == ApplicationUser.Id);
+
+            if (ShoppingCart is null)
+            {
+                ShoppingCart = ShoppingCartService.getShoppingCart();
+            }
+        }
+        else
+        {
+            ShoppingCart = ShoppingCartService.getShoppingCart();
+        }
+        StateHasChanged();
+    }
+
+    private async Task ApplySelectedCultureAsync(CultureInfo culture, bool[] check)
+    {
+        selectedCulture = culture;
+        check[Array.IndexOf(supportedCultures, culture)] = true;
+        if (CultureInfo.CurrentCulture != selectedCulture)
+        {
+            var uri = new Uri(NavigationManager.Uri)
+                .GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);
+            var cultureEscaped = Uri.EscapeDataString(selectedCulture.Name);
+            var uriEscaped = Uri.EscapeDataString(uri);
+            NavigationManager.NavigateTo(
+                $"Culture/Set?culture={cultureEscaped}&redirectUri={uriEscaped}",
+                forceLoad: true);
+        }
+    }
+}

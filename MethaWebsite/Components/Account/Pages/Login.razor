@@ -1,0 +1,159 @@
+﻿@page "/Account/Login"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using MethaWebsite.Data
+@using System.Globalization
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Login> Logger
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+@inject UserManager<ApplicationUser> UserManager
+
+<PageTitle>Log in</PageTitle>
+<div class="container-sm mt-5" style="text-align: center;">
+    <a href="/" style="text-decoration: none;"><h3 class="header mb-3">@Loc["CompanyLogo"]</h3></a>
+    <div class="center-container">
+        <div class="card" style="border-radius: 15px; width: 400px;">
+            <div class="card-header">
+                <h4 class="header mb-3">@Loc["Login"]</h4>
+            </div>
+
+            <div class="card-body">
+                <StatusMessage Message="@errorMessage" />
+                <EditForm Model="Input" method="post" OnValidSubmit="LoginUser" FormName="login">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" role="alert" />
+                    <div class="form form-floating mb-3">
+                        <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="" />
+                        <label for="Input.Email">@Loc["EmailOrUsername"]</label>
+                        <ValidationMessage For="() => Input.Email" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true"
+                                   placeholder="" />
+                        <label for="Input.Password">@Loc["Password"]</label>
+                        <ValidationMessage For="() => Input.Password" class="text-danger" />
+                    </div>
+                    <div class="checkbox mb-3" style="text-align:left;">
+                        <label class="form-label">
+                            <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
+                            @Loc["RememberMe"]
+                        </label>
+                    </div>
+                    <button type="submit" style="border: unset; background-color: #2f4f4f; color: white;"
+                            class="w-100 btn btn-lg btn-primary mb-3">
+                        @Loc["Login"]
+                    </button>
+                    <div>
+                        <p>
+                            <a style="color: darkslategray;" href="Account/ForgotPassword">@Loc["ForgotPassword"]</a>
+                        </p>
+                        <p>
+                            <a style="color: darkslategray;" href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">@Loc["Registration"]</a>
+                        </p>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="card-footer">
+                <section>
+                    <ExternalLoginPicker />
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private string? errorMessage;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (HttpMethods.IsGet(HttpContext.Request.Method))
+        {
+            // Clear the existing external cookie to ensure a clean login process
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+    }
+
+    public async Task LoginUser()
+    {
+        // This doesn't count login failures towards account lockout
+        // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User logged in.");
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.RequiresTwoFactor)
+        {
+            RedirectManager.RedirectTo(
+                "Account/LoginWith2fa",
+                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("User account locked out.");
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            var user = await UserManager.FindByEmailAsync(Input.Email);
+            if (user is not null)
+            {
+                result = await SignInManager.PasswordSignInAsync(user.UserName!, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                if (result.Succeeded)
+                {
+                    Logger.LogInformation("User logged in.");
+                    RedirectManager.RedirectTo(ReturnUrl);
+                }
+                else if (result.RequiresTwoFactor)
+                {
+                    RedirectManager.RedirectTo(
+                        "Account/LoginWith2fa",
+                        new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+                }
+                else if (result.IsLockedOut)
+                {
+                    Logger.LogWarning("User account locked out.");
+                    RedirectManager.RedirectTo("Account/Lockout");
+                }
+                else
+                {
+                    errorMessage = Loc["InvalidLogin"];
+                }
+            }
+            else
+            {
+                errorMessage = Loc["InvalidLogin"];
+            }
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        [Display(Name = "Remember me?")]
+        public bool RememberMe { get; set; }
+    }
+}

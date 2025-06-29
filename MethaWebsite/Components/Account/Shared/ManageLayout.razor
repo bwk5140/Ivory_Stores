@@ -1,0 +1,30 @@
+﻿@inherits LayoutComponentBase
+@layout MethaWebsite.Components.Layout.MainLayout
+
+@inject IStringLocalizer<SharedResource> Loc
+
+<div class="container-sm mt-5">
+    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="AccountSettings" style="text-decoration: none;">
+                    @Loc["YourAccount"]
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">@Loc["AccountSecurity"]</li>
+        </ol>
+    </nav>
+    <h3>@Loc["AccountSecurity"]</h3>
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-3">
+                    <ManageNavMenu />
+                </div>
+                <div class="col-lg-9">
+                    @Body
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

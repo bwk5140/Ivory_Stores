@@ -1,0 +1,143 @@
+﻿@using MethaWebsite.Data
+@using MethaWebsite.Services
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+@if (Addresses is null)
+{
+    <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+}
+else
+{
+    <div class="container-sm" style="display: block; justify-content: center;">
+        @{
+            var showClass = IsVisible ? "d-block" : "d-none";
+        }
+        <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+             style="top: 35%; z-index: 1200;">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                 style="background-color: white; width: max-content;">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["ChangeBillingAddress"]</strong>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <div class="card" style="padding: 20px; overflow-y: scroll; width: fit-content;">
+                        <div class="card-body" style="width: fit-content;">
+                            @foreach (var address in Addresses)
+                            {
+                                <div class="row mb-4">
+                                    <div class="col-sm-1">
+                                        <input class="form-check-input me-1 mb-1" type="radio" name="listGroupRadio" value="culture"
+                                               id="culture" @onclick="@(() => ApplySelectedAddress(address, radiosChecked))"
+                                               checked=@radiosChecked[address.Id]>
+                                    </div>
+                                    <div class="col-lg-11">
+                                        <strong>@address.FullName, </strong> @address.AddressLine1, @address.AddressLine2,
+                                        @address.City, @address.State, @address.ZipCode, @address.Country
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <button type="submit" class="btn btn-primary mt-2" style="background-color: #2f4f4f;
+                                        border-color:transparent; border-radius: 15px;" @onclick="OnSave">
+                            @Loc["Save"]
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="@showClass darker-background"></div>
+    </div>
+}
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    [Parameter]
+    public List<Address>? Addresses { get; set; }
+
+    [CascadingParameter]
+    public CreditDebitCard? CreditDebitCard { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnAddressChange { get; set; }
+
+    private Dictionary<string,bool> radiosChecked = new ();
+    private ApplicationUser? applicationUser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        Addresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();
+        foreach (var address in Addresses)
+        {
+            if (address.Id == CreditDebitCard.BillingAddress)
+            {
+                radiosChecked[address.Id] = true;
+            }
+            else{
+                radiosChecked[address.Id] = false;
+            }
+        }
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        // Reload the data based on new Id
+        await LoadCardDetails(CreditDebitCard.Id!);
+    }
+    private async Task LoadCardDetails(string Id)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        Addresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();
+        foreach (var address in Addresses)
+        {
+            if (address.Id == CreditDebitCard.BillingAddress)
+            {
+                radiosChecked[address.Id] = true;
+            }
+            else
+            {
+                radiosChecked[address.Id] = false;
+            }
+        }
+    }
+    private async Task ApplySelectedAddress(Address address, Dictionary<string, bool> radiosChecked)
+    {
+        radiosChecked[address.Id] = true;
+        CreditDebitCard.BillingAddress = address.Id;
+    }
+    private async Task OnSave()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.Attach(CreditDebitCard!).State = EntityState.Modified;
+        await context.SaveChangesAsync();
+        await OnAddressChange.InvokeAsync();
+        Close();
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

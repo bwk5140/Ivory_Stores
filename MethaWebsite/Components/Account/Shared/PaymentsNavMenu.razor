@@ -1,0 +1,207 @@
+﻿@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Services
+@using Microsoft.AspNetCore.Identity
+@using MethaWebsite.Data
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationUserService ApplicationUserService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<ul class="nav nav-pills flex-column" style="width: max-content;">
+    <li class="nav-item">
+        <NavLink class="nav-link" href="Account/Payments" Match="NavLinkMatch.All">
+            <div class="row mb-3 mt-3">
+                <div class="col-sm-5">
+                    <div class="card" style="background-color: inherit; border:dashed; border-color: gray; border-radius: 5px;
+                            width: 100px; height: 65px;">
+                        <div class="card-body">
+                            <div>
+                                <i class="plus_circle_icon" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-7">
+                    <div class="mt-3">
+                        <div style="color: #2f4f4f; font-size:smaller; text-wrap: nowrap;">
+                            @Loc["AddPayment"]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </NavLink>
+    </li>
+        @if (CreditDebitCards is not null)
+        {
+            @foreach (var credit_debit_card in CreditDebitCards)
+            {
+                
+            <li class="nav-item">
+                <NavLink class="nav-link" href="@($"Account/Payments/CreditDebit/details?id={credit_debit_card.Id}")">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="card" style="width: max-content;
+                                                                    border:none; background-color: inherit; display: inline-block; padding: 0px;">
+                                <div class="card-body" style="display: inline-block; top: 50%; margin-left: -18%;">
+                                    <svg width="150" height="75" viewBox="0 0 150 75" xmlns="http://www.w3.org/2000/svg">
+                                        <!-- Your SVG paths or shapes here -->
+                                        <image href="@credit_debit_card.ImageSource" width="150" height="75" />
+                                        @if (credit_debit_card.DefaultPaymentMethod)
+                                        {
+                                            <rect x="93" y="10" width="40" height="20" fill="yellowgreen" rx="5" ry="5" />
+                                        }
+                                        <!-- Overlayed text -->
+                                        <text x="95" y="23" font-size="10" fill="black">@DefaultPayment[credit_debit_card.Id]</text>
+                                        <text x="28" y="40"
+                                              font-size="10" fill="floralwhite">••••</text>
+                                        <text x="52" y="40"
+                                              font-size="10" fill="white">@credit_debit_card.CardNumber.Substring(credit_debit_card.CardNumber.Length - 4, 4)</text>
+                                        <text x="28" y="63"
+                                              font-size="10" fill="white">@credit_debit_card.NameOnCard</text>
+                                        <image href="@credit_debit_card.LogoSource" x="103" y="53" width="30" height="15" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 mt-3" style="padding-left: 0px; margin-left: -5%;">
+                            <div style="display: inline-block; text-wrap: nowrap;">
+                                <div>
+                                    <strong>@credit_debit_card.Type</strong>
+                                </div>
+                                <div style="display: inline-block">
+                                    @Loc["CardEnding"]
+                                </div>
+                                <div style="display: inline-block; width: 30px;">
+                                    ••••
+                                </div>
+                                <div style="display: inline-block">
+                                    @credit_debit_card.CardNumber.Substring(credit_debit_card.CardNumber.Length - 4, 4)
+                                </div>
+                                <div class="text-danger">
+                                    @if ((credit_debit_card.ExpirationMonth < CurrentMonth && credit_debit_card.ExpirationYear < CurrentYear) || credit_debit_card.ExpirationYear < CurrentYear)
+                                    {
+                                        <p class="text-danger">@Loc["ExpiredOn"] @credit_debit_card.ExpirationMonth/@credit_debit_card.ExpirationYear</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-info">@Loc["ExpiresOn"] @credit_debit_card.ExpirationMonth/@credit_debit_card.ExpirationYear</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </NavLink>
+            </li>
+            }
+        }
+        @if (MpesaPaymentMethods is not null)
+        {
+        @foreach (var MpesaPaymentMethod in MpesaPaymentMethods)
+            {               
+            <li class="nav-item">
+                <NavLink class="nav-link" href="@($"Account/Payments/Mpesa/details?id={MpesaPaymentMethod.Id}")">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="card" style="border:none; background-color: inherit; display: inline-block; padding: 0px;">
+                                <div class="card-body" style="display: inline-block; top: 50%; margin-left: -10%;">
+                                    <svg width="150" height="75" viewBox="0 0 150 75" xmlns="http://www.w3.org/2000/svg">
+                                        <!-- Your SVG paths or shapes here -->
+                                        <image href="@MpesaPaymentMethod.ImageSource" width="120" height="70" />
+                                        @if (MpesaPaymentMethod.DefaultPaymentMethod)
+                                        {
+                                            <rect x="93" y="10" width="40" height="20" fill="yellowgreen" rx="5" ry="5" />
+                                        }
+                                        <image href="@MpesaPaymentMethod.LogoSource" x="5" y="4" width="90" height="60" />
+                                        <!-- Overlayed text -->
+                                        <text x="95" y="23" font-size="10" fill="black">@DefaultPayment[MpesaPaymentMethod.Id]</text>
+                                        <text x="48" y="55"
+                                              font-size="10" fill="white">••••</text>
+                                        <text x="70" y="55"
+                                              font-size="10" fill="white">@MpesaPaymentMethod.PhoneNumber.Substring(MpesaPaymentMethod.PhoneNumber.Length - 4, 4)</text>
+                                        <text x="38" y="63"
+                                              font-size="10" fill="white">@MpesaPaymentMethod.RegisteredName</text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 mt-3" style="padding-left: 0px; margin-left: -5%;">
+                            <div style="display: inline-block; text-wrap: nowrap;">
+                                <div>
+                                    <h4>Mpesa</h4>
+                                </div>
+                                <div>
+                                    @Loc["PhoneNumber"] @Loc["EndingIn"]
+                                </div>
+                                <div style="width: 30px; display: inline-block;">
+                                    ••••
+                                </div>
+                                <div style="display: inline-block;">
+                                    @MpesaPaymentMethod.PhoneNumber.Substring(MpesaPaymentMethod.PhoneNumber.Length - 4, 4)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </NavLink>
+            </li>
+            }
+        }
+</ul>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    [Parameter]
+    public List<CreditDebitCard>? CreditDebitCards { get; set; }
+    [Parameter]
+    public List<Mpesa>? MpesaPaymentMethods { get; set; }
+
+    [Parameter]
+    public Dictionary<string, string> DefaultPayment { get; set; } = new ();
+    private ApplicationUser? applicationUser { get; set; }
+    private int CurrentMonth;
+    private int CurrentYear;
+    string? currentUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        CreditDebitCards = context.CreditDebitCard.Where(c => c.UserId == applicationUser.Id).ToList();
+        MpesaPaymentMethods = context.Mpesa.Where(c => c.UserId == applicationUser.Id).ToList();
+        CurrentMonth = DateTime.Now.Month;
+        CurrentYear = DateTime.Now.Year;
+        var default_card = CreditDebitCards.FirstOrDefault(c => c.DefaultPaymentMethod == true);
+        var default_mpesa = MpesaPaymentMethods.FirstOrDefault(c => c.DefaultPaymentMethod == true);
+        foreach (var card in CreditDebitCards)
+        {
+            if (default_card is not null && card == default_card)
+            {
+                DefaultPayment[card.Id] = Loc["Default"];
+            }
+            else
+            {
+                DefaultPayment[card.Id] = "";
+            }
+        }
+        foreach (var mpesaMethod in MpesaPaymentMethods)
+        {
+            if (default_card is not null && mpesaMethod == default_mpesa)
+            {
+                DefaultPayment[mpesaMethod.Id] = Loc["Default"];
+            }
+            else
+            {
+                DefaultPayment[mpesaMethod.Id] = "";
+            }
+        }
+        
+        StateHasChanged();
+    }
+}

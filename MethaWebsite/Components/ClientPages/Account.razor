@@ -1,0 +1,179 @@
+﻿@page "/AccountSettings"
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>@Loc["YourAccount"]</PageTitle>
+
+<div class="container-sm mt-5">
+    <h3>@Loc["YourAccount"]</h3>
+    <div class="row">
+        <div class="col-sm-4">
+            <button style="border: none; background-color: transparent;">
+                <div class="card" style="max-width: 350px;">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                    <circle cx="40" cy="40" r="40" fill="lightblue" />
+                                </svg>
+                                <img src="box-seam-fill.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 50px; height: 50px;" />
+                            </div>
+                            <div class="col-lg-9">
+                                <div style="font-weight: 600;">
+                                    @Loc["YourOrders"]
+                                </div>
+                                <div style="color: gray;">
+                                    @Loc["YourOrderInfo"]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </button>
+
+        </div>
+        <div class="col-sm-4">
+            <a href="Account/Manage" style="border: none; background-color: transparent; text-decoration: none;">
+                <div class="card" style="max-width: 350px;">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                    <circle cx="40" cy="40" r="40" fill="lightblue" />
+                                </svg>
+                                <img src="person-lock.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 50px; height: 50px;" />
+                            </div>
+                            <div class="col-lg-9">
+                                <div style="font-weight: 600; text-decoration: none;">
+                                    @Loc["AccountSecurity"]
+                                </div>
+                                <div style="color: gray; text-decoration: none;">
+                                    @Loc["EditAccountInfo"]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+        <div class="col-sm-4">
+            <a href="AddressSettings" style="border: none; background-color: transparent; text-decoration: none;">
+                <div class="card" style="max-width: 350px;">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                    <circle cx="40" cy="40" r="40" fill="lightblue" />
+                                </svg>
+                                <img src="houses.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 50px; height: 50px;" />
+                            </div>
+                            <div class="col-lg-9">
+                                <div style="font-weight: 600; text-decoration: none;">
+                                    @Loc["YourAddresses"]
+                                </div>
+                                <div style="color: gray; text-decoration: none;">
+                                    @Loc["EditRemoveSetDefaultAddresses"]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-sm-4">
+            <a href="/Account/Payments" style="border: none; background-color: transparent; text-decoration: none;">
+                <div class="card" style="max-width: 350px;">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                    <circle cx="40" cy="40" r="40" fill="lightblue" />
+                                </svg>
+                                <img src="credit-card-2-front.svg" style="position: absolute; top: 20%; left: 10%; z-index: 1; width: 30px; height: 30px;" />
+                                <img src="credit-card.svg" style="position: absolute; top: 40%; left: 50%; z-index: 1; width: 30px; height: 30px;" />
+                            </div>
+                            <div class="col-lg-9">
+                                <div style="font-weight: 600; text-decoration: none;">
+                                    @Loc["YourPayments"]
+                                </div>
+                                <div style="color: gray; text-decoration: none;">
+                                    @Loc["ViewAllPaymentsManagePaymentMethods"]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+        <div class="col-sm-4">
+            <button style="border: none; background-color: transparent;">
+                <div class="card" style="max-width: 350px;">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                    <circle cx="40" cy="40" r="40" fill="lightblue" />
+                                </svg>
+                                <img src="journal-text.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 50px; height: 50px;" />
+                            </div>
+                            <div class="col-lg-9">
+                                <div style="font-weight: 600;">
+                                    @Loc["YourLists"]
+                                </div>
+                                <div style="color: gray;">
+                                    @Loc["ViewModifyOrCreateNewLists"]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </button>
+
+        </div>
+        <div class="col-sm-4">
+            <button style="border: none; background-color: transparent;">
+                <div class="card" style="max-width: 350px;">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                    <circle cx="40" cy="40" r="40" fill="lightblue" />
+                                </svg>
+                                <img src="headset.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 50px; height: 50px;" />
+                            </div>
+                            <div class="col-lg-9">
+                                <div style="font-weight: 600;">
+                                    @Loc["CustomerService"]
+                                </div>
+                                <div style="color: gray;">
+                                    @Loc["BrowseOrContactUs"]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </button>
+
+        </div>
+    </div>
+</div>
+
+
+@code {
+    public void ManageAccount()
+    {
+        NavigationManager.NavigateTo("Account/Manage");
+    }
+    public void ManageAddresses()
+    {
+        NavigationManager.NavigateTo("AddressSettings");
+    }
+}

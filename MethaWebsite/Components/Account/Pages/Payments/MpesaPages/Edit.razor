@@ -1,0 +1,189 @@
+﻿@page "/Account/Payments/Mpesa/edit"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+@if (Mpesa is null)
+{
+    <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+}
+else
+{
+    <div class="container-sm" style="display: block; justify-content: center;">
+        @{
+            var showClass = IsVisible ? "d-block" : "d-none";
+        }
+        <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+             style="top: 35%; z-index: 1100;">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                 style="background-color: white; width: fit-content;">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["EditMpesaPayment"]</strong>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="toast-body" style="width: fit-content;">
+                    <EditForm method="post" Model="Mpesa" OnValidSubmit="UpdateMpesa" FormName="edit" Enhance>
+                        <DataAnnotationsValidator />
+                        <ValidationSummary role="alert" />
+                        <div class="row">
+                            <div class="col-lg-6 border-end" style="padding-right: 60px; padding-left: 40px; width: 350px;">
+                                <input type="hidden" name="Mpesa.Id" value="@Mpesa.Id" />
+                                <div class="mb-3">
+                                    <label for="phonenumber" class="form-label">PhoneNumber:</label>
+                                    <InputText id="phonenumber" @bind-Value="Mpesa.PhoneNumber" class="form-control" />
+                                    <ValidationMessage For="() => Mpesa.PhoneNumber" class="text-danger" />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="registeredname" class="form-label">RegisteredName:</label>
+                                    <InputText id="registeredname" @bind-Value="Mpesa.RegisteredName" class="form-control" />
+                                    <ValidationMessage For="() => Mpesa.RegisteredName" class="text-danger" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6" style="padding-left: 60px; padding-right: 60px; width: 350px;">
+                                <h5>@Loc["BillingAddress"]</h5>
+                                @if (address is not null)
+                                {
+                                    <div>
+                                        <strong>@address.FullName</strong>
+                                    </div>
+                                    <div>
+                                        @address.AddressLine1
+                                    </div>
+                                    <div>
+                                        @address.AddressLine2
+                                    </div>
+                                    <div>
+                                        @address.City, @address.State, @address.ZipCode
+                                    </div>
+                                    <div>
+                                        @address.Country
+                                    </div>
+                                    <div>
+                                        @address.PhoneNumber
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-link" type="button" style="border: none; background-color: transparent;
+                                                                                                                    padding-left:0px; text-decoration: none;" @onclick="ShowChangeBillingAddressPopOver">
+                                            @Loc["Change"]
+                                        </button>
+                                    </div>
+                                }
+                        </div>
+                    </div>
+                        
+                    <div style="text-align: right;">
+                            <button type="submit" class="btn btn-primary me-2 mt-3" style="background-color: #2f4f4f;
+                                                                            border-color:transparent; border-radius: 5px;">
+                                @Loc["Save"]
+                            </button>
+                            <button type="button" class="btn btn-secondary mt-3" style="border-color:transparent;
+                                                                            border-radius: 5px;" @onclick="Close">
+                                @Loc["Cancel"]
+                            </button>
+                    </div>
+                    </EditForm>
+                </div>
+            </div>
+            <CascadingValue Value="Mpesa">
+                <ChangeBillingAddressPopOver @ref="changeBillingAddressPopOver" OnAddressChange="RefreshView"/>
+            </CascadingValue>
+        </div>
+        <div class="@showClass darker-background"></div>
+    </div>
+}
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Mpesa? Mpesa { get; set; }
+
+    [Parameter]
+    public Address? address { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    private ChangeBillingAddressPopOver? changeBillingAddressPopOver;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Mpesa ??= await context.Mpesa.FirstOrDefaultAsync(m => m.Id == Id);
+        address = await context.Address.FirstOrDefaultAsync(a => a.Id == Mpesa.BillingAddress);
+
+        if (Mpesa is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateMpesa()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Mpesa!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!MpesaExists(Mpesa!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/Account/Payments", true);
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        // Reload the data based on new Id
+        await LoadMpesaDetails(Mpesa.Id!);
+    }
+    private async Task LoadMpesaDetails(string Id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        Mpesa ??= await context.Mpesa.FirstOrDefaultAsync(m => m.Id == Id);
+        address = await context.Address.FirstOrDefaultAsync(a => a.Id == Mpesa.BillingAddress);
+    }
+    private async Task RefreshView()
+    {
+        await LoadMpesaDetails(Id);
+        StateHasChanged();
+    }
+    private bool MpesaExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Mpesa.Any(e => e.Id == id);
+    }
+    private void ShowChangeBillingAddressPopOver()
+    {
+        changeBillingAddressPopOver.Show();
+    }
+}

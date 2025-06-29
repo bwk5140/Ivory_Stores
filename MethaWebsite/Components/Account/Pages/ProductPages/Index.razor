@@ -1,0 +1,505 @@
+﻿@page "/Account/products"
+@using MethaWebsite.Services
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+
+@implements IAsyncDisposable
+
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> Loc
+@inject ILogger<Index> Logger
+@inject FilterStateService FilterState
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+<PageTitle>Index</PageTitle>
+
+<div class="container-fluid ms-5 mt-5" style="max-width: fit-content;">
+    <div class="row">
+        <div class="col-sm-2">
+            <hr/>
+            <strong class="form-label" style="font-size: medium;">@Loc["Gender"]</strong>
+            <div class="checkbox mb-3" style="text-align:left;">
+                @if (FilterState.Genders is not null)
+                {
+                    foreach (var gender in FilterState.Genders)
+                    {   <div>
+                            <label class="form-label" style="font-size: small;">
+                                <InputCheckbox @bind-Value="FilterState.SelectedGenders[gender]" class="darker-border-checkbox form-check-input"
+                                               @bind-Value:after="UpdateGender" />
+                                @gender
+                            </label>
+                        </div>
+                    }
+                }
+            </div>
+            <strong class="form-label" style="font-size: medium;">@Loc["CustomerReviews"]</strong>
+            <div class="checkbox mb-3" style="text-align:left;">
+                <div style="display: inline-block;">
+                    @if (FilterState.Rating is not null)
+                    {
+                        foreach (var rating in FilterState.Rating)
+                        {
+                            @if (!rating.Selected)
+                            {
+                                <img src="star.svg" style="cursor: pointer;" @onclick="@(() => OnRatingStarClicked(rating))" />
+                            }
+                            else
+                            {
+                                <img src="star-fill.svg" style="cursor: pointer;" @onclick="@(() => OnRatingStarClicked(rating))" />
+                            }
+
+                        }
+                    }
+                    
+                    <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;">
+                        @Loc["Higher"]
+                    </button>
+                </div>
+            </div>
+            <strong class="form-label" style="font-size: medium;">@Loc["Price"]</strong>
+            <div class="mt-1">
+                <strong>
+                    <label for="priceRange" class="form-label">
+                        @FilterState.Low.ToString("C0") - @FilterState.High.ToString("C0")
+                        @if(FilterState.High == TrueMax){
+                            <strong>+</strong>
+                        }
+                        </label>
+                </strong>
+                <div style="display: flex;">
+                    <input type="range" id="priceRange" class="form-range me-1" min="@FilterState.Low" max="@TrueMax" step="10" @bind-value="@FilterState.High">
+                    <button type="submit" class="btn-secondary btn-sm" @onclick="UpdatePriceItems"
+                            style="border-color: lightgray; border-radius: 25px;">
+                        @Loc["Update"]
+                    </button>
+                </div>
+                
+            </div>
+            <strong class="form-label" style="font-size: medium;">@Loc["Brands"]</strong>
+            <div class="checkbox mb-3" style="text-align:left;">
+                @if (FilterState.Brands.Count > 0)
+                {
+                    foreach (var brand in FilterState.Brands)
+                    {
+                        <div>
+                            <label class="form-label" style="font-size: small;">
+                                <InputCheckbox @bind-Value="FilterState.SelectedBrands[brand]" class="darker-border-checkbox form-check-input"
+                                               @bind-Value:after="UpdateBrandProducts" />
+                                @brand
+                            </label>
+                        </div>
+                    }
+                }
+            </div>
+            <strong class="form-label" style="font-size: medium;">@Loc["DealsAndDiscounts"]</strong>
+            <div class="checkbox mb-3" style="text-align:left;">
+                <a href="" style="text-decoration: none; color: black; font-size: small;">@Loc["AllDiscounts"]</a>
+                <div>
+                    <a href="" style="text-decoration: none; color: black; font-size: small;">@Loc["TodaysDeals"]</a>
+                </div>
+            </div>
+            <strong class="form-label" style="font-size: medium;">@Loc["Lifestyle"]</strong>
+            <div class="checkbox mb-3" style="text-align:left;">
+                @if (FilterState.Lifestyle.Count > 0)
+                {
+                    foreach (var lifestyle in FilterState.Lifestyle)
+                    {
+                        <div>
+                            <label class="form-label" style="font-size: small;">
+                                <InputCheckbox @bind-Value="FilterState.SelectedLifestyle[lifestyle]" class="darker-border-checkbox form-check-input"
+                                               @bind-Value:after="UpdateLifeStyleProducts" />
+                                @lifestyle
+                            </label>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        <div class="col-lg">
+            <h3 class="header mt-3">@Loc["Products"]</h3>
+            <hr />
+            <div style="text-align: right;">
+                <a href="/Account/products/create" type="btn btn-lg" style="background-color: transparent; border-color:transparent;"
+                        data-bs-toggle="tooltip" title=@Loc["AddProduct"]>
+                    <img src="pencil-square.svg" />
+                </a>
+            </div>
+            <table class="" style="table-layout: fixed; width: 90%;">
+                <tbody>
+                    @if (Products is not null)
+                    {
+                        <tr class="table-container" style="height:max-content;">
+                            @foreach (var product in Products)
+                            {
+                                <td>
+                                    <div class="card mb-3 me-3" style="width: fit-content; max-width: 350px; height: 700px;">
+                                        <div class="card-header" style="text-align: right; background-color: transparent; border: none;">
+                                            <div>
+                                                <a href="@($"Account/products/edit?id={product.Id}")" type="btn btn-link" style="background-color: transparent; border-color:transparent;"
+                                                         data-bs-toggle="tooltip" title=@Loc["Edit"]>
+                                                    <img src="pencil-fill.svg" />
+                                                </a>
+                                                <a href="@($"Account/products/delete?id={product.Id}")" class="btn btn-link" style="border-color:transparent;
+                                                            background-color: transparent;" data-bs-toggle="tooltip" title=@Loc["Delete"]>
+                                                    <img src="trash.svg" />
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="card-body" style="height: 450px; overflow: hidden;">
+                                            <div style="height: 400px;">
+                                                <a href="@($"Account/products/details?id={product.Id}")" class="btn">
+                                                    @if (product.Images is not null && product.Images.Count > 0)
+                                                    {
+                                                        <img src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(product.Images.First().Image)))"
+                                                             alt=@Loc["ProductImage"] style="width:300px; height:400px; object-fit:contain;" />
+                                                    }
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer" style="background-color: transparent; border: none; height: 200px;">
+                                            <div>
+                                                <strong>@product.Brand</strong>
+                                            </div>
+                                            <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+                                                                            text-overflow: ellipsis; ">
+                                                <a href="@($"Account/products/details?id={product.Id}")" style="text-decoration: none; color: black;">
+                                                    @product.Name
+                                                </a>
+                                            </div>
+                                            <div style="display: inline-block;">
+                                                @if (product.Rating > 0)
+                                                {
+                                                    <strong class="me-1">@product.Rating</strong>
+                                                }
+                                                @if (product.Rating == 0)
+                                                {
+                                                    @for (int i = 0; i < 5; i++)
+                                                    {
+                                                        <img src="star.svg" />
+                                                    }
+                                                    <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
+                                                                                color: dodgerblue;">
+                                                        (0)
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    @for (int i = 0; i < product.Rating; i++)
+                                                    {
+                                                        <img src="star-fill.svg" />
+                                                    }
+                                                    var rating_difference = 5 - product.Rating;
+                                                    @if (rating_difference > 0)
+                                                    {
+                                                        if (rating_difference > 1)
+                                                        {
+                                                            @for (int i = 0; i < (5 - product.Rating); i++)
+                                                            {
+                                                                <img src="star.svg" />
+                                                            }
+                                                            if (rating_difference.GetType() != typeof(int))
+                                                            {
+                                                                <img src="star-half.svg" />
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="star-half.svg" />
+                                                        }
+                                                    }
+                                                    <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
+                                                                                color: dodgerblue;">
+                                                        (@product.Rating)
+                                                    </button>
+                                                }
+                                            </div>
+                                            <div class="mt-3">
+                                                <div style="display: inline-block;">
+                                                    @{
+                                                        string price = product.Price.ToString();
+                                                        string price_w_curr = product.Price.ToString("C0");
+                                                        char leading_char = price[0];
+                                                        int index = price_w_curr.IndexOf(leading_char);
+                                                    }
+                                                    <a href="@($"Account/products/details?id={product.Id}")" style="text-decoration: none; color: black;">
+                                                        <strong style="font-size: small; vertical-align: text-top;">@product.Price.ToString("C0").Substring(0, index)</strong>
+                                                        <strong style="font-size: x-large;">@product.Price.ToString("C0").Substring(index)</strong>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <nav aria-label="..." style="display: flex; justify-content: center;">
+                <ul class="pagination">
+                    <li class="page-item activePageClass[0.ToString()]">
+                        <a style="width: 90px; cursor:pointer;" @onclick="@(() => UpdatePaginationItems(currentPage - 1))" class="page-link">
+                            Previous
+                        </a>
+                    </li>
+                    <li class="page-item activePageClass[1.ToString()]">
+                        <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(1))">1</a>
+                    </li>
+                    <li class="page-item activePageClass[2.ToString()]">
+                        <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(2))" aria-current="page">2</a>
+                    </li>
+                    <li class="page-item activePageClass[3.ToString()]">
+                        <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(3))">3</a>
+                    </li>
+                    <li class="page-item activePageClass[4.ToString()]">
+                        <a style="width: 90px; cursor:pointer;" class="page-link" @onclick="@(() => UpdatePaginationItems(currentPage + 1))">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    [Parameter]
+    public List<Product>? Products { get; set; }
+
+    [Parameter]
+    public List<string>? Genders { get; set; } = new List<string>();
+
+    [Parameter]
+    public List<string>? Brands { get; set; } = new List<string>();
+
+    [Parameter]
+    public List<string>? Lifestyle { get; set; } = new List<string>();
+
+    [Parameter]
+    public List<Rating>? Rating { get; set; } = new List<Rating>();
+
+    [Parameter]
+    public double Low { get; set; } = 1;
+
+    private int TrueMin => 7;
+    private double TrueMax = 7;
+
+    [SupplyParameterFromQuery]
+    private int prodLow { get; set; }
+
+    private int prodCount = 50;
+
+    [SupplyParameterFromQuery]
+    private int currentPage { get; set; }
+
+    private Dictionary<string, bool> activePage = new ();
+    private Dictionary<string, string> activePageClass = new ();
+
+    [SupplyParameterFromQuery]
+    public double High { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+        Products ??= context.Product.ToList();
+        if (Products is not null)
+        {
+            if (currentPage == 0)
+            {
+                currentPage = 1;
+            }
+            FilterState = FilterState.getFilterState(Products);
+            TrueMax = FilterState.High;
+            foreach (var product in Products)
+            {
+                product.Images ??= context.ProductImage.Where(m => m.ProductColorGroupId == product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
+            }
+            var count = Products.Count();
+            int page_count = count / prodCount;
+            if (count % prodCount > 0)
+            {
+                page_count += 1;
+            }
+            for (int i = 1; i <= page_count; i++)
+            {
+                activePage[i.ToString()] = false;
+                activePageClass[i.ToString()] = activePage[i.ToString()] ? "active" : "none";
+            }
+            try
+            {
+                Products = Products.GetRange(prodLow, prodCount);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogInformation(ex.Message);
+                Products = context.Product.ToList();
+                try
+                {
+                    Products = Products.GetRange(prodLow, Products.Count() - prodLow);
+                }
+                catch (Exception ex2)
+                {
+                    Logger.LogInformation(ex2.Message);
+                }
+
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+
+    public void OnRatingStarClicked(Rating rating){
+
+        int index = FilterState.Rating.IndexOf(rating);
+
+        // Apply rating filter using the service
+        var service = new RatingFilterService();
+        Products = service.FilterByRating(Products, FilterState.Rating, index);
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (FilterState.High < TrueMin)
+        {
+            FilterState.High = TrueMin;
+            StateHasChanged();
+        }
+    }
+    public void UpdateGender()
+    {
+        var selectedGenders = FilterState.Genders
+        .Where(g => FilterState.SelectedGenders.TryGetValue(g, out bool isSelected) && isSelected)
+        .ToList();
+
+        var selectedBrands = FilterState.Brands
+        .Where(brand => FilterState.SelectedBrands.TryGetValue(brand, out bool isSelected) && isSelected)
+        .ToList();
+
+        var selectedLifestyles = FilterState.Lifestyle
+            .Where(l => FilterState.SelectedLifestyle.TryGetValue(l, out var isSelected) && isSelected)
+            .ToList();
+
+        Products = selectedGenders.Any()
+            ? Products.Where(p => selectedGenders.Contains(p.Gender)).ToList()
+            : selectedLifestyles.Any() || selectedBrands.Any() ? context.Product.Where(p => selectedLifestyles.Contains(p.Lifestyle)
+                                    || selectedBrands.Contains(p.Brand)).ToList() :
+                                    context.Product.ToList();
+        Products = Products.Where(p => p != null && ((FilterState.High < TrueMax && p.Price >= FilterState.Low && p.Price <= FilterState.High) ||
+                (FilterState.High == TrueMax && p.Price >= FilterState.Low))).ToList();
+        // int count;
+        // if (Products.Count > prodCount + prodLow)
+        // {
+        //     count = prodCount;
+        // }
+        // else
+        // {
+        //     count = Products.Count - prodLow;
+        // }
+        // Products = Products.GetRange(prodLow, count);
+        // foreach (var prod in Products)
+        // {
+        //     if (prod.Images is null)
+        //     {
+        //         prod.Images = context.ProductImage.Where(m => m.ProductColorGroupId == prod.ProductColorGroupID).OrderBy(i => i.Created).ToList();
+        //     }
+        // }
+
+        StateHasChanged();
+
+    }
+    public void UpdatePriceItems()
+    {
+        Products = context.Product.Where(p => p != null && ((FilterState.High < TrueMax && p.Price >= FilterState.Low && p.Price <= FilterState.High) ||
+                (FilterState.High == TrueMax && p.Price >= FilterState.Low))).ToList();
+    }
+    public void UpdateBrandProducts()
+    {
+        var selectedBrands = FilterState.Brands
+        .Where(brand => FilterState.SelectedBrands.TryGetValue(brand, out bool isSelected) && isSelected)
+        .ToList();
+
+        var selectedLifestyles = FilterState.Lifestyle
+            .Where(l => FilterState.SelectedLifestyle.TryGetValue(l, out var isSelected) && isSelected)
+            .ToList();
+
+        var selectedGenders = FilterState.Genders
+        .Where(g => FilterState.SelectedGenders.TryGetValue(g, out bool isSelected) && isSelected)
+        .ToList();
+
+        Products = selectedBrands.Any()
+            ? Products.Where(p => selectedBrands.Contains(p.Brand)).ToList()
+            : selectedLifestyles.Any() || selectedGenders.Any() ? context.Product.Where(p => selectedLifestyles.Contains(p.Lifestyle)
+                                    || selectedGenders.Contains(p.Gender)).ToList() :
+                                    context.Product.ToList();
+        Products = Products.Where(p => p != null && ((FilterState.High < TrueMax && p.Price >= FilterState.Low && p.Price <= FilterState.High) ||
+                (FilterState.High == TrueMax && p.Price >= FilterState.Low))).ToList();
+
+        StateHasChanged();
+    }
+    public void UpdateLifeStyleProducts()
+    {
+        // Get selected lifestyles
+        var selectedLifestyles = FilterState.Lifestyle
+            .Where(l => FilterState.SelectedLifestyle.TryGetValue(l, out var isSelected) && isSelected)
+            .ToList();
+
+        var selectedBrands = FilterState.Brands
+        .Where(brand => FilterState.SelectedBrands.TryGetValue(brand, out bool isSelected) && isSelected)
+        .ToList();
+
+        var selectedGenders = FilterState.Genders
+        .Where(g => FilterState.SelectedGenders.TryGetValue(g, out bool isSelected) && isSelected)
+        .ToList();
+
+        // Load products based on selected lifestyles, or all if none selected
+        Products = selectedLifestyles.Any()
+            ? Products.Where(p => selectedLifestyles.Contains(p.Lifestyle)).ToList()
+            : selectedBrands.Any() || selectedGenders.Any() ? context.Product.Where(p => selectedBrands.Contains(p.Brand)
+                                    || selectedGenders.Contains(p.Gender)).ToList() :
+                                    context.Product.ToList();
+        Products = Products.Where(p => p != null && ((FilterState.High < TrueMax && p.Price >= FilterState.Low && p.Price <= FilterState.High) ||
+                (FilterState.High == TrueMax && p.Price >= FilterState.Low))).ToList();
+
+        StateHasChanged();
+    }
+    public void UpdateDiscountsAndDeals()
+    {
+    }
+    public void UpdatePaginationItems(int index)
+    {
+        var prods = context.Product.ToList();
+        var count = prods.Count();
+        int page_count = count / prodCount;
+        if (count % prodCount > 0)
+        {
+            page_count += 1;
+        }
+        if (index > 0 && index <= page_count)
+        {
+            activePage[index.ToString()] = !activePage[index.ToString()];
+            activePageClass[index.ToString()] = activePage[index.ToString()] ? "active" : "none";
+            
+            if (currentPage > index)
+            {
+                if (prodLow - prodCount * (currentPage - index) >= 0)
+                {
+                    prodLow -= prodCount * (currentPage - index);
+                }
+            }
+            else
+            {
+                if (prodLow + prodCount * (index - currentPage) >= 0 && prodLow + prodCount * (index - currentPage) < count)
+                {
+                    prodLow += prodCount * (index - currentPage);
+                }
+            }
+            currentPage = index;
+            NavigationManager.NavigateTo($"/Account/products?prodLow={prodLow}&currentPage={index}&High={FilterState.High}");
+            NavigationManager.Refresh(true);
+        }
+    }
+}

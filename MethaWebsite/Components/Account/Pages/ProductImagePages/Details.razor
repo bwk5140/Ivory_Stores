@@ -1,0 +1,61 @@
+﻿@page "/productimages/details"
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using Microsoft.EntityFrameworkCore
+@using System.Globalization
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Details</PageTitle>
+<div class="container-sm mt-5">
+    @if (productimage is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else
+    {
+        <div class="card" style="width:70%;">
+            <div class="card-header">
+                <div style="text-align: right;">
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="OnCancelClicked"></button>
+                </div>
+                <strong class="header">@Loc["ImageDetails"]</strong>
+            </div>
+            <div class="card-body" style="text-align: center;">
+                <img src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(productimage.Image)))"
+                     alt=@Loc["ProductImage"] style="width:70%; height:70%;object-fit:cover;" />
+            </div>
+            <div class="card-footer">
+                <strong>@productimage.Name</strong>
+                <hr />
+                <p>@productimage.Description</p>
+            </div>
+        </div>
+    }
+</div>
+
+
+@code {
+    private ProductImage? productimage;
+
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        productimage = await context.ProductImage.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (productimage is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+    private void OnCancelClicked()
+    {
+        NavigationManager.NavigateTo("/productimages");
+    }
+}

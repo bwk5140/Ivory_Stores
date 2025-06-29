@@ -1,0 +1,19 @@
+﻿@page "/Account/AccessDenied"
+
+@inject IStringLocalizer<SharedResource> Loc
+
+<PageTitle>Access denied</PageTitle>
+
+<div class="container-sm mt-5" style="text-align: center; color: #2f4f4f;">
+    <a href="/" style="text-decoration: none;"><h3 class="header mb-3">@Loc["CompanyLogo"]</h3></a>
+    <div class="center-container">
+        <div class="card" style="border-radius: 15px; width: 400px;">
+            <div class="card-header">
+                <h4 class="text-danger">Access denied</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-danger">You do not have access to this resource.</p>
+            </div>
+        </div>
+    </div>
+</div>

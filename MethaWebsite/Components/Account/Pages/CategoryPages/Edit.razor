@@ -1,0 +1,177 @@
+﻿@page "/Account/categories/edit"
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Edit</PageTitle>
+
+<div class="container-sm mt-5">
+    @if (Category is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else
+    {
+        <div class="toast-container p-3" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["EditCategory"] (@Category.Name)</strong>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <EditForm method="post" Model="Category" OnValidSubmit="UpdateCategory" FormName="edit" Enhance>
+                        <DataAnnotationsValidator />
+                        <ValidationSummary role="alert" />
+                        <input type="hidden" name="Category.Id" value="@Category.Id" />
+                        <div class="form form-floating mb-3">
+                            <InputText id="name" @bind-Value="Category.Name" class="form-control" />
+                            <label for="Category.Name" class="form-label">Name:</label>
+                            <ValidationMessage For="() => Category.Name" class="text-danger" />
+                        </div>
+                        <div class="form form-floating mb-3">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    @if (parentCategory is null)
+                                    {
+                                        <div class="row">
+                                            <div class="col">
+                                                <label style="color: gray;">@Loc["SelectParentCategory"]</label>
+                                            </div>
+                                            <div class="col" style="text-align: right;">
+                                                <button type="button" class="btn" data-bs-toggle="tooltip" title=@Loc["SelectCategory"]
+                                                        aria-label="Select" @onclick="OnCategoryClicked" style="text-align:end;
+                                                                    border-radius: 25px; background-color: #89c182;">
+                                                    @Loc["Select"]
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="row">
+                                            <div class="col">
+                                                <label>
+                                                    @parentCategory.Name
+                                                </label>
+                                            </div>
+                                            <div class="col" style="text-align: right;">
+                                                <button type="button" class="btn" data-bs-toggle="tooltip" title=@Loc["ChangeCategory"]
+                                                        aria-label="Select" @onclick="OnCategoryClicked" style="text-align:end;
+                                                                    border-radius: 25px; background-color: #89c182;">
+                                                    @Loc["Change"]
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="form form-floating">
+                                <CascadingValue Value="categories">
+                                    <CascadingValue Value="Product">
+                                        <MethaWebsite.Components.Account.Pages.CategoryPages.CategoryPopOver @ref="CategoriesPopUp"
+                                                                                                             OnCategorySelected="OnCategorySelected" />
+                                    </CascadingValue>
+                                </CascadingValue>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                                border-color:transparent; border-radius: 5px;">
+                                @Loc["Save"]
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Category? Category { get; set; }
+
+    [CascadingParameter]
+    private Product? Product { get; set; } = new();
+
+    [Parameter]
+    public string? CategoryId { get; set; }
+
+    [Parameter]
+    public List<Category>? categories { get; set; }
+
+    [Parameter]
+    public Category? parentCategory { get; set; }
+
+    private CategoryPages.CategoryPopOver? CategoriesPopUp;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        Category ??= await context.Category.FirstOrDefaultAsync(m => m.Id == Id);
+        categories = context.Category.Where(c => c.ParentID == null).ToList();
+
+        if (Category is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        else
+        {
+            parentCategory = await context.Category.FirstOrDefaultAsync(m => m.Id == Category.ParentID);
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateCategory()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.Attach(Category!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!CategoryExists(Category!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("Account/categories");
+    }
+    private void Close()
+    {
+        NavigationManager.NavigateTo("Account/categories");
+    }
+    private bool CategoryExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Category.Any(e => e.Id == id);
+    }
+    private async Task OnCategorySelected()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        parentCategory = await context.Category.FirstOrDefaultAsync(m => m.Id == Product!.CategoryId);
+        Category.ParentID = Product!.CategoryId;
+    }
+    public void OnCategoryClicked()
+    {
+        CategoriesPopUp.Show();
+    }
+}

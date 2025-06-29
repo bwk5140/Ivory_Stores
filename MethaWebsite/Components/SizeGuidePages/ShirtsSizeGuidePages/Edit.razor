@@ -1,0 +1,146 @@
+﻿@page "/shirtssizeguides/edit"
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Edit</PageTitle>
+<div class="container-sm mt-5">
+    @if (ShirtsSizeGuide is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else
+    {
+        <div class="container-sm">
+            <div class="toast-container p-3" data-bs-autohide="true" data-bs-delay="5000">
+                <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">@Loc["EditShirtSizeChart"] (@ShirtsSizeGuide.BrandSize)</strong>
+                        <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                                aria-label="Close" @onclick="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        <EditForm method="post" Model="ShirtsSizeGuide" OnValidSubmit="UpdateShirtsSizeGuide" FormName="edit" Enhance>
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="text-danger" role="alert" />
+                            <input type="hidden" name="ShirtsSizeGuide.Id" value="@ShirtsSizeGuide.Id" />
+                            <div class="form form-floating mb-3">
+                                <InputNumber id="chestsize" @bind-Value="ShirtsSizeGuide.ChestSize" class="form-control" />
+                                <label for="chestsize" class="form-label">@Loc["Chest"] (cm):</label>
+                                <ValidationMessage For="() => ShirtsSizeGuide.ChestSize" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3">
+                                <InputNumber id="shouldersize" @bind-Value="ShirtsSizeGuide.ShoulderSize" class="form-control" />
+                                <label for="shouldersize" class="form-label">@Loc["Shoulder"] (cm):</label>
+                                <ValidationMessage For="() => ShirtsSizeGuide.ShoulderSize" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3">
+                                <InputNumber id="sleevelength" @bind-Value="ShirtsSizeGuide.SleeveLength" class="form-control" />
+                                <label for="sleevelength" class="form-label">@Loc["Sleeve"] (cm):</label>
+                                <ValidationMessage For="() => ShirtsSizeGuide.SleeveLength" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3">
+                                <InputNumber id="centerbacklength" @bind-Value="ShirtsSizeGuide.CenterBackLength" class="form-control" />
+                                <label for="centerbacklength" class="form-label">@Loc["CenterBack"] (cm):</label>
+                                <ValidationMessage For="() => ShirtsSizeGuide.CenterBackLength" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3">
+                                <InputText id="brandsize" @bind-Value="ShirtsSizeGuide.BrandSize" class="form-control"
+                                           placeholder="" />
+                                <label for="brandsize" class="form-label">@Loc["BrandSize"]:</label>
+                                <ValidationMessage For="() => ShirtsSizeGuide.BrandSize" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3">
+                                <InputNumber id="waistsize" @bind-Value="ShirtsSizeGuide.WaistSize" class="form-control" />
+                                <label for="waistsize" class="form-label">@Loc["Waist"] (cm):</label>
+                                <ValidationMessage For="() => ShirtsSizeGuide.WaistSize" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3">
+                                <InputNumber id="hipsize" @bind-Value="ShirtsSizeGuide.HipSize" class="form-control" />
+                                <label for="hipsize" class="form-label">@Loc["Hip"] (cm):</label>
+                                <ValidationMessage For="() => ShirtsSizeGuide.HipSize" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3">
+                                <InputNumber id="bustsize" @bind-Value="ShirtsSizeGuide.BustSize" class="form-control" />
+                                <label for="bustsize" class="form-label">@Loc["Bust"] (cm):</label>
+                                <ValidationMessage For="() => ShirtsSizeGuide.BustSize" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3">
+                                <InputNumber id="length" @bind-Value="ShirtsSizeGuide.Length" class="form-control" />
+                                <label for="length" class="form-label">@Loc["Length"] (cm):</label>
+                                <ValidationMessage For="() => ShirtsSizeGuide.Length" class="text-danger" />
+                            </div>
+                            <div style="text-align: right;">
+                                <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                                        border-color:transparent; border-radius: 5px;">
+                                    Save
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private ShirtsSizeGuide? ShirtsSizeGuide { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        ShirtsSizeGuide ??= await context.ShirtsSizeGuide.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (ShirtsSizeGuide is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateShirtsSizeGuide()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.Attach(ShirtsSizeGuide!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ShirtsSizeGuideExists(ShirtsSizeGuide!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/shirtssizeguides");
+    }
+
+    private bool ShirtsSizeGuideExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.ShirtsSizeGuide.Any(e => e.Id == id);
+    }
+    private void Close()
+    {
+        NavigationManager.NavigateTo("shirtssizeguides");
+    }
+}

@@ -1,0 +1,35 @@
+﻿@page "/Account/OrderComplete"
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>@Loc["OrderConfirmation"]</PageTitle>
+
+<div class="container-sm mt-5" style="text-align: center; color: #2f4f4f;">
+    <a href="/" style="text-decoration: none;"><h3 class="header mb-3">@Loc["CompanyLogo"]</h3></a>
+    <div class="center-container">
+        <div class="card" style="max-width: 350px;">
+            <div class="card-header">
+                <strong>@Loc["OrderConfirmation"]</strong>
+            </div>
+            <div class="card-body">
+                <p>Your order was successful. Thank you for shopping with Ivory Stores! We will notify you once the package has left the warehouse.</p>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+
+@code {
+    public void ManageAccount()
+    {
+        NavigationManager.NavigateTo("Account/Manage");
+    }
+    public void ManageAddresses()
+    {
+        NavigationManager.NavigateTo("AddressSettings");
+    }
+}

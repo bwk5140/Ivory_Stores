@@ -1,0 +1,91 @@
+﻿@page "/trouserssizeguides/delete"
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Delete</PageTitle>
+
+<div class="container-sm mt-5">
+    @if (trouserssizeguide is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else
+    {
+        <div class="toast-container p-3" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["DeleteTrouserSizeGuide"]</strong>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">@Loc["BrandSize"]:</dt>
+                        <dd class="col-sm-6">@trouserssizeguide.BrandSize</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-4">@Loc["Seat"] (cm):</dt>
+                        <dd class="col-sm-6">@trouserssizeguide.SeatSize</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-4">@Loc["Inseam"] (cm):</dt>
+                        <dd class="col-sm-6">@trouserssizeguide.InSeamLength</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-4">@Loc["Waist"] (cm):</dt>
+                        <dd class="col-sm-6">@trouserssizeguide.WaistSize</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-4">@Loc["Hip"] (cm):</dt>
+                        <dd class="col-sm-6">@trouserssizeguide.HipSize</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-4">@Loc["Length"] (cm):</dt>
+                        <dd class="col-sm-6">@trouserssizeguide.Length</dd>
+                    </dl>
+                    <div style="text-align: right;">
+                        <EditForm method="post" Model="trouserssizeguide" OnValidSubmit="DeleteTrousersSizeGuide" FormName="delete" Enhance>
+                            <button type="submit" class="btn btn-danger" disabled="@(trouserssizeguide is null)">Delete</button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private TrousersSizeGuide? trouserssizeguide;
+
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        trouserssizeguide = await context.TrousersSizeGuide.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (trouserssizeguide is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteTrousersSizeGuide()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.TrousersSizeGuide.Remove(trouserssizeguide!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/trouserssizeguides");
+    }
+    private void Close()
+    {
+        NavigationManager.NavigateTo("/trouserssizeguides");
+    }
+}

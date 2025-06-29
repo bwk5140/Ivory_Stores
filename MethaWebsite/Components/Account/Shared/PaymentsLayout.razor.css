@@ -1,0 +1,8 @@
+﻿::deep .nav-link.active {
+    background-color: lightgray;
+    color: black;
+}
+
+::deep .nav-link {
+    color: black;
+}

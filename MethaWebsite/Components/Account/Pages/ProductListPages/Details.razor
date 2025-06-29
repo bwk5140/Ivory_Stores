@@ -1,0 +1,48 @@
+﻿@page "/productlists/details"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>ProductList</h2>
+    <hr />
+    @if (productlist is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@productlist.Name</dd>
+            <dt class="col-sm-2">Private</dt>
+            <dd class="col-sm-10">@productlist.Private</dd>
+        </dl>
+        <div>
+            <a href="@($"/productlists/edit?id={productlist.Id}")">Edit</a> |
+            <a href="@($"/productlists")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private ProductList? productlist;
+
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        productlist = await context.ProductList.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (productlist is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

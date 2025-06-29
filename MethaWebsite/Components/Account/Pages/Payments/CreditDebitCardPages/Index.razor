@@ -1,0 +1,43 @@
+﻿@page "/Account/Payments/creditdebitcards"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@implements IAsyncDisposable
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="creditdebitcards/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.CreditDebitCard">
+    <PropertyColumn Property="creditdebitcard => creditdebitcard.NameOnCard" />
+    <PropertyColumn Property="creditdebitcard => creditdebitcard.CardNumber" />
+    <PropertyColumn Property="creditdebitcard => creditdebitcard.ExpirationMonth" />
+    <PropertyColumn Property="creditdebitcard => creditdebitcard.ExpirationYear" />
+    <PropertyColumn Property="creditdebitcard => creditdebitcard.ImageSource" />
+    <PropertyColumn Property="creditdebitcard => creditdebitcard.UserId" />
+    <PropertyColumn Property="creditdebitcard => creditdebitcard.BillingAddress" />
+    <PropertyColumn Property="creditdebitcard => creditdebitcard.Type" />
+
+    <TemplateColumn Context="creditdebitcard">
+        <a href="@($"creditdebitcards/edit?id={creditdebitcard.Id}")">Edit</a> |
+        <a href="@($"creditdebitcards/details?id={creditdebitcard.Id}")">Details</a> |
+        <a href="@($"creditdebitcards/delete?id={creditdebitcard.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

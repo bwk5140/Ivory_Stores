@@ -1,0 +1,134 @@
+﻿@page "/productimages/edit"
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using Microsoft.EntityFrameworkCore
+@using System.Globalization
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IJSRuntime JS
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Edit</PageTitle>
+
+<div class="container-sm mt-5">
+    @if (ProductImage is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else
+    {
+        <div class="card" style="width:60%;">
+            <div class="card-header">
+                <div style="text-align: right;">
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="OnCancelClicked"></button>
+                </div>
+                <strong class="header">@Loc["EditImage"]</strong>
+            </div>
+            <EditForm method="post" Model="ProductImage" OnValidSubmit="UpdateProductImage" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" role="alert" />
+                <div class="card-body" style="text-align: center;">
+                    <img src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(ProductImage.Image)))"
+                         alt=@Loc["ProductImage"] style="width:70%; height:70%; object-fit:cover;" />
+                    <div class="form form-floating mb-3">
+                        <InputText @bind-Value="ProductImage.Name" id="ProductImage.Name" class="form-control" autocomplete="productimage-name"
+                                   aria-required="true" placeholder=""/>
+                        <label for="ProductImage.Name" class="form-label">@Loc["Name"]:</label>
+                        <ValidationMessage For="() => ProductImage.Name" class="text-danger" />
+                    </div>
+                    <div class="form-floating mb-3">
+                        <InputTextArea @bind-Value="ProductImage.Description" id="ProductImage.Description" class="form-control" autocomplete="productimage-description"
+                                       aria-required="true" placeholder=""  style="min-height: 5rem;"/>
+                        <label for="ProductImage.Description" class="form-label">@Loc["Description"]:</label>
+                        <ValidationMessage For="() => ProductImage.Description" class="text-danger" />
+                    </div>
+                    <div style="text-align: right;">
+                        <button type="submit" style="background-color:#2f4f4f; color: #F5F5F5; border-color:transparent;
+                                            border-radius: 5px;">
+                            @Loc["Update"]
+                        </button>
+                    </div>
+                    
+                </div>
+            </EditForm>
+        </div>
+    }
+    
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    [SupplyParameterFromForm]
+    public ProductImage? ProductImage { get; set; }
+
+    public ProductImage? Image { get; set; }
+
+
+    [Parameter]
+    public string? ImageSource { get; set; }
+
+    private byte[]? bytes { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        Image = await context.ProductImage.FirstOrDefaultAsync(m => m.Id == Id);
+
+        ProductImage ??= Image;
+
+        if (ProductImage is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        else
+        {
+            if (ProductImage.Id is null && Image is not null)
+            {
+                ProductImage.Id = Image.Id;
+            }
+            if (ProductImage.Image is null && Image is not null)
+            {
+                ProductImage.Image = Image.Image;
+            }
+        }
+    }
+    public async Task UpdateProductImage()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.Attach(ProductImage!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ProductImageExists(ProductImage!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+        NavigationManager.NavigateTo("/productimages");
+    }
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+
+    private bool ProductImageExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.ProductImage.Any(e => e.Id == id);
+    }
+    public void OnCancelClicked()
+    {
+        NavigationManager.NavigateTo("/productimages");
+    }
+}

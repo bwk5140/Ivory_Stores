@@ -1,0 +1,62 @@
+﻿@page "/addresses/details"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Address</h2>
+    <hr />
+    @if (address is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">FullName</dt>
+            <dd class="col-sm-10">@address.FullName</dd>
+            <dt class="col-sm-2">PhoneNumber</dt>
+            <dd class="col-sm-10">@address.PhoneNumber</dd>
+            <dt class="col-sm-2">AddressLine1</dt>
+            <dd class="col-sm-10">@address.AddressLine1</dd>
+            <dt class="col-sm-2">AddressLine2</dt>
+            <dd class="col-sm-10">@address.AddressLine2</dd>
+            <dt class="col-sm-2">City</dt>
+            <dd class="col-sm-10">@address.City</dd>
+            <dt class="col-sm-2">State</dt>
+            <dd class="col-sm-10">@address.State</dd>
+            <dt class="col-sm-2">Country</dt>
+            <dd class="col-sm-10">@address.Country</dd>
+            <dt class="col-sm-2">ZipCode</dt>
+            <dd class="col-sm-10">@address.ZipCode</dd>
+            <dt class="col-sm-2">DefaultAddress</dt>
+            <dd class="col-sm-10">@address.DefaultAddress</dd>
+        </dl>
+        <div>
+            <a href="@($"/addresses/edit?id={address.Id}")">Edit</a> |
+            <a href="@($"/addresses")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Address? address;
+
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        address = await context.Address.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (address is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

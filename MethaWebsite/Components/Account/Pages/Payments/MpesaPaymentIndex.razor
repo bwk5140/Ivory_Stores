@@ -1,0 +1,59 @@
+﻿@page "/Account/Payments/MpesaPaymentOptions"
+@using MethaWebsite.Services
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@implements IAsyncDisposable
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationUserService ApplicationUserService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<div class="container-sm">
+    @if (MpesaPaymentOptions is not null)
+    {
+        @foreach (var MpesaPaymentOption in MpesaPaymentOptions)
+        {
+            <div class="card">
+                <div class="card-body">
+                    <div style="display: inline-block;">
+                        <img src="M-PESA-logo.svg" />
+                    </div>
+                    <div style="display: inline-block;">
+                        <div>
+                            <strong>@MpesaPaymentOption.Type</strong>
+                        </div>
+                        <div>
+                            @Loc["PhoneNumber"]: @MpesaPaymentOption.PhoneNumber
+                        </div>
+                        <div>
+                            @Loc["RegisteredName"]: @MpesaPaymentOption.RegisteredName
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private ApplicationDbContext context = default!;
+    private List<Mpesa>? MpesaPaymentOptions { get; set; }
+    private ApplicationUser? applicationUser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        MpesaPaymentOptions = context.Mpesa.Where(c => c.UserId == applicationUser.Id).ToList();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

@@ -1,0 +1,108 @@
+﻿@page "/shoessizeguides/create"
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<div class="container-sm">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                style="background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["ShoesSizeGuide"]</strong>
+                <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                        aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body">
+                <EditForm method="post" Model="ShoesSizeGuide" OnValidSubmit="AddShoesSizeGuide" FormName="create" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" role="alert" />
+                    <div class="form form-floating mb-3">
+                        <InputText id="brandsize" @bind-Value="ShoesSizeGuide.BrandSize" class="form-control" />
+                        <label for="brandsize" class="form-label">@Loc["BrandSize"]:</label>
+                        <ValidationMessage For="() => ShoesSizeGuide.BrandSize" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="uk_size" @bind-Value="ShoesSizeGuide.UK_Size" class="form-control" />
+                        <label for="uk_size" class="form-label">@Loc["UKSize"]:</label>
+                        <ValidationMessage For="() => ShoesSizeGuide.UK_Size" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="us_size" @bind-Value="ShoesSizeGuide.US_Size" class="form-control" />
+                        <label for="us_size" class="form-label">@Loc["USSize"]:</label>
+                        <ValidationMessage For="() => ShoesSizeGuide.US_Size" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="eu_size" @bind-Value="ShoesSizeGuide.EU_Size" class="form-control" />
+                        <label for="eu_size" class="form-label">@Loc["EUSize"]:</label>
+                        <ValidationMessage For="() => ShoesSizeGuide.EU_Size" class="text-danger" />
+                    </div>
+                    <div style="text-align: right;">
+                        <button type="submit" class="btn btn-primary" style="background-color:#2f4f4f;
+                                    border-radius: 5px;" data-bs-toggle="tooltip" title=@Loc["Add"]>
+                            @Loc["Add"]
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background"></div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private ShoesSizeGuide ShoesSizeGuide { get; set; } = new();
+
+    [CascadingParameter]
+    private ProductGroup? ProductGroup { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnShoesSizeGuideAdded { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddShoesSizeGuide()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        if (ProductGroup is not null && ProductGroup.ProductColorGroups is not null)
+        {
+            foreach (var product in ProductGroup.ProductColorGroups.SelectMany(cg => cg.Products))
+            {
+                ShoesSizeGuide.ProductId = product.Id;
+                product.SizeGuideId = ShoesSizeGuide.Id;
+
+                if (!context.ShoesSizeGuide.Contains(ShoesSizeGuide))
+                {
+                    context.ShoesSizeGuide.Add(ShoesSizeGuide);
+                    await context.SaveChangesAsync();
+                }
+                await OnShoesSizeGuideAdded.InvokeAsync();
+            }
+        }
+        ShoesSizeGuide = new ShoesSizeGuide();
+        Close();
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

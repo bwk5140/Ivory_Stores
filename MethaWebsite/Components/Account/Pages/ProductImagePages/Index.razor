@@ -1,0 +1,81 @@
+﻿@page "/productimages"
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.EntityFrameworkCore
+@using System.Globalization
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@rendermode InteractiveServer
+
+<PageTitle>Index</PageTitle>
+
+<div class="container-md mt-5">
+    <h3 class="header mt-3">@Loc["Images"]</h3>
+    <hr/>
+    <QuickGrid Class="pagination" Items="context.ProductImage" Pagination="pagination">
+        <TemplateColumn Context="productimage">
+            <div class="card" style="max-width: fit-content;">
+                <div class="card-body">
+                    <button class="btn" @onclick="@(() => OnDetailsClicked(productimage))">
+                        <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(productimage.Image)))"
+                             alt=@Loc["ProductImage"] style="width:200px; height:200px; object-fit:cover;" />
+                    </button>
+                </div>
+                <div class="card-footer">
+                    <div class="btn-group btn-group-lg" role="group">
+                        <button type="btn btn-lg" style="background-color: transparent; border-color:transparent;"
+                                @onclick="@(() => OnEditClicked(productimage))" data-bs-toggle="tooltip" title=@Loc["Edit"]>
+                            <img src="pencil-fill.svg" />
+                        </button>
+                        <button class="btn btn-lg" @onclick="@(() => OnDeleteClicked(productimage))" style="border-color:transparent;
+                            background-color: transparent;" data-bs-toggle="tooltip" title=@Loc["Delete"]>
+                            <img src="trash.svg" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="pagination" />
+</div>
+
+
+
+@code {
+    private ApplicationDbContext context = default!;
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    [Parameter]
+    public string? imageSource { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+
+    public void OnCreateClicked()
+    {
+        NavigationManager.NavigateTo("productimages/create");
+    }
+
+    public void OnDetailsClicked(ProductImage image)
+    {
+        NavigationManager.NavigateTo($"productimages/details?id={image.Id}");
+    }
+
+    public void OnEditClicked(ProductImage image)
+    {
+        NavigationManager.NavigateTo($"productimages/edit?id={image.Id}");
+    }
+
+    public void OnDeleteClicked(ProductImage image)
+    {
+        NavigationManager.NavigateTo($"productimages/delete?id={image.Id}");
+    }
+}

@@ -1,0 +1,103 @@
+﻿@page "/addresses/delete"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Delete</PageTitle>
+
+
+<div>
+    @if (address is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else
+    {
+        <div class="container-sm" style="display: block; justify-content: center;">
+            @{
+                var showClass = IsVisible ? "d-block" : "d-none";
+            }
+            <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+                 style="top: 35%;">
+                <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                     style="background-color: white;">
+                    <div class="toast-header">
+                        <strong class="me-auto">@Loc["RemoveAddress"]</strong>
+                        <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                    </div>
+                    <div class="toast-body" >
+                        <div>
+                            <strong>@address?.FullName</strong>
+                        </div>
+                        <div>
+                            @address?.AddressLine1
+                        </div>
+                        <div>
+                            @address?.AddressLine2
+                        </div>
+                        <div>
+                            @address?.City, @address?.State, @address?.ZipCode
+                        </div>
+                       <div>
+                            @address?.Country
+                       </div>
+                        <div>
+                            @address?.PhoneNumber
+                        </div>
+                        <div class="mt-3 mb-3" style="color: gray;">@Loc["RemoveAddressInfo"]</div>
+                        <div style="text-align: end;">
+                            <EditForm method="post" Model="address" OnValidSubmit="DeleteAddress" FormName="delete" Enhance>
+                                <button type="submit" class="btn btn-danger" disabled="@(address is null)">Delete</button>
+                            </EditForm>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+            <div class="@showClass darker-background"></div>
+    }
+</div>
+
+@code {
+    private Address? address;
+
+    [Parameter]
+    public string? Id { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        address = await context.Address.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (address is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteAddress()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Address.Remove(address!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/AddressSettings");
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

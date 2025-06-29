@@ -1,0 +1,200 @@
+﻿@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using Microsoft.EntityFrameworkCore
+@using System.Globalization
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IJSRuntime JS
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="container-sm">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+            style="top: 25%;">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                style="background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["SelectCategory"]</strong>
+                <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                        aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body">
+                @if (parentCategories is not null && parentCategories.Count > 0)
+                {
+                    foreach (var category in parentCategories)
+                    {
+                        var categories = getChildren(category);
+                        <div class="card mb-2">
+                            <div class="card-body" style="background-color: @color[category.Id];">
+                                
+                                @if (categories is not null && categories.Count > 0)
+                                {
+                                    <button type="button" style="width: 80%; text-align : left; border: unset;
+                                            background-color: transparent;"
+                                            @onclick="@(() => CategoryClicked(category))">
+                                        @category.Name
+                                    </button>
+                                    <button type="button" style="width: 15%; text-align : left; border: unset;
+                                                        background-color: transparent;"
+                                            @onclick="@(() => OnCategoryClicked(category))">
+                                        <img src="chevron-right.svg" />
+                                    </button>
+                                    
+                                }
+                                else
+                                {
+                                    <button type="button" style="width: 100%; text-align : left; border: unset;
+                                            background-color: transparent;"
+                                            @onclick="@(() => CategoryClicked(category))">
+                                        @category.Name
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                    <div style="text-align: right;">
+                        <div class="btn-group mt-3">
+                            <button type="button" class="btn btn-secondary me-2" data-bs-toggle="tooltip" title=@Loc["Back"]
+                                    @onclick="OnBackClicked" style="border-radius: 25px;">
+                                @Loc["Back"]
+                            </button>
+                            <button type="button" class="btn" data-bs-toggle="tooltip" title=@Loc["Save"]
+                                    @onclick="Save" style="border-radius: 25px; background-color: #2f4f4f; color: white;">
+                                @Loc["Save"]
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background"></div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [CascadingParameter]
+    private List<Category>? parentCategories { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnCategorySelected { get; set; }
+
+    [Parameter]
+    public Dictionary<string, string>? color { get; set; } = new ();
+
+    private List<List<Category>>? Categories { get; set; } = new List<List<Category>>();
+
+    [CascadingParameter]
+    private Product? product { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (parentCategories is not null)
+        {
+            Categories!.Add(parentCategories!);
+            foreach (var category in parentCategories)
+            {
+                color[category.Id] = ("transparent");
+            }
+        }
+    }
+    public async Task OnCategoryClicked(Category category)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var categories = context.Category.Where(m => m.ParentID == category.Id).ToList();
+        if (categories is not null)
+        {
+            parentCategories = categories;
+            Categories!.Add(parentCategories);
+            foreach (var cat in parentCategories){
+                color[cat.Id] = ("transparent");
+            }
+            StateHasChanged();
+        }
+        else
+        {
+            product!.CategoryId = category.Id;
+            foreach (var cat in parentCategories){
+                color[cat.Id] = ("transparent");
+            }
+            color![category.Id] = "#89c182";
+        }
+    }
+    public void CategoryClicked(Category category)
+    {
+        product!.CategoryId = category.Id;
+        foreach (var cat in parentCategories){
+            color[cat.Id] = ("transparent");
+        }
+        color![category.Id] = "#89c182";
+    }
+    public void OnBackClicked()
+    {
+        if (Categories!.Count > 1)
+        {
+            Categories!.Remove(parentCategories!);
+            parentCategories = Categories!.Last();
+        }
+        foreach (var cat in parentCategories){
+            color[cat.Id] = ("transparent");
+        }
+        StateHasChanged();
+    }
+    public List<Category> getChildren(Category category)
+    {
+        if (parentCategories is not null)
+        {
+            if (color.Count() < parentCategories.Count())
+            {
+                color![category.Id] = "transparent";
+                UpdateOriginalCategories();
+            }
+        }
+
+        using var context = DbFactory.CreateDbContext();
+        var categories = context.Category.Where(m => m.ParentID == category.Id).ToList();
+        return categories;
+    }
+    public async Task UpdateOriginalCategories()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        if (Categories is not null && Categories.Count() > 0)
+        {
+            Categories![0] = context.Category.Where(c => c.ParentID == null).ToList();
+        }
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+    public async Task Save()
+    {
+        Close();
+        await OnCategorySelected.InvokeAsync();
+    }
+    public void Close()
+    {
+        IsVisible = false;
+
+        foreach (var cat in parentCategories){
+            color[cat.Id] = ("transparent");
+        }
+        
+        while (Categories!.Count > 1)
+        {
+            Categories!.Remove(parentCategories!);
+            if (parentCategories is not null)
+            {
+                parentCategories = Categories!.Last();
+            }
+        }
+        StateHasChanged();
+    }
+}

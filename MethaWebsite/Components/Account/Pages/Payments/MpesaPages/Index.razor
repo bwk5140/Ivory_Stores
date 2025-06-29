@@ -1,0 +1,42 @@
+﻿@page "/Account/Payments/MpesaPaymentMethods"
+@using MethaWebsite.Services
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@implements IAsyncDisposable
+
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="mpesas/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Mpesa">
+    <PropertyColumn Property="mpesa => mpesa.PhoneNumber" />
+    <PropertyColumn Property="mpesa => mpesa.RegisteredName" />
+    <PropertyColumn Property="mpesa => mpesa.ImageSource" />
+    <PropertyColumn Property="mpesa => mpesa.BillingAddress" />
+
+    <TemplateColumn Context="mpesa">
+        <a href="@($"mpesas/edit?id={mpesa.Id}")">Edit</a> |
+        <a href="@($"mpesas/details?id={mpesa.Id}")">Details</a> |
+        <a href="@($"mpesas/delete?id={mpesa.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

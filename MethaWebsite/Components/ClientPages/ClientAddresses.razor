@@ -1,0 +1,535 @@
+﻿@page "/AddressSettings"
+
+@using MethaWebsite.Components.Account.Pages.AddressPages
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Services
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+
+@implements IDisposable
+
+@inject ApplicationUserService ApplicationUserService
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject StateChangeService StateChangeService
+
+@rendermode InteractiveServer
+
+<PageTitle>@Loc["YourAddresses"]</PageTitle>
+
+<div class="container-sm mt-5">
+    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="AccountSettings" style="text-decoration: none;">
+                    @Loc["YourAccount"]
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">@Loc["YourAddresses"]</li>
+        </ol>
+    </nav>
+    @if (StateChangeService.HasStateChanged())
+    {
+        <div class="card mt-2 mb-2" style="border-color: green; max-width: 1200px;">
+            <div class="card-body">
+                <img src="check-circle-fill.svg" />
+                @Loc["DefaultAddressChanged"]
+            </div>
+        </div>
+    }
+    <h3>@Loc["YourAddresses"]</h3>
+    <div class="row">
+        <div class="col-sm-4 mt-3" style="padding: 0px;">
+            <button style="border: none; background-color: transparent;" @onclick="CreateNewAddress">
+                <div class="card" style="max-width: 350px; width: 350px; height: 350px;
+                            border:dashed; border-color: lightgray;">
+                    <div class="card-body">
+                        <div class="col">
+                            <div class="row" >
+                                <div style="position: absolute; top: 30%;">
+                                    <i class="plus_icon" style="fill:lightgray;"/>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div style="color: gray; font-size:larger; position: absolute; top: 55%;">
+                                    @Loc["CreateAddress"]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </button>
+        </div>
+        @if (Addresses.Any())
+        {
+            @foreach (var address in Addresses)
+            {
+                <div class="col-sm-4 mt-3" style="padding: 0px; ">
+                    <div class="card" style="max-width: 350px; width: 350px; height: 350px;
+                                            border-color: lightgray;">
+                        @if (address.DefaultAddress)
+                        {
+                            <div class="card-header">
+                                @Loc["DefaultAddress"]
+                            </div>
+                        }
+                        <div class="card-body">
+                            <div class="col ms-3 mt-3">
+                                <div>
+                                    <strong>@address.FullName</strong>
+                                </div>
+                                <div style="color: gray;">
+                                    @address.AddressLine1
+                                </div>
+                                <div style="color: gray;">
+                                    @address.AddressLine2
+                                </div>
+                                <div style="color: gray;">
+                                    @address.Country
+                                </div>
+                                <div style="color: gray;">
+                                    @Loc["PhoneNumber"] : @address.PhoneNumber
+                                </div>
+                                <div>
+                                    <a href="" style="text-decoration: none;">Add delivery instructions</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer" style="text-align: right;">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-secondary me-2" style="background-color: transparent; border: none;
+                                                                color: #2f4f4f; font-size: medium;" @onclick="@(()=>OnEditClicked(address))">
+                                    @Loc["Edit"]
+                                </button>
+                                <button type="button" class="btn btn-danger me-2" style="background-color: transparent; border: none;
+                                                                        color: #2f4f4f; font-size: medium;" @onclick="@(()=>OnDeleteClicked(address))">
+                                    @Loc["Delete"]
+                                </button>
+                                @if (!address.DefaultAddress)
+                                {
+                                    <button type="button" class="btn btn-primary" style="background-color: transparent; border: none;
+                                                                         color: #2f4f4f; font-size: medium;" @onclick="@(() => OnSetDefault(address))">
+                                        @Loc["SetAsDefault"]
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container-sm" style="display: flex; justify-content: center;">
+                        @{
+                            var showClass1 = VisibleEditComponents1[address.Id] ? "d-block" : "d-none";
+                        }
+                        <div class="toast-container p-3 @showClass1" data-bs-autohide="true" data-bs-delay="5000"
+                             style="top: 35%; z-index: 1200">
+                            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                                 style="background-color: white;">
+                                <div class="toast-header">
+                                    <strong class="me-auto">@Loc["EditFailed"]</strong>
+                                    <button type="button" class="btn-close" aria-label="Close" @onclick="@(() => CloseEdit(address))"></button>
+                                </div>
+                                <div class="toast-body">
+                                    <div>
+                                        <strong>@address?.FullName</strong>
+                                    </div>
+                                    <div>
+                                        @address?.AddressLine1
+                                    </div>
+                                    <div>
+                                        @address?.AddressLine2
+                                    </div>
+                                    <div>
+                                        @address?.City, @address?.State, @address?.ZipCode
+                                    </div>
+                                    <div>
+                                        @address?.Country
+                                    </div>
+                                    <div>
+                                        @address?.PhoneNumber
+                                    </div>
+                                    <div class="mt-3 mb-3 text-danger" style="color: red;"><img src="info-circle.svg" style="color: red;"> @Loc["EditFailedInfo"]</div>
+                                    <div class="ms-1" style="text-align: right;">
+                                        <button type="button" class="btn btn-secondary" style="border-color:transparent;
+                                                                                    border-radius: 5px;" @onclick="@(() => CloseEdit(address))">
+                                            @Loc["Cancel"]
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="@showClass1 darker-background"></div>
+                    </div>
+                    <div class="container-sm mt-5" style="display: flex; justify-content: center;">
+                        @{
+                            var showClass2 = VisibleEditComponents2[address.Id] ? "d-block" : "d-none";
+                        }
+                        <div class="toast-container p-3 @showClass2" data-bs-autohide="true" data-bs-delay="5000"
+                             style="top: 30%; z-index: 1200">
+                            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                                 style="width: fit-content; max-width: 550px; max-height: 600px; overflow-y: auto;
+                                                background-color: white;">
+                                <div class="toast-header">
+                                    <strong class="me-auto">@Loc["EditAddress"]</strong>
+                                    <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                                            aria-label="Close" @onclick="@(() => CloseEdit(address))"></button>
+                                </div>
+                                <div class="toast-body">
+                                    <EditForm method="post" Model="address" OnValidSubmit="@(() => UpdateAddress(address))" FormName="edit" Enhance>
+                                        <DataAnnotationsValidator />
+                                        <ValidationSummary class="text-danger" role="alert" />
+                                        <div class="form form-floating mb-3">
+                                            <InputText id="fullname" @bind-Value="address.FullName" class="form-control" aria-required="true" placeholder="" />
+                                            <label for="fullname" class="form-label">@Loc["FullName"]:</label>
+                                            <ValidationMessage For="() => address.FullName" class="text-danger" />
+                                        </div>
+                                        <div class="form form-floating mb-3">
+                                            <InputText id="phonenumber" @bind-Value="address.PhoneNumber" class="form-control" aria-required="true" placeholder="" />
+                                            <label for="phonenumber" class="form-label">@Loc["PhoneNumber"]:</label>
+                                            <ValidationMessage For="() => address.PhoneNumber" class="text-danger" />
+                                        </div>
+                                        <div class="form form-floating mb-3">
+                                            <InputText id="addressline1" @bind-Value="address.AddressLine1" class="form-control" aria-required="true" placeholder="" />
+                                            <label for="addressline1" class="form-label">@Loc["AddressLine1"]:</label>
+                                            <ValidationMessage For="() => address.AddressLine1" class="text-danger" />
+                                        </div>
+                                        <div class="form form-floating mb-3">
+                                            <InputText id="addressline2" @bind-Value="address.AddressLine2" class="form-control" placeholder="" />
+                                            <label for="addressline2" class="form-label">@Loc["AddressLine2"]:</label>
+                                            <ValidationMessage For="() => address.AddressLine2" class="text-danger" />
+                                        </div>
+                                        <label for="country" class="form-label ms-2">@Loc["Country"]:</label>
+                                        <div class="form form-floating mb-3" style="width: max-content;">
+                                            <InputSelect id="country" @bind-Value="address.Country" class="form-select-sm ms-1" aria-required="true" placeholder=@Loc["Select"]
+                                                         style="border-color: lightgray;">
+                                                @foreach (var country in Countries)
+                                                {
+                                                    <option value="@country.Name" style="color: black;">@country.Name</option>
+                                                }
+                                            </InputSelect>
+                                            <ValidationMessage For="() => address.Country" class="text-danger" />
+                                        </div>
+                                        <div class="input-no-focus input-group  me-3">
+                                            <div class="form form-floating mb-3">
+                                                <InputText id="city" @bind-Value="address.City" class="form-control" aria-required="true" placeholder="" />
+                                                <label for="city" class="form-label">@Loc["City"]:</label>
+                                                <ValidationMessage For="() => address.City" class="text-danger" />
+                                            </div>
+                                            <div class="form form-floating mb-3" style="width: 65px;">
+                                                <InputText id="state" @bind-Value="address.State" class="form-control" aria-required="true" placeholder="" />
+                                                <label for="state" class="form-label">@Loc["State"]:</label>
+                                                <ValidationMessage For="() => address.State" class="text-danger" />
+                                            </div>
+                                            <div class="form form-floating mb-3">
+                                                <InputText id="zipcode" @bind-Value="address.ZipCode" class="form-control" placeholder="" />
+                                                <label for="zipcode" class="form-label">@Loc["Zip"]:</label>
+                                                <ValidationMessage For="() => address.ZipCode" class="text-danger" />
+                                            </div>
+                                        </div>
+                                        <div class="checkbox mb-3">
+                                            <label for="defaultaddress" class="form-label">
+                                                <InputCheckbox id="defaultaddress" @bind-Value="address.DefaultAddress" class="form-check-input ms-1" />
+                                                @Loc["SetDefaultAddress"]:
+                                            </label>
+                                            <ValidationMessage For="() => address.DefaultAddress" class="text-danger" />
+                                        </div>
+                                        <div class="ms-1" style="text-align: right;">
+                                            <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                                                        border-color:transparent; border-radius: 5px;">
+                                                @Loc["Save"]
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" style="border-color:transparent;
+                                                                            border-radius: 5px;" @onclick="@(() => CloseEdit(address))">
+                                                @Loc["Cancel"]
+                                            </button>
+                                        </div>
+                                    </EditForm>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="@showClass2 darker-background"></div>
+                    </div>
+                    <div class="container-sm" style="display: flex; justify-content: center;">
+                        @{
+                            var showDeleteClass1 = VisibleDeleteComponents1[address.Id] ? "d-block" : "d-none";
+                        }
+                        <div class="toast-container p-3 @showDeleteClass1" data-bs-autohide="true" data-bs-delay="5000"
+                             style="top: 35%; z-index: 1200">
+                            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                                 style="background-color: white;">
+                                <div class="toast-header">
+                                    <strong class="me-auto">@Loc["DeleteFailed"]</strong>
+                                    <button type="button" class="btn-close" aria-label="Close" @onclick="(() => CloseDelete(address))"></button>
+                                </div>
+                                <div class="toast-body">
+                                    <div>
+                                        <strong>@address?.FullName</strong>
+                                    </div>
+                                    <div>
+                                        @address?.AddressLine1
+                                    </div>
+                                    <div>
+                                        @address?.AddressLine2
+                                    </div>
+                                    <div>
+                                        @address?.City, @address?.State, @address?.ZipCode
+                                    </div>
+                                    <div>
+                                        @address?.Country
+                                    </div>
+                                    <div>
+                                        @address?.PhoneNumber
+                                    </div>
+                                    <div class="mt-3 mb-3 text-danger" style="color: red;"><img src="info-circle.svg" style="color: red;"> @Loc["EditFailedInfo"]</div>
+                                    <div class="ms-1" style="text-align: right;">
+                                        <button type="button" class="btn btn-secondary" style="border-color:transparent;
+                                                                                        border-radius: 5px;" @onclick="(() => CloseDelete(address))">
+                                            @Loc["Cancel"]
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="@showDeleteClass1 darker-background"></div>
+                    </div>
+                    <div class="container-sm" style="display: flex; justify-content: center;">
+                        @{
+                            var showDeleteClass2 = VisibleDeleteComponents2[address.Id] ? "d-block" : "d-none";
+                        }
+                        <div class="toast-container p-3 @showDeleteClass2" data-bs-autohide="true" data-bs-delay="5000"
+                             style="top: 35%; z-index: 1200">
+                            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                                 style="background-color: white;">
+                                <div class="toast-header">
+                                    <strong class="me-auto">@Loc["RemoveAddress"]</strong>
+                                    <button type="button" class="btn-close" aria-label="Close" @onclick="@(() => CloseDelete(address))"></button>
+                                </div>
+                                <div class="toast-body">
+                                    <div>
+                                        <strong>@address?.FullName</strong>
+                                    </div>
+                                    <div>
+                                        @address?.AddressLine1
+                                    </div>
+                                    <div>
+                                        @address?.AddressLine2
+                                    </div>
+                                    <div>
+                                        @address?.City, @address?.State, @address?.ZipCode
+                                    </div>
+                                    <div>
+                                        @address?.Country
+                                    </div>
+                                    <div>
+                                        @address?.PhoneNumber
+                                    </div>
+                                    <div class="mt-3 mb-3" style="color: gray;">@Loc["RemoveAddressInfo"]</div>
+                                    <div style="text-align: end;">
+                                        <EditForm method="post" Model="address" OnValidSubmit="@(() => DeleteAddress(address))" FormName="delete" Enhance>
+                                            <button type="submit" class="btn btn-danger" disabled="@(address is null)">Delete</button>
+                                        </EditForm>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="@showDeleteClass2 darker-background"></div>
+                    </div>
+                </div>
+            }
+        }
+        
+    </div>
+</div>
+<MethaWebsite.Components.Account.Pages.AddressPages.Create @ref=AddNewAddressPopUp OnAddressAdded="UpdateAddresses"/>
+
+@code {
+    [Parameter]
+    public List<Address>? Addresses { get; set; }
+    private MethaWebsite.Components.Account.Pages.AddressPages.Create AddNewAddressPopUp;
+    [Parameter]
+    public List<Country>? Countries { get; set; }
+    [Parameter]
+    public Dictionary<string, bool>? VisibleEditComponents1 { get; set; } = new();
+    [Parameter]
+    public Dictionary<string, bool>? VisibleEditComponents2 { get; set; } = new();
+    [Parameter]
+    public Dictionary<string, bool>? VisibleDeleteComponents1 { get; set; } = new();
+    [Parameter]
+    public Dictionary<string, bool>? VisibleDeleteComponents2 { get; set; } = new();
+
+    [Parameter]
+    public bool IsVisibleEdit1 { get; set; } = false;
+    [Parameter]
+    public bool IsVisibleEdit2 { get; set; } = false;
+    [Parameter]
+    public bool IsVisibleDelete1 { get; set; } = false;
+    [Parameter]
+    public bool IsVisibleDelete2 { get; set; } = false;
+
+    private ApplicationUser? applicationUser { get; set; }
+    string? currentUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        Addresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();
+        var defaultAddress = Addresses.FirstOrDefault(a => a.DefaultAddress == true);
+        (Addresses[0], Addresses[Addresses.IndexOf(defaultAddress)]) = (Addresses[Addresses.IndexOf(defaultAddress)], Addresses[0]);
+        Countries = context.Country.OrderBy(c => c.Name).ToList();
+        foreach (var address in Addresses)
+        {
+            VisibleEditComponents1[address.Id] = false;
+            VisibleEditComponents2[address.Id] = false;
+            VisibleDeleteComponents1[address.Id] = false;
+            VisibleDeleteComponents2[address.Id] = false;
+        }
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+    public void CreateNewAddress()
+    {
+        AddNewAddressPopUp.Show();
+    }
+    public void OnEditClicked(Address address)
+    {
+        if (address.DefaultAddress)
+            VisibleEditComponents1[address.Id] = true;
+        else
+        {
+            VisibleEditComponents2[address.Id] = true;
+        }
+        StateHasChanged();
+    }
+    public void OnDeleteClicked(Address address)
+    {
+        if (address.DefaultAddress)
+            VisibleDeleteComponents1[address.Id] = true;
+        else
+        {
+            VisibleDeleteComponents2[address.Id] = true;
+        }
+        StateHasChanged();
+    }
+    private bool AddressExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Address.Any(e => e.Id == id);
+    }
+
+    private void CloseEdit(Address address)
+    {
+        if (address.DefaultAddress)
+            VisibleEditComponents1[address.Id] = false;
+        else
+        {
+            VisibleEditComponents2[address.Id] = false;
+        }
+        StateHasChanged();
+    }
+    private void CloseDelete(Address address)
+    {
+        if (address.DefaultAddress)
+            VisibleDeleteComponents1[address.Id] = false;
+        else
+        {
+            VisibleDeleteComponents2[address.Id] = false;
+        }
+        StateHasChanged();
+    }
+    private async Task UpdateAddresses()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        Addresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();
+        foreach (var address in Addresses)
+        {
+            VisibleEditComponents1[address.Id] = false;
+            VisibleEditComponents2[address.Id] = false;
+            VisibleDeleteComponents1[address.Id] = false;
+            VisibleDeleteComponents2[address.Id] = false;
+        }
+    }
+    private async Task UpdateAddress(Address address)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        if (applicationUser is not null && address!.DefaultAddress)
+        {
+            applicationUser.DefaultAddressId = address!.Id;
+            context.Attach(applicationUser).State = EntityState.Modified;
+            var currentDefault = await context.Address.FirstOrDefaultAsync(a => a.DefaultAddress == true);
+            currentDefault.DefaultAddress = false;
+            context.Attach(currentDefault!).State = EntityState.Modified;
+            Addresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();
+            StateHasChanged();
+
+        }
+        context.Attach(address!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+            StateHasChanged();
+            CloseEdit(address);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!AddressExists(address!.Id))
+            {
+                StateHasChanged();
+                CloseEdit(address);
+            }
+            else
+            {
+                throw;
+            }
+        }
+    }
+    private async Task OnSetDefault(Address address)
+    {
+        using var context = DbFactory.CreateDbContext();
+        foreach (var _address in Addresses)
+        {
+            if (_address != address && _address.DefaultAddress)
+            {
+                _address.DefaultAddress = false;
+                context.Attach(_address).State = EntityState.Modified;
+            }
+        }
+        address.DefaultAddress = true;
+        StateChangeService.ChangeState();
+        context.Attach(address).State = EntityState.Modified;
+        await context.SaveChangesAsync();
+        NavigationManager.Refresh(true);
+    }
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        if (e.Location != currentUrl)
+        {
+            if (StateChangeService.HasStateChanged())
+            {
+                StateChangeService.Dispose();
+            }
+        }
+        StateHasChanged();
+    }
+    private async Task DeleteAddress(Address address)
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Address.Remove(address!);
+        await context.SaveChangesAsync();
+        Addresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();
+        StateHasChanged();
+        CloseDelete(address);
+    }
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+}

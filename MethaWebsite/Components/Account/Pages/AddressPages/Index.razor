@@ -1,0 +1,46 @@
+﻿@page "/addresses"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@implements IAsyncDisposable
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+<div class="container-xxl mt-5">
+    <h1>Index</h1>
+
+    <p>
+        <a href="addresses/create">Create New</a>
+    </p>
+
+    <QuickGrid Class="table" Items="context.Address">
+        <PropertyColumn Property="address => address.FullName" />
+        <PropertyColumn Property="address => address.PhoneNumber" />
+        <PropertyColumn Property="address => address.AddressLine1" />
+        <PropertyColumn Property="address => address.AddressLine2" />
+        <PropertyColumn Property="address => address.City" />
+        <PropertyColumn Property="address => address.State" />
+        <PropertyColumn Property="address => address.Country" />
+        <PropertyColumn Property="address => address.ZipCode" />
+        <PropertyColumn Property="address => address.DefaultAddress" />
+
+        <TemplateColumn Context="address">
+            <a href="@($"addresses/edit?id={address.Id}")">Edit</a> |
+            <a href="@($"addresses/details?id={address.Id}")">Details</a> |
+            <a href="@($"addresses/delete?id={address.Id}")">Delete</a>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

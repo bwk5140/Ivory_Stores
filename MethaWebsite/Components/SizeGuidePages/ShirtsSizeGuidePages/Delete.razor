@@ -1,0 +1,104 @@
+﻿@page "/shirtssizeguides/delete"
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Delete</PageTitle>
+
+<div class="container-sm mt-5">
+    @if (shirtssizeguide is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else
+    {
+        <div class="toast-container p-3" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["DeleteShirtSizeGuide"] (@shirtssizeguide.BrandSize)?</strong>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <dl class="row">
+                        <dt class="col-sm-7">@Loc["Chest"] (cm):</dt>
+                        <dd class="col-sm-3">@shirtssizeguide.ChestSize</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-7">@Loc["Shoulder"] (cm):</dt>
+                        <dd class="col-sm-3">@shirtssizeguide.ShoulderSize</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-7">@Loc["Sleeve"] (cm):</dt>
+                        <dd class="col-sm-3">@shirtssizeguide.SleeveLength</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-7">@Loc["CenterBack"] (cm):</dt>
+                        <dd class="col-sm-3">@shirtssizeguide.CenterBackLength</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-7">@Loc["BrandSize"]</dt>
+                        <dd class="col-sm-3">@shirtssizeguide.BrandSize</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-7">@Loc["Waist"] (cm):</dt>
+                        <dd class="col-sm-3">@shirtssizeguide.WaistSize</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-7">@Loc["Hip"] (cm):</dt>
+                        <dd class="col-sm-3">@shirtssizeguide.HipSize</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-7">@Loc["Bust"] (cm):</dt>
+                        <dd class="col-sm-3">@shirtssizeguide.BustSize</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-7">@Loc["Length"] (cm):</dt>
+                        <dd class="col-sm-3">@shirtssizeguide.Length</dd>
+                    </dl>
+                    
+                    <div style="text-align: right;">
+                        <EditForm method="post" Model="shirtssizeguide" OnValidSubmit="DeleteShirtsSizeGuide" FormName="delete" Enhance>
+                            <button type="submit" class="btn btn-danger" disabled="@(shirtssizeguide is null)">Delete</button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private ShirtsSizeGuide? shirtssizeguide;
+
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        shirtssizeguide = await context.ShirtsSizeGuide.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (shirtssizeguide is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteShirtsSizeGuide()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.ShirtsSizeGuide.Remove(shirtssizeguide!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/shirtssizeguides");
+    }
+    private void Close()
+    {
+        NavigationManager.NavigateTo("/shirtssizeguides");
+    }
+}

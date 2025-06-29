@@ -1,0 +1,24 @@
+﻿@using System.Globalization
+@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+
+@if (!NavigationManager.Uri.Contains("Account") && !NavigationManager.Uri.Contains("searchresults"))
+{
+    <div class="bottom-row mt-5" style="padding: 10px;">
+        <div>
+            <p>Contact Us</p>
+        </div>
+        <div style="padding-bottom: 10px;">
+            <a style="text-decoration:none; color: whitesmoke;" href="mailto:brianwkarimi@gmail.com">@Loc["Email"]</a>
+        </div>
+        <div style="padding-bottom: 10px;">
+            <a style="text-decoration:none; color: whitesmoke;" href='tel: +254722997999'>
+                @Loc["Mobile"]
+            </a>
+        </div>
+    </div>
+}
+
+@code {
+
+}

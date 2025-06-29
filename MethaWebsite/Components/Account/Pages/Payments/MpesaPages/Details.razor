@@ -1,0 +1,52 @@
+﻿@page "/Account/Payments/details"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Mpesa</h2>
+    <hr />
+    @if (mpesa is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">PhoneNumber</dt>
+            <dd class="col-sm-10">@mpesa.PhoneNumber</dd>
+            <dt class="col-sm-2">RegisteredName</dt>
+            <dd class="col-sm-10">@mpesa.RegisteredName</dd>
+            <dt class="col-sm-2">Image</dt>
+            <dd class="col-sm-10">@mpesa.ImageSource</dd>
+            <dt class="col-sm-2">BillingAddress</dt>
+            <dd class="col-sm-10">@mpesa.BillingAddress</dd>
+        </dl>
+        <div>
+            <a href="@($"/mpesas/edit?id={mpesa.Id}")">Edit</a> |
+            <a href="@($"/mpesas")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Mpesa? mpesa;
+
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        mpesa = await context.Mpesa.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (mpesa is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

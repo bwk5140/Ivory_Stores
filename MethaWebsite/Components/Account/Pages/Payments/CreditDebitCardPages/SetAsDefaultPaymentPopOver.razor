@@ -1,0 +1,77 @@
+﻿@using MethaWebsite.Data
+@using Microsoft.EntityFrameworkCore
+@inject IStringLocalizer<SharedResource> Loc
+
+<div class="container-sm">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+         style="top: 35%; z-index: 1250;">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="background-color: white; width: max-content;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["UpdateAccount"]</strong>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body">
+                <div>
+                    @Loc["WeWillUpdateCard"] <strong>
+                        @creditDebitCard.Type @Loc["EndingIn"]
+                        @creditDebitCard.CardNumber.Substring(creditDebitCard.CardNumber.Length - 4, 4)
+                    </strong>
+                </div>
+                <div class="mt-3 mb-2" style="text-align: right">
+                    <button type="button" class="btn btn-secondary me-2" style="border: none; font-size: medium;"
+                                @onclick="Close">
+                        @Loc["Cancel"]
+                    </button>
+                    <button type="button" class="btn btn-primary me-2" style="background-color: #2f4f4f; border: none;
+                                  color: white; font-size: medium;" @onclick="OnUpdateClicked">
+                        @Loc["Update"]
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background-lev-1"></div>
+    <CascadingValue Value="creditDebitCard">
+        <ConfirmSetAsDefaultPaymentPopOver @ref="confirmSetAsDefaultPaymentPopOver" OnUpdateClicked="Update"/>
+    </CascadingValue>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    [CascadingParameter]
+    public CreditDebitCard? creditDebitCard { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnUpdate { get; set; }
+
+    private ConfirmSetAsDefaultPaymentPopOver confirmSetAsDefaultPaymentPopOver;
+
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+    public void OnUpdateClicked()
+    {
+        confirmSetAsDefaultPaymentPopOver.Show();
+    }
+    private async Task Update()
+    {
+        await OnUpdate.InvokeAsync();
+        Close();
+    }
+}

@@ -1,0 +1,94 @@
+﻿@page "/productlists/edit"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>ProductList</h2>
+<hr />
+@if (ProductList is null)
+{
+    <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="ProductList" OnValidSubmit="UpdateProductList" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="ProductList.Id" value="@ProductList.Id" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="ProductList.Name" class="form-control" />
+                    <ValidationMessage For="() => ProductList.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="private" class="form-label">Private:</label>
+                    <InputCheckbox id="private" @bind-Value="ProductList.Private" class="form-check-input" />
+                    <ValidationMessage For="() => ProductList.Private" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/productlists">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private ProductList? ProductList { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        ProductList ??= await context.ProductList.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (ProductList is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateProductList()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(ProductList!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ProductListExists(ProductList!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/productlists");
+    }
+
+    private bool ProductListExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.ProductList.Any(e => e.Id == id);
+    }
+}

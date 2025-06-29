@@ -1,0 +1,88 @@
+﻿@page "/Account/categories/delete"
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Delete</PageTitle>
+
+<div class="container-sm mt-5">
+    @if (category is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else
+    {
+        <div class="toast-container p-3" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["DeleteCategory"] (@category.Name)?</strong>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <dl class="row">
+                        <dt class="col">Name</dt>
+                        <dd class="col">@category.Name</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col">Parent Category</dt>
+                        @if (parentCategory is not null)
+                        {
+                            <dd class="col">@parentCategory.Name</dd>
+                        }
+                        else{
+                            <dd class="col">None</dd>
+                        }
+                    </dl>
+                    <div style="text-align: right;">
+                        <EditForm method="post" Model="category" OnValidSubmit="DeleteCategory" FormName="delete" Enhance>
+                            <button type="submit" class="btn btn-danger" disabled="@(category is null)">Delete</button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private Category? category;
+
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    [Parameter]
+    public Category? parentCategory { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        category = await context.Category.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (category is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        else
+        {
+            parentCategory = await context.Category.FirstOrDefaultAsync(m => m.Id == category.ParentID);
+        }
+    }
+
+    private async Task DeleteCategory()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.Category.Remove(category!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("Account/categories");
+    }
+    private void Close()
+    {
+        NavigationManager.NavigateTo("Account/categories");
+    }
+}

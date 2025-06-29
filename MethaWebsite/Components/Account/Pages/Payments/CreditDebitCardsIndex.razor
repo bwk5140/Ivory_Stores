@@ -1,0 +1,73 @@
+﻿@page "/Account/Payments/creditdebitcards"
+
+@using MethaWebsite.Services
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@implements IAsyncDisposable
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationUserService ApplicationUserService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+@if (CreditDebitCards is not null)
+{
+    @foreach (var credit_debit_card in CreditDebitCards)
+    {
+        <div class="card" style="width: max-content;
+                                            border:none; background-color: inherit; display: inline-block; padding: 0px;">
+            <div class="card-body" style="display: inline-block; top: 50%; left: -15%;">
+                <i class="generic_card_icon" />
+            </div>
+        </div>
+        <div style="display: inline-block;">
+            <div>
+                <strong>@credit_debit_card.Type</strong>
+            </div>
+            <div style="display: inline-block">
+                @Loc["CardEnding"]
+            </div>
+            <div type="password" style="display: inline-block">
+                @credit_debit_card.CardNumber.Substring(0, 4)
+            </div>
+            <div style="display: inline-block">
+                @credit_debit_card.CardNumber.Substring(credit_debit_card.CardNumber.Length - 4, 4)
+            </div>
+            <div class="text-danger">
+                @if (credit_debit_card.ExpirationMonth < CurrentMonth || credit_debit_card.ExpirationYear < CurrentYear)
+                {
+                    <p class="text-danger">@Loc["ExpiredOn"] @credit_debit_card.ExpirationMonth/@credit_debit_card.ExpirationYear</p>
+                }
+                else
+                {
+                    <p class="text-danger">@Loc["ExpiresOn"] @credit_debit_card.ExpirationMonth/@credit_debit_card.ExpirationYear</p>
+                }
+            </div>
+        </div>
+        
+    }
+}
+
+@code {
+    private ApplicationDbContext context = default!;
+    private List<CreditDebitCard>? CreditDebitCards { get; set; }
+    private ApplicationUser? applicationUser { get; set; }
+    private int CurrentMonth;
+    private int CurrentYear;
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        CreditDebitCards = context.CreditDebitCard.Where(c => c.UserId == applicationUser.Id).ToList();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

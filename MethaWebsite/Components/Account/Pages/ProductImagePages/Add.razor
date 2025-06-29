@@ -1,0 +1,244 @@
+﻿@page "/productimages/create"
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using Microsoft.EntityFrameworkCore
+@using System.Globalization
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IJSRuntime JS
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="container-sm" style="display: flex; justify-content: center;">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+            style="top: -200px;">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="width: fit-content; max-width: 550px; max-height: 600px; overflow-y: auto;
+                    background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["AddImage"]</strong>
+                <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                        aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body">
+                @if (ImageSources is not null && ImageSources.Count > 0)
+                {
+                    <div class="row mb-3">
+                        @foreach (var source in ImageSources)
+                        {
+                            <div class="col-md mb-3" style="max-width: fit-content;">
+                                <div class="card">
+                                    <div class="card-header" style="background-color: transparent; border:none; text-align: right;">
+                                        <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                                                aria-label="Close" @onclick="@(() => Delete(source))">
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <img src="@source"
+                                            alt=@Loc["ProductImage"] style="width:200px; height:200px; object-fit:contain;" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    
+                    <div style="text-align:right;">
+                        <button type="button" class="btn btn-outline-success" @onclick="OnUploadClicked" style="background-color:#2f4f4f;
+                                        color: #F5F5F5; border-color:transparent;
+                                                    border-radius: 5px;">
+                            @Loc["Upload"]
+                        </button>
+                        <button type="button" class="btn btn-secondary" @onclick="OnCancelClicked" style="border-radius: 5px;"
+                                data-bs-toggle="tooltip" title=@Loc["Cancel"]>
+                            @Loc["Cancel"]
+                        </button>
+                    </div>  
+                }
+                else
+                {
+                    @if (ProductGroup is not null && ProductGroup.ProductColorGroups is not null && ProductGroup.ProductColorGroups.Count() > 0)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label me-1" style="color: gray;">@Loc["SelectProductColor"]:</label>
+                            </div>
+                            <div class="col-sm-2">
+                                <InputSelect id="category" @bind-Value="CurrentProductColor" class="form-select-sm">
+                                    <option value="null">@Loc["Select"]</option>
+                                    @foreach (var colorGroup in ProductGroup.ProductColorGroups)
+                                    {
+                                        <option value="@colorGroup.Color">@colorGroup.Color</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                    }
+                    <div style="text-align: center; background-color:#2f4f4f;
+                                    border-radius: 5px; color: white;">
+                        <InputFile id="inputFile" OnChange="UploadProductImage" multiple />
+                        
+                    </div>
+                    
+                }
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background"></div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private ProductImage ProductImage { get; set; } = new();
+
+    [CascadingParameter]
+    public Product? Product { get; set; }
+
+    [Parameter]
+    public string? CurrentProductColor { get; set; }
+
+    [CascadingParameter]
+    public ProductGroup? ProductGroup { get; set; }
+
+    [Parameter]
+    public List<string>? uniqueProductColors { get; set; }
+
+    public List<string>? ProductColors { get; set; } = new List<string>();
+
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnImageAdded { get; set; }
+
+    private bool showButtonInfo { get; set; } = false;
+
+    private bool addNewImageClicked { get; set; } = false;
+
+    private List<byte[]>? bytes = new List<byte[]>();
+
+    [Parameter]
+    public List<string>? ImageSources { get; set; } = new List<string>();
+
+    private IBrowserFile? inputFile;
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+
+    private async Task OpenFileDialog()
+    {
+        addNewImageClicked = true;
+        await JS.InvokeVoidAsync("fileOpen", inputFile);
+    }
+    private async Task UploadProductImage(InputFileChangeEventArgs args)
+    {
+        var files = args.GetMultipleFiles().ToList();
+        foreach (var file in files)
+        {
+            inputFile = file;
+
+            var imageTmp = await inputFile.RequestImageFileAsync("jpg", 1000, 1000);
+
+            var ImageSource = await UploadMedia(imageTmp);
+            ImageSource = string.Format("data:image/jpg;base64,{0}", ImageSource);
+            ImageSources.Add(ImageSource);
+        }
+
+    }
+    public async Task<string> UploadMedia(IBrowserFile file)
+    {
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+        await using var fs = new FileStream(path, FileMode.Create);
+
+        await file.OpenReadStream(file.Size).CopyToAsync(fs);
+
+        bytes.Add(new byte[file.Size]);
+
+        fs.Position = 0;
+
+        await fs.ReadAsync(bytes.Last());
+
+        fs.Close();
+
+        File.Delete(path);
+
+        return Convert.ToBase64String(bytes.Last());
+    }
+    private async Task OnUploadClicked()
+    {
+        foreach (var imageBytes in bytes)
+        {
+            ProductImage.Image = imageBytes;
+            addNewImageClicked = false;
+            ImageSources.Clear();
+            if (ProductGroup is not null && ProductGroup.ProductColorGroups! is not null)
+            {
+                if (CurrentProductColor is not null)
+                {
+                    var productColorGroup = ProductGroup.ProductColorGroups!.FirstOrDefault(m => m.Color == CurrentProductColor);
+                    var products = productColorGroup.Products;
+                    if (products is not null)
+                    {
+                        ProductImage.ProductColorGroupId = productColorGroup.Id;
+                        foreach (var product in products)
+                        {
+                            if (product.Images is null)
+                            {
+                                product.Images = new List<ProductImage>();
+                            }
+                            product!.Images!.Add(ProductImage);
+                        }
+                    }
+                } 
+            }
+            else
+            {
+                Product.Images!.Add(ProductImage);
+            }
+            await OnImageAdded.InvokeAsync();
+            ProductImage = new ProductImage();
+        }
+        bytes.Clear();
+        IsVisible = false;
+        StateHasChanged();
+    }
+    private void OnAddNewImageClicked()
+    {
+        addNewImageClicked = true;
+    }
+    private void OnMouseOver()
+    {
+        showButtonInfo = true;
+    }
+    private void OnMouseLeave()
+    {
+        showButtonInfo = false;
+    }
+    private void OnCancelClicked()
+    {
+        ImageSources.Clear();
+        bytes.Clear();
+        addNewImageClicked = false;
+    }
+    private void OnBackClicked()
+    {
+        NavigationManager.NavigateTo("/productimages");
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+    private void Delete(string source)
+    {
+        ImageSources.Remove(source);
+    }
+}

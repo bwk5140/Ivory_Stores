@@ -1,0 +1,119 @@
+﻿@page "/shoessizeguides/edit"
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Edit</PageTitle>
+<div class="container-sm mt-5">
+    @if (ShoesSizeGuide is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else
+    {
+        <div class="container-sm">
+            <div class="toast-container p-3" data-bs-autohide="true" data-bs-delay="5000">
+                <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">@Loc["ShoesSizeGuide"]</strong>
+                        <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                                aria-label="Close" @onclick="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        <EditForm method="post" Model="ShoesSizeGuide" OnValidSubmit="UpdateShoesSizeGuide" FormName="edit" Enhance>
+                            <DataAnnotationsValidator />
+                            <ValidationSummary class="text-danger" role="alert" />
+                            <div class="form form-floating mb-3">
+                                <InputNumber id="brandsize" @bind-Value="ShoesSizeGuide.BrandSize" class="form-control" />
+                                <label for="brandsize" class="form-label">@Loc["BrandSize"]:</label>
+                                <ValidationMessage For="() => ShoesSizeGuide.BrandSize" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3">
+                                <InputNumber id="uk_size" @bind-Value="ShoesSizeGuide.UK_Size" class="form-control" />
+                                <label for="uk_size" class="form-label">@Loc["UKSize"]:</label>
+                                <ValidationMessage For="() => ShoesSizeGuide.UK_Size" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3">
+                                <InputNumber id="us_size" @bind-Value="ShoesSizeGuide.US_Size" class="form-control" />
+                                <label for="us_size" class="form-label">@Loc["USSize"]:</label>
+                                <ValidationMessage For="() => ShoesSizeGuide.US_Size" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3">
+                                <InputNumber id="eu_size" @bind-Value="ShoesSizeGuide.EU_Size" class="form-control" />
+                                <label for="eu_size" class="form-label">@Loc["EUSize"]:</label>
+                                <ValidationMessage For="() => ShoesSizeGuide.EU_Size" class="text-danger" />
+                            </div>
+                            <div style="text-align: right;">
+                                <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                                        border-color:transparent; border-radius: 5px;">
+                                    Save
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private ShoesSizeGuide? ShoesSizeGuide { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        ShoesSizeGuide ??= await context.ShoesSizeGuide.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (ShoesSizeGuide is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateShoesSizeGuide()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.Attach(ShoesSizeGuide!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ShoesSizeGuideExists(ShoesSizeGuide!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/shoessizeguides");
+    }
+
+    private bool ShoesSizeGuideExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.ShoesSizeGuide.Any(e => e.Id == id);
+    }
+    private void Close()
+    {
+        NavigationManager.NavigateTo("shoessizeguides");
+    }
+}

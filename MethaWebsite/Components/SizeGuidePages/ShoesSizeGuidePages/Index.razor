@@ -1,0 +1,66 @@
+﻿@page "/shoessizeguides"
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.EntityFrameworkCore
+
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@implements IAsyncDisposable
+
+@rendermode InteractiveServer
+
+<PageTitle>Index</PageTitle>
+
+<div class="container-md mt-5">
+    <h3 class="header mt-3">@Loc["ShoesSizeGuide"]</h3>
+    <hr />
+</div>
+<div class="container-sm mt-5">
+    <QuickGrid Class="table table-bordered" Items="context.ShoesSizeGuide">
+        <TemplateColumn Context="shoessizeguide" Title=@Loc["BrandSize"]>
+            <a style="text-decoration:none;"
+               href="@($"shoessizeguides/details?id={shoessizeguide.Id}")">@shoessizeguide.BrandSize</a>
+        </TemplateColumn>
+        <PropertyColumn Title=@Loc["UKSize"] Property="shoessizeguide => shoessizeguide.UK_Size" />
+        <PropertyColumn Title=@Loc["USSize"] Property="shoessizeguide => shoessizeguide.US_Size" />
+        <PropertyColumn Title=@Loc["EUSize"] Property="shoessizeguide => shoessizeguide.EU_Size" />
+
+        <TemplateColumn Context="shoessizeguide">
+            <div style="text-align: right;">
+                <div class="btn-group">
+                    <button type="button" class="btn" data-bs-toggle="tooltip" title=@Loc["Edit"]
+                            @onclick="@(() => OnEditClicked(shoessizeguide))">
+                        <img src="pencil-fill.svg" />
+                    </button>
+                    <button type="button" class="btn" data-bs-toggle="tooltip" title=@Loc["Delete"]
+                            @onclick="@(() => OnDeleteClicked(shoessizeguide))">
+                        <img src="trash.svg" />
+                    </button>
+                </div>
+            </div>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+    }
+    public void OnEditClicked(ShoesSizeGuide shoessizeguide)
+    {
+        NavigationManager.NavigateTo($"shoessizeguides/edit?id={shoessizeguide.Id}");
+    }
+
+    public void OnDeleteClicked(ShoesSizeGuide shoessizeguide)
+    {
+        NavigationManager.NavigateTo($"shoessizeguides/delete?id={shoessizeguide.Id}");
+    }
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

@@ -1,0 +1,128 @@
+﻿@page "/Account/Payments/creditdebitcards/delete"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+@if (creditdebitcard is null)
+{
+    <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+}
+else
+{
+    <div class="container-sm" style="display: block; justify-content: center;">
+        @{
+            var showClass = IsVisible ? "d-block" : "d-none";
+        }
+        <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+             style="top: 35%;">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                 style="background-color: white;">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["RemovePayment"]</strong>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <div class="card" style="width: max-content;
+                                                                    border:none; background-color: inherit; display: inline-block; padding: 0px;">
+                        <div class="card-body" style="display: inline-block; top: 50%; padding: 0px;">
+                            
+                            <div style="display: inline-block; text-wrap: nowrap;">
+                                <div class="mb-3" style="display: inline-block">
+                                    <svg width="75" height="32.5" xmlns="http://www.w3.org/2000/svg">
+                                        <!-- Your SVG paths or shapes here -->
+                                        <image href="@creditdebitcard.ImageSource" width="75" height="32.5" />
+
+                                        <!-- Overlayed text -->
+                                        <image href="@creditdebitcard.LogoSource" x="45" y="20" width="15" height="7.5" />
+                                    </svg>
+                                </div>
+                                <div style="display: inline-block">
+                                    <strong>@creditdebitcard.Type</strong>
+                                </div>
+                                <div style="display: inline-block">
+                                    @Loc["EndingIn"]
+                                </div>
+                                <div style="display: inline-block; width: 30px;">
+                                    @creditdebitcard.CardNumber.Substring(creditdebitcard.CardNumber.Length - 4, 4)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ms-2">
+                        @Loc["RemovePaymentInfo"]
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary me-2" style="background-color: #2f4f4f;
+                                            border-color:transparent; border-radius: 5px;" @onclick="Close">
+                                @Loc["Cancel"]
+                            </button>
+                            <EditForm method="post" Model="creditdebitcard" OnValidSubmit="DeleteCreditDebitCard" FormName="delete" Enhance>
+                                <button type="submit" class="btn btn-danger" style="border-color:transparent;
+                                                border-radius: 5px;" disabled="@(creditdebitcard is null)">
+                                    @Loc["Delete"]
+                                </button>
+                            </EditForm>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background"></div>
+</div>
+}
+
+@code {
+    private CreditDebitCard? creditdebitcard;
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        creditdebitcard = await context.CreditDebitCard.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (creditdebitcard is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteCreditDebitCard()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.CreditDebitCard.Remove(creditdebitcard!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/Account/Payments", true);
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        // Reload the data based on new Id
+        await LoadCardDetails(Id!);
+    }
+    private async Task LoadCardDetails(string Id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        creditdebitcard = await context.CreditDebitCard.FirstOrDefaultAsync(m => m.Id == Id);
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

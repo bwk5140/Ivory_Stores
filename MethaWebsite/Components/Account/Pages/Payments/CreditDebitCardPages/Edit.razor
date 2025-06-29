@@ -1,0 +1,290 @@
+﻿@page "/Account/Payments/creditdebitcards/edit"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+@if (CreditDebitCard is null)
+{
+    <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+}
+else
+{
+    <div class="container-sm" style="display: block; justify-content: center;">
+        @{
+            var showClass = IsVisible ? "d-block" : "d-none";
+        }
+        <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+             style="top: 35%; z-index: 1100;">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                 style="background-color: white; width: fit-content;">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["EditPayment"]</strong>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="OnCancel"></button>
+                </div>
+                <div class="toast-body" style="width: fit-content;">
+                    <EditForm method="post" Model="CreditDebitCard" OnValidSubmit="UpdateCreditDebitCard" FormName="edit" Enhance>
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" role="alert" />
+                        <div class="row">
+                            <div class="col-lg-6 border-end" style="padding-right: 60px; padding-left: 40px; width: 350px;">
+                                <div class="form form-floating mb-3">
+                                    <InputText id="cardnumber" @bind-Value="CreditDebitCard.CardNumber" class="form-control" placeholder="" hidden />
+                                    <label for="cardnumber" class="form-label" hidden>@Loc["CardNumber"]:</label>
+                                    <ValidationMessage For="() => CreditDebitCard.CardNumber" class="text-danger" />
+                                </div>
+                                <div class="form form-floating mb-3">
+                                    <InputText id="nameoncard" @bind-Value="CreditDebitCard.NameOnCard" class="form-control" placeholder="" />
+                                    <label for="nameoncard" class="form-label">@Loc["NameOnCard"]:</label>
+                                    <ValidationMessage For="() => CreditDebitCard.NameOnCard" class="text-danger" />
+                                </div>
+                                <label for="expirationmonth" class="form-label">@Loc["ExpirationDate"]:</label>
+                                <div class="input-no-focus form form-floating mb-3">
+                                    <InputSelect id="category" @bind-Value="CreditDebitCard.ExpirationMonth" class="form-select-sm ms-1"
+                                                 style="border-color: lightgray;">
+                                        @if (Months!.Any())
+                                        {
+                                            @foreach (var month in Months!)
+                                            {
+                                                <option value="@month" style="color: black;">@month</option>
+                                            }
+                                        }
+
+                                    </InputSelect>
+                                    <InputSelect id="category" @bind-Value="CreditDebitCard.ExpirationYear" class="form-select-sm ms-1"
+                                                 style="border-color: lightgray;">
+                                        @if (Years!.Any())
+                                        {
+                                            @foreach (var year in Years!)
+                                            {
+                                                <option value="@year" style="color: black;">@year</option>
+                                            }
+                                        }
+
+                                    </InputSelect>
+                                </div>
+                                <div class="checkbox mb-3">
+                                    <label for="defaultaddress" class="form-label">
+                                        <InputCheckbox id="defaultaddress" @bind-Value="DefaultPayment"
+                                                       @bind-Value:after="DefaultPaymentChanged" class="form-check-input ms-1" />
+                                        @Loc["SetAsDefaultPayment"]
+                                    </label>
+                                    <ValidationMessage For="() => CreditDebitCard.DefaultPaymentMethod" class="text-danger" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6" style="padding-left: 60px; padding-right: 60px; width: 350px;">
+                                <h5>@Loc["BillingAddress"]</h5>
+                                @if (address is not null)
+                                {
+                                    <div>
+                                        <strong>@address.FullName</strong>
+                                    </div>
+                                    <div>
+                                        @address.AddressLine1
+                                    </div>
+                                    <div>
+                                        @address.AddressLine2
+                                    </div>
+                                    <div>
+                                        @address.City, @address.State, @address.ZipCode
+                                    </div>
+                                    <div>
+                                        @address.Country
+                                    </div>
+                                    <div>
+                                        @address.PhoneNumber
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-link" type="button" style="border: none; background-color: transparent;
+                                                                                                            padding-left:0px; text-decoration: none;" @onclick="ShowChangeBillingAddressPopOver">
+                                            @Loc["Change"]
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <button type="button" class="btn btn-secondary mt-3 me-2" style="border-color:transparent;
+                                                                                        border-radius: 5px;" @onclick="OnCancel">
+                                @Loc["Cancel"]
+                            </button>
+                            <button type="submit" class="btn btn-primary mt-3" style="background-color: #2f4f4f;
+                                                                                    border-color:transparent; border-radius: 5px;">
+                                @Loc["Save"]
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+        <div class="@showClass darker-background"></div>
+        <CascadingValue Value="CreditDebitCard">
+            <ChangeBillingAddressPopOver @ref="changeBillingAddressPopOver" OnAddressChange="RefreshView"/>
+            <SetAsDefaultPaymentPopOver @ref="setAsDefaultPaymentPopOver" OnUpdate="Update"/>
+        </CascadingValue>
+    </div>
+}
+
+@code {
+    private string? errorMessage;
+    private ChangeBillingAddressPopOver? changeBillingAddressPopOver;
+    private SetAsDefaultPaymentPopOver setAsDefaultPaymentPopOver;
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    public bool HasDefaultPaymentChanged { get; set; } = false;
+    [Parameter]
+    public bool DefaultPayment { get; set; } = false;
+
+    [Parameter]
+    public Address? address { get; set; } = default;
+
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private CreditDebitCard? CreditDebitCard { get; set; }
+
+    [Parameter]
+    public List<int>? Months { get; set; } = new List<int>();
+
+    [Parameter]
+    public List<int>? Years { get; set; } = new List<int>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        CreditDebitCard ??= await context.CreditDebitCard.FirstOrDefaultAsync(m => m.Id == Id);
+        if (CreditDebitCard is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        address = await context.Address.FirstOrDefaultAsync(a => a.Id == CreditDebitCard.BillingAddress);
+        Months!.Add(CreditDebitCard.ExpirationMonth);
+        for (int i = CreditDebitCard.ExpirationMonth + 1; i <= 12; i++)
+        {
+            Months!.Add(i);
+        }
+        Years!.Add(CreditDebitCard.ExpirationYear);
+        for (int i = CreditDebitCard.ExpirationYear + 1; i <= CreditDebitCard.ExpirationYear + 20; i++)
+        {
+            Years.Add(i);
+        }
+        DefaultPayment = CreditDebitCard.DefaultPaymentMethod;
+    }
+    public void DefaultPaymentChanged()
+    {
+        HasDefaultPaymentChanged = !HasDefaultPaymentChanged;
+    }
+    private async Task Update()
+    {
+        using var context = DbFactory.CreateDbContext();
+        var defaultPaymentMethods = context.CreditDebitCard.Where(c => c.DefaultPaymentMethod == true);
+
+        if (HasDefaultPaymentChanged)
+        {
+            CreditDebitCard.DefaultPaymentMethod = DefaultPayment;
+
+            foreach (var card in defaultPaymentMethods)
+            {
+                if (card != CreditDebitCard)
+                {
+                    card.DefaultPaymentMethod = false;
+                }
+            }
+        }
+        context.Attach(CreditDebitCard!).State = EntityState.Modified;
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!CreditDebitCardExists(CreditDebitCard!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+        NavigationManager.NavigateTo("/Account/Payments", true);
+    }
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateCreditDebitCard()
+    {
+        if (DefaultPayment && HasDefaultPaymentChanged)
+        {
+            setAsDefaultPaymentPopOver.Show();
+        }
+        else
+        {
+            await Update();
+        }
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        // Reload the data based on new Id
+        await LoadCardDetails(Id!);
+    }
+    private async Task LoadCardDetails(string Id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        CreditDebitCard = await context.CreditDebitCard.FirstOrDefaultAsync(m => m.Id == Id);
+        if (CreditDebitCard is not null)
+        {
+            address = await context.Address.FirstOrDefaultAsync(a => a.Id == CreditDebitCard.BillingAddress);
+            Months!.Add(CreditDebitCard.ExpirationMonth);
+            for (int i = CreditDebitCard.ExpirationMonth + 1; i <= 12; i++)
+            {
+                Months!.Add(i);
+            }
+            Years!.Add(CreditDebitCard.ExpirationYear);
+            for (int i = CreditDebitCard.ExpirationYear + 1; i <= CreditDebitCard.ExpirationYear + 20; i++)
+            {
+                Years.Add(i);
+            }
+        }  
+    }
+    private bool CreditDebitCardExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.CreditDebitCard.Any(e => e.Id == id);
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+    private async Task RefreshView()
+    {
+        await LoadCardDetails(Id);
+        StateHasChanged();
+    }
+    private void ShowChangeBillingAddressPopOver()
+    {
+        changeBillingAddressPopOver.Show();
+    }
+    private void OnCancel()
+    {
+        if (HasDefaultPaymentChanged)
+        {
+            DefaultPayment = !DefaultPayment;
+        }
+        HasDefaultPaymentChanged = false;
+        Close();
+    }
+}

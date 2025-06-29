@@ -1,0 +1,25 @@
+﻿@inject NavigationManager NavigationManager
+
+<div class="container">
+    <div class="row box">
+        <div class="col-md-4">
+            <header>
+                <h1 class="text-danger">Sign In</h1>
+                <button type="submit" class="nav-link" @onclick="OnSignInClicked">
+                    Sign In
+                </button>
+                <div>
+                    <p class="form-control-plaintext">Don't have an account?'.</p>
+                    <a class="link" style="color:white; text-decoration:none; padding: 10px;" href="Account/Register"> Sign Up</a>
+                </div>
+            </header>
+        </div>
+    </div>
+</div>
+@code {
+
+    private void OnSignInClicked(){
+        NavigationManager.NavigateTo("/Account");
+    }
+
+}

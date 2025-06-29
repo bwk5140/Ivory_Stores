@@ -1,0 +1,34 @@
+﻿@page "/Account/OrderAbandoned"
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>@Loc["OrderAbandoned"]</PageTitle>
+
+<div class="container-sm mt-5" style="text-align: center; color: #2f4f4f;">
+    <a href="/" style="text-decoration: none;"><h3 class="header mb-3">@Loc["CompanyLogo"]</h3></a>
+    <div class="center-container">
+        <div class="card" style="max-width: 350px;">
+            <div class="card-header">
+                <strong>@Loc["OrderAbandoned"]</strong>
+            </div>
+            <div class="card-body">
+                <p>You have not been charged.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    public void ManageAccount()
+    {
+        NavigationManager.NavigateTo("Account/Manage");
+    }
+    public void ManageAddresses()
+    {
+        NavigationManager.NavigateTo("AddressSettings");
+    }
+}

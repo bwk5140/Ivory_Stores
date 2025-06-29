@@ -1,0 +1,258 @@
+﻿@page "/addresses/edit"
+@using MethaWebsite.Services
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationUserService ApplicationUserService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+@if (Address is null)
+{
+    <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+}
+else
+{
+    <div class="container-sm" style="display: block; justify-content: center;">
+        @{
+            var showClass1 = IsVisible1 ? "d-block" : "d-none";
+        }
+    <div class="toast-container p-3 @showClass1" data-bs-autohide="true" data-bs-delay="5000"
+         style="top: 35%;">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["EditFailed"]</strong>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="Close1"></button>
+            </div>
+            <div class="toast-body">
+                <div>
+                    <strong>@Address?.FullName</strong>
+                </div>
+                <div>
+                    @Address?.AddressLine1
+                </div>
+                <div>
+                    @Address?.AddressLine2
+                </div>
+                <div>
+                    @Address?.City, @Address?.State, @Address?.ZipCode
+                </div>
+                <div>
+                    @Address?.Country
+                </div>
+                <div>
+                    @Address?.PhoneNumber
+                </div>
+                    <div class="mt-3 mb-3 text-danger" style="color: red;"><img src="info-circle.svg" style="color: red;"> @Loc["EditFailedInfo"]</div>
+                <div class="ms-1" style="text-align: right;">
+                    <button type="button" class="btn btn-secondary" style="border-color:transparent;
+                                                                    border-radius: 5px;" @onclick="Close1">
+                        @Loc["Cancel"]
+                    </button>
+                </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="@showClass1 darker-background"></div>
+    <div class="container-sm mt-5" style="display: flex; justify-content: center;">
+        @{
+            var showClass2 = IsVisible2 ? "d-block" : "d-none";
+        }
+        <div class="toast-container p-3 @showClass2" data-bs-autohide="true" data-bs-delay="5000"
+             style="top: 30%;">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                 style="width: fit-content; max-width: 550px; max-height: 600px; overflow-y: auto;
+                                    background-color: white;">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["EditAddress"]</strong>
+                    <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                            aria-label="Close" @onclick="Close2"></button>
+                </div>
+                <div class="toast-body">
+                    <EditForm method="post" Model="Address" OnValidSubmit="UpdateAddress" FormName="edit" Enhance>
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" role="alert" />
+                        <div class="form form-floating mb-3">
+                            <InputText id="fullname" @bind-Value="Address.FullName" class="form-control" aria-required="true" placeholder="" />
+                            <label for="fullname" class="form-label">@Loc["FullName"]:</label>
+                            <ValidationMessage For="() => Address.FullName" class="text-danger" />
+                        </div>
+                        <div class="form form-floating mb-3">
+                            <InputText id="phonenumber" @bind-Value="Address.PhoneNumber" class="form-control" aria-required="true" placeholder="" />
+                            <label for="phonenumber" class="form-label">@Loc["PhoneNumber"]:</label>
+                            <ValidationMessage For="() => Address.PhoneNumber" class="text-danger" />
+                        </div>
+                        <div class="form form-floating mb-3">
+                            <InputText id="addressline1" @bind-Value="Address.AddressLine1" class="form-control" aria-required="true" placeholder="" />
+                            <label for="addressline1" class="form-label">@Loc["AddressLine1"]:</label>
+                            <ValidationMessage For="() => Address.AddressLine1" class="text-danger" />
+                        </div>
+                        <div class="form form-floating mb-3">
+                            <InputText id="addressline2" @bind-Value="Address.AddressLine2" class="form-control" placeholder="" />
+                            <label for="addressline2" class="form-label">@Loc["AddressLine2"]:</label>
+                            <ValidationMessage For="() => Address.AddressLine2" class="text-danger" />
+                        </div>
+                        <label for="country" class="form-label ms-2">@Loc["Country"]:</label>
+                        <div class="form form-floating mb-3" style="width: max-content;">
+                            <InputSelect id="country" @bind-Value="Address.Country" class="form-select-sm ms-1" aria-required="true" placeholder=@Loc["Select"]
+                                         style="border-color: lightgray;">
+                                @foreach (var country in Countries)
+                                {
+                                    <option value="@country.Name" style="color: black;">@country.Name</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => Address.Country" class="text-danger" />
+                        </div>
+                        <div class="input-no-focus input-group  me-3">
+                            <div class="form form-floating mb-3">
+                                <InputText id="city" @bind-Value="Address.City" class="form-control" aria-required="true" placeholder="" />
+                                <label for="city" class="form-label">@Loc["City"]:</label>
+                                <ValidationMessage For="() => Address.City" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3" style="width: 65px;">
+                                <InputText id="state" @bind-Value="Address.State" class="form-control" aria-required="true" placeholder="" />
+                                <label for="state" class="form-label">@Loc["State"]:</label>
+                                <ValidationMessage For="() => Address.State" class="text-danger" />
+                            </div>
+                            <div class="form form-floating mb-3">
+                                <InputText id="zipcode" @bind-Value="Address.ZipCode" class="form-control" placeholder="" />
+                                <label for="zipcode" class="form-label">@Loc["Zip"]:</label>
+                                <ValidationMessage For="() => Address.ZipCode" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="checkbox mb-3">
+                            <label for="defaultaddress" class="form-label">
+                                <InputCheckbox id="defaultaddress" @bind-Value="Address.DefaultAddress" class="form-check-input ms-1" />
+                                @Loc["SetDefaultAddress"]:
+                            </label>
+                            <ValidationMessage For="() => Address.DefaultAddress" class="text-danger" />
+                        </div>
+                        <div class="ms-1" style="text-align: right;">
+                            <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                                            border-color:transparent; border-radius: 5px;">
+                                @Loc["Save"]
+                            </button>
+                            <button type="button" class="btn btn-secondary" style="border-color:transparent;
+                                                                border-radius: 5px;" @onclick="Close2">
+                                @Loc["Cancel"]
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+        <div class="@showClass2 darker-background"></div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Address? Address { get; set; }
+
+    [Parameter]
+    public List<Country>? Countries { get; set; }
+
+    [Parameter]
+    public bool IsVisible1 { get; set; } = false;
+    [Parameter]
+    public bool IsVisible2 { get; set; } = false;
+
+    private ApplicationUser? applicationUser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Countries = context.Country.OrderBy(c => c.Name).ToList();
+        Address ??= await context.Address.FirstOrDefaultAsync(m => m.Id == Id);
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+
+        if (Address is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateAddress()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        if (applicationUser is not null && Address!.DefaultAddress)
+        {
+            applicationUser.DefaultAddressId = Address!.Id;
+
+            var currentDefault = await context.Address.FirstOrDefaultAsync(a => a.DefaultAddress == true);
+            currentDefault.DefaultAddress = false;
+            context.Attach(currentDefault!).State = EntityState.Modified;
+
+        }
+        context.Attach(Address!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!AddressExists(Address!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+        NavigationManager.NavigateTo("AddressSettings");
+    }
+
+    private bool AddressExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Address.Any(e => e.Id == id);
+    }
+    public void Show()
+    {
+        if (Address!.DefaultAddress)
+        {
+            Show1();
+        }
+        else
+        {
+            Show2();
+        }
+    }
+    public void Show1()
+    {
+        IsVisible1 = true;
+        StateHasChanged();
+    }
+    private void Close1()
+    {
+        IsVisible1 = false;
+        StateHasChanged();
+    }
+    public void Show2()
+    {
+        IsVisible2 = true;
+        StateHasChanged();
+    }
+    private void Close2()
+    {
+        IsVisible2 = false;
+        StateHasChanged();
+    }
+}

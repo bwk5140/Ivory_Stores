@@ -1,0 +1,83 @@
+﻿@page "/shoessizeguides/delete"
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Delete</PageTitle>
+
+<div class="container-sm mt-5">
+    @if (shoessizeguide is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else
+    {
+        <div class="toast-container p-3" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["DeleteShoeSizeGuide"]</strong>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">@Loc["BrandSize"]:</dt>
+                        <dd class="col-sm-6">@shoessizeguide.BrandSize</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-4">@Loc["UKSize"]:</dt>
+                        <dd class="col-sm-6">@shoessizeguide.UK_Size</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-4">@Loc["USSize"]:</dt>
+                        <dd class="col-sm-6">@shoessizeguide.US_Size</dd>
+                    </dl>
+                    <dl class="row">
+                        <dt class="col-sm-4">@Loc["EUSize"]:</dt>
+                        <dd class="col-sm-6">@shoessizeguide.EU_Size</dd>
+                    </dl>
+                    <div style="text-align: right;">
+                        <EditForm method="post" Model="shoessizeguide" OnValidSubmit="DeleteShoesSizeGuide" FormName="delete" Enhance>
+                            <button type="submit" class="btn btn-danger" disabled="@(shoessizeguide is null)">Delete</button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private ShoesSizeGuide? shoessizeguide;
+
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        shoessizeguide = await context.ShoesSizeGuide.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (shoessizeguide is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteShoesSizeGuide()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.ShoesSizeGuide.Remove(shoessizeguide!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/shoessizeguides");
+    }
+    private void Close()
+    {
+        NavigationManager.NavigateTo("/shoessizeguides");
+    }
+}

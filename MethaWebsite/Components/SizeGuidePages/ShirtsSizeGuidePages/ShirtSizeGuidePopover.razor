@@ -1,0 +1,252 @@
+﻿@using System.Globalization
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@implements IAsyncDisposable
+
+
+<div class="container-sm">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+         @onfocusout="@(() => IsVisible = false)">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="min-width:fit-content; word-wrap:normal; background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@title @Loc["SizeChart"]</strong>
+                <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                        aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body m-3" style="background-color: white;">
+                <table class="table border">
+                        <thead>
+                            <tr>
+                                <th scope="col">@Loc["BrandSize"]</th>
+
+                                @if (!emptyChestColumn)
+                                {
+                                    <th scope="col">@Loc["Chest"] (cm)</th>
+                                }
+                                @if (!emptySleeveColumn)
+                                {
+                                    <th scope="col">@Loc["Sleeve"] (cm)</th>
+                                }
+                                @if (!emptyShoulderColumn)
+                                {
+                                    <th scope="col">@Loc["Shoulder"] (cm)</th>
+                                }
+                                @if (!emptyWaistColumn)
+                                {
+                                    <th scope="col">@Loc["Waist"] (cm)</th>
+                                }
+                                @if (!emptyHipColumn)
+                                {
+                                    <th scope="col">@Loc["Hip"] (cm)</th>
+                                }
+                                @if (!emptyBustColumn)
+                                {
+                                    <th scope="col">@Loc["Bust"] (cm)</th>
+                                }
+                                @if (!emptyCenterBackLengthColumn)
+                                {
+                                    <th scope="col">@Loc["CenterBack"] (cm)</th>
+                                }
+                                @if (!emptyLengthColumn)
+                                {
+                                    <th scope="col">@Loc["Length"] (cm)</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (shirtsSizeGuides is not null)
+                            {
+                                @foreach (var shirtsSizeGuide in shirtsSizeGuides)
+                                {
+                                    <tr>
+                                    <td><strong>@shirtsSizeGuide.BrandSize</strong></td>
+
+                                        @if (!emptyChestColumn)
+                                        {
+                                            <td>@shirtsSizeGuide.ChestSize</td>
+                                        }
+                                        @if (!emptySleeveColumn)
+                                        {
+                                            <td>@shirtsSizeGuide.SleeveLength</td>
+                                        }
+                                        @if (!emptyShoulderColumn)
+                                        {
+                                            <td>@shirtsSizeGuide.ShoulderSize</td>
+                                        }
+                                        @if (!emptyWaistColumn)
+                                        {
+                                            <td>@shirtsSizeGuide.WaistSize</td>
+                                        }
+                                        @if (!emptyHipColumn)
+                                        {
+                                            <td>@shirtsSizeGuide.HipSize</td>
+                                        }
+                                        @if (!emptyBustColumn)
+                                        {
+                                            <td>@shirtsSizeGuide.BustSize</td>
+                                        }
+                                        @if (!emptyCenterBackLengthColumn)
+                                        {
+                                            <td>@shirtsSizeGuide.CenterBackLength</td>
+                                        }
+                                        @if (!emptyLengthColumn)
+                                        {
+                                            <td>@shirtsSizeGuide.Length</td>
+                                        }
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background"></div>
+</div>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    [CascadingParameter]
+    private ProductGroup? ProductGroup { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public List<ShirtsSizeGuide>? shirtsSizeGuides { get; set; } = new List<ShirtsSizeGuide>();
+
+    [Parameter]
+    public bool emptyShoulderColumn { get; set; } = false;
+
+    [Parameter]
+    public bool emptyChestColumn { get; set; } = false;
+
+    [Parameter]
+    public bool emptyWaistColumn { get; set; } = false;
+
+    [Parameter]
+    public bool emptyHipColumn { get; set; } = false;
+
+    [Parameter]
+    public bool emptyLengthColumn { get; set; } = false;
+
+    [Parameter]
+    public bool emptyBustColumn { get; set; } = false;
+
+    [Parameter]
+    public bool emptyCenterBackLengthColumn { get; set; } = false;
+
+    [Parameter]
+    public bool emptySleeveColumn { get; set; } = false;
+
+    [Parameter]
+    public bool emptyEUSizeColumn { get; set; } = false;
+
+    [Parameter]
+    public bool emptyUSSizeColumn { get; set; } = false;
+
+    [Parameter]
+    public bool emptyUKSizeColumn { get; set; } = false;
+
+    [Parameter]
+    public string? title { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+
+    public void Show()
+    {
+        IsVisible = true;
+        Update();
+        StateHasChanged();
+    }
+    public async Task Update()
+    { 
+        if (ProductGroup.ProductColorGroups is not null)
+        {
+            foreach (var productColorGroup in ProductGroup.ProductColorGroups)
+            {
+                foreach (var product in productColorGroup.Products)
+                {
+                    var shirtSizeGuides = context.ShirtsSizeGuide.Where(m => m.ProductId == product!.Id);
+                    if (shirtSizeGuides is not null)
+                    {
+                        foreach (var sizeguide in shirtSizeGuides)
+                        {
+                            if (!shirtsSizeGuides.Contains(sizeguide))
+                            {
+                                shirtsSizeGuides.Add(sizeguide);
+                            }
+                        }
+                    }
+                }
+            }
+            title = ProductGroup.ProductColorGroups.Last().Products.Last().Brand;
+        }
+        else
+        {
+            var productColorGroups = context.ProductColorGroup.Where(p => p.ProductGroupID == ProductGroup.Id);
+            List<Product> products = new List<Product>();
+            foreach (var productColorGroup in productColorGroups)
+            {
+                var prods = context.Product.Where(p => p.ProductColorGroupID == productColorGroup.Id);
+                products.AddRange(prods);
+                foreach (var product in products)
+                {
+                    var shirtSizeGuides = context.ShirtsSizeGuide.Where(m => m.ProductId == product!.Id);
+                    if (shirtSizeGuides is not null)
+                    {
+                        foreach (var sizeguide in shirtSizeGuides)
+                        {
+                            if (!shirtsSizeGuides.Contains(sizeguide))
+                            {
+                                shirtsSizeGuides.Add(sizeguide);
+                            }
+                        }
+                    }
+                }
+            }
+            products.OrderBy(p => p.Brand);
+            title = products.Last().Brand;
+        }
+        var ChestColumnGuides = shirtsSizeGuides.Where(s => s.ChestSize != null).ToList();
+        var SleeveColumnGuides = shirtsSizeGuides.Where(s => s.SleeveLength != null).ToList();
+        var ShoulderColumnGuides = shirtsSizeGuides.Where(s => s.ShoulderSize != null).ToList();
+        var BustColumnGuides = shirtsSizeGuides.Where(s => s.BustSize != null).ToList();
+        var WaistColumnGuides = shirtsSizeGuides.Where(s => s.WaistSize != null).ToList();
+        var HipColumnGuides = shirtsSizeGuides.Where(s => s.HipSize != null).ToList();
+        var CenterBackLengthColumnGuides = shirtsSizeGuides.Where(s => s.CenterBackLength != null).ToList();
+        var LengthColumnGuides = shirtsSizeGuides.Where(s => s.Length != null).ToList();
+        emptyChestColumn = ChestColumnGuides.Any() ? false : true;
+        emptySleeveColumn = SleeveColumnGuides.Any() ? false : true;
+        emptyShoulderColumn = ShoulderColumnGuides.Any() ? false : true;
+        emptyBustColumn = BustColumnGuides.Any() ? false : true;
+        emptyWaistColumn = WaistColumnGuides.Any() ? false : true;
+        emptyHipColumn = HipColumnGuides.Any() ? false : true;
+        emptyCenterBackLengthColumn = CenterBackLengthColumnGuides.Any() ? false : true;
+        emptyLengthColumn = LengthColumnGuides.Any() ? false : true;
+        shirtsSizeGuides = shirtsSizeGuides.OrderBy(s => s.Created).ToList();
+    }
+    public void Close()
+    {
+        IsVisible = false;
+        shirtsSizeGuides.Clear();
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,160 @@
+﻿@page "/Account/products/delete"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Delete</PageTitle>
+
+<div class="container-sm mt-5">
+
+    @if (product is null)
+    {
+        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    }
+    else {
+        <div class="card mb-3 me-3" style="width: fit-content; max-width: 350px;">
+            <div class="card-header" style="text-align: right;">
+                <div style="display: flex; justify-content: space-between">
+                    <strong>@Loc["DeleteProduct"]</strong>
+                    <button type="button" class="btn-close" style="text-align: right;" aria-label="Close" @onclick="OnCancelClicked"></button>
+                </div>
+            </div>
+            <div class="card-body">
+                <button class="btn" @onclick="@(() => OnDetailsClicked(product))">
+                    @if (product.Images is not null && product.Images.Count > 0)
+                    {
+                        <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(product.Images.First().Image)))"
+                             alt=@Loc["ProductImage"] style="width:90%; height:90%; object-fit:cover;" />
+                    }
+                </button>
+            </div>
+            <div class="card-footer" style="background-color: transparent; border: none;">
+                <div>
+                    <strong>@product.Brand</strong>
+                </div>
+                <div>
+                    <a href="@($"Account/products/details?id={product.Id}")" style="text-decoration: none; color: black;">
+                        @product.Name
+                    </a>
+                </div>
+                <div style="display: inline-block;">
+                    @if (product.Rating > 0)
+                    {
+                        <strong class="me-1">@product.Rating</strong>
+                    }
+                    @if (product.Rating == 0)
+                    {
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            <img class="me-1" src="star.svg" />
+                        }
+                        <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
+                                                    color: dodgerblue;">
+                            (0)
+                        </button>
+                    }
+                    else
+                    {
+                        @for (int i = 0; i < product.Rating; i++)
+                        {
+                            <img class="me-1" src="star-fill.svg" />
+                        }
+                        var rating_difference = 5 - product.Rating;
+                        @if (rating_difference > 0)
+                        {
+                            if (rating_difference > 1)
+                            {
+                                @for (int i = 0; i < (5 - product.Rating); i++)
+                                {
+                                    <img class="me-1" src="star.svg" />
+                                }
+                                if (rating_difference.GetType() != typeof(int))
+                                {
+                                    <img class="me-1" src="star-half.svg" />
+                                }
+                            }
+                            else
+                            {
+                                <img src="star-half.svg" />
+                            }
+                        }
+                        <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
+                                                    color: dodgerblue;">
+                            (@product.Rating)
+                        </button>
+                    }
+                </div>
+                <div class="mt-3">
+                    <div style="display: inline-block;">
+                        @{
+                            string price = product.Price.ToString();
+                            string price_w_curr = product.Price.ToString("C0");
+                            char leading_char = price[0];
+                            int index = price_w_curr.IndexOf(leading_char);
+                        }
+                        <a href="@($"Account/products/details?id={product.Id}")" style="text-decoration: none; color: black;">
+                            <strong style="font-size: small; vertical-align: text-top;">@product.Price.ToString("C0").Substring(0, index)</strong>
+                            <strong style="font-size: x-large;">@product.Price.ToString("C0").Substring(index)</strong>
+                        </a>
+                    </div>
+                </div>
+                <EditForm method="post" Model="product" OnValidSubmit="DeleteProduct" FormName="delete" Enhance>
+                    <div style="text-align: right;">
+                        <div class="btn-group me-2 mt-2">
+                            <button type="submit" class="btn btn-danger me-1" disabled="@(product is null)">Delete</button>
+                            <button class="btn btn-secondary" type="button" @onclick="OnCancelClicked">Cancel</button>
+                        </div>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private Product? product;
+
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        product = await context.Product.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (product is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        else
+        {
+            using var img_context = await DbFactory.CreateDbContextAsync();
+            product.Images = img_context.ProductImage.Where(m => m.ProductColorGroupId == product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
+        }
+    }
+    public void OnDetailsClicked(Product prod)
+    {
+        NavigationManager.NavigateTo($"Account/products/details?id={prod.Id}");
+    }
+    public void OnCancelClicked()
+    {
+        NavigationManager.NavigateTo($"Account/products/");
+    }
+    private async Task DeleteProduct()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var images = context.ProductImage.Where(i => i.ProductColorGroupId == product!.ProductColorGroupID);
+        foreach (var image in images)
+        {
+            context.ProductImage.Remove(image);
+        }
+        context.Product.Remove(product!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("Account/products");
+    }
+}

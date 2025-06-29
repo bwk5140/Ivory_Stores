@@ -1,0 +1,134 @@
+﻿@page "/shirtssizeguides/create"
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Create</PageTitle>
+
+<div class="container-sm">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+            style="background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["ShirtSizeGuide"]</strong>
+                <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                        aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body">
+                <EditForm method="post" Model="ShirtsSizeGuide" OnValidSubmit="AddShirtsSizeGuide" FormName="create" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" role="alert" />
+                    <div class="form form-floating mb-3">
+                        <InputText id="chestsize" @bind-Value="ShirtsSizeGuide.ChestSize" class="form-control" />
+                        <label for="chestsize" class="form-label">@Loc["Chest"] (cm):</label>
+                        <ValidationMessage For="() => ShirtsSizeGuide.ChestSize" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="sleevelength" @bind-Value="ShirtsSizeGuide.SleeveLength" class="form-control" />
+                        <label for="sleevelength" class="form-label">@Loc["Sleeve"] (cm):</label>
+                        <ValidationMessage For="() => ShirtsSizeGuide.SleeveLength" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="shouldersize" @bind-Value="ShirtsSizeGuide.ShoulderSize" class="form-control" />
+                        <label for="shouldersize" class="form-label">@Loc["Shoulder"] (cm):</label>
+                        <ValidationMessage For="() => ShirtsSizeGuide.ShoulderSize" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="centerbacklength" @bind-Value="ShirtsSizeGuide.CenterBackLength" class="form-control" />
+                        <label for="centerbacklength" class="form-label">@Loc["CenterBack"] (cm):</label>
+                        <ValidationMessage For="() => ShirtsSizeGuide.CenterBackLength" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="brandsize" @bind-Value="ShirtsSizeGuide.BrandSize" class="form-control" 
+                                    placeholder=""/>
+                        <label for="brandsize" class="form-label">@Loc["BrandSize"]:</label>
+                        <ValidationMessage For="() => ShirtsSizeGuide.BrandSize" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="waistsize" @bind-Value="ShirtsSizeGuide.WaistSize" class="form-control" />
+                        <label for="waistsize" class="form-label">@Loc["Waist"] (cm):</label>
+                        <ValidationMessage For="() => ShirtsSizeGuide.WaistSize" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="hipsize" @bind-Value="ShirtsSizeGuide.HipSize" class="form-control" />
+                        <label for="hipsize" class="form-label">@Loc["Hip"] (cm):</label>
+                        <ValidationMessage For="() => ShirtsSizeGuide.HipSize" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="bustsize" @bind-Value="ShirtsSizeGuide.BustSize" class="form-control" />
+                        <label for="bustsize" class="form-label">@Loc["Bust"] (cm):</label>
+                        <ValidationMessage For="() => ShirtsSizeGuide.BustSize" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="length" @bind-Value="ShirtsSizeGuide.Length" class="form-control" />
+                        <label for="length" class="form-label">@Loc["Length"] (cm):</label>
+                        <ValidationMessage For="() => ShirtsSizeGuide.Length" class="text-danger" />
+                    </div>
+                    <div style="text-align: right;">
+                        <button type="submit" class="btn btn-primary" style="background-color:#2f4f4f;
+                                    border-radius: 5px;" data-bs-toggle="tooltip" title=@Loc["Add"]>
+                            @Loc["Add"]
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background"></div>
+</div>
+@code {
+    [SupplyParameterFromForm]
+    private ShirtsSizeGuide ShirtsSizeGuide { get; set; } = new();
+
+    [CascadingParameter]
+    private ProductGroup? ProductGroup { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnShirtsSizeGuideAdded { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddShirtsSizeGuide()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        if (ProductGroup is not null && ProductGroup.ProductColorGroups is not null)
+        {
+            foreach (var product in ProductGroup.ProductColorGroups.SelectMany(cg => cg.Products))
+            {
+                ShirtsSizeGuide.ProductId = product.Id;
+                product.SizeGuideId = ShirtsSizeGuide.Id;
+
+                if (!context.ShirtsSizeGuide.Contains(ShirtsSizeGuide))
+                {
+                    context.ShirtsSizeGuide.Add(ShirtsSizeGuide);
+                    await context.SaveChangesAsync();
+                }
+                await OnShirtsSizeGuideAdded.InvokeAsync();
+            }
+        }
+        ShirtsSizeGuide = new ShirtsSizeGuide();
+        Close();
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,145 @@
+﻿@using MethaWebsite.Data
+@using Microsoft.EntityFrameworkCore
+@inject IStringLocalizer<SharedResource> Loc
+
+<div class="container-sm">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+         style="top: 35%; z-index: 1450;">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="background-color: white; width: max-content;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["UpdateAccount"]</strong>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body">
+                <div style="display: inline-block;">
+                    <img src="@creditDebitCard.LogoSource" width="30" height="15" />
+                </div>
+                <div class="ms-4" style="display: inline-block;">
+                    <strong>@creditDebitCard.Type</strong>
+                </div>
+                <div style="display: inline-block;">
+                    @Loc["EndingIn"] @creditDebitCard.CardNumber.Substring(creditDebitCard.CardNumber.Length - 4, 4)
+                </div>
+                <div style="display: inline-block; padding-left: 100px;">
+                    @creditDebitCard.NameOnCard
+                </div>
+                <div style="display: inline-block; padding-left: 100px;">
+                    @creditDebitCard.ExpirationMonth/@creditDebitCard.ExpirationYear
+                </div>
+                @if (!Verified)
+                {
+                    if (!VerificationIssue)
+                    {
+                        <div class="card mt-2 mb-2" style="border-color: blue; max-width: 1200px;">
+                            <div class="card-body">
+                                <img src="info-circle.svg" />
+                                @Loc["VerifyCardInfo"]
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px;">
+                            <div class="card-body">
+                                <img src="info-circle.svg" />
+                                @Loc["VerificationIssue"]
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="card mt-2 mb-2" style="border-color: green; max-width: 1200px;">
+                        <div class="card-body">
+                            <img src="check-circle-fill.svg" />
+                            @Loc["CardVerified"]
+                        </div>
+                    </div>
+                }
+                <div class="mt-2" style="display: inline-block;">
+                    <div style="display: inline-block;">
+                        <InputText id="cardnumber" @bind-Value="cardNumber" class="form-control"
+                                   placeholder="@placeholder" style="height: 43px;" />
+                    </div>
+                    <div class="form form-floating" style="display: inline-block;">
+                        <button @onclick="OnVerifyCardClicked" class="btn btn-primary me-2" style="background-color: #2f4f4f;
+                                                                        border-color:transparent; border-radius: 15px;">
+                            @Loc["VerifyCard"]
+                        </button>
+                    </div>
+                    
+                </div>
+                <div style="text-align: right">
+                    <button type="button" class="btn btn-secondary me-2" style="border: none; font-size: medium;" @onclick="Close">
+                        @Loc["Cancel"]
+                    </button>
+                    <button type="button" class="btn btn-primary me-2" style="background-color: #2f4f4f; border: none;
+                                                                        font-size: medium;" @onclick="OnUpdate">
+                        @Loc["Update"]
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background-lev-2"></div>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    [CascadingParameter]
+    public CreditDebitCard? creditDebitCard { get; set; }
+
+    [Parameter]
+    public string? cardNumber { get; set; }
+
+    [Parameter]
+    public bool Verified { get; set; } = false;
+    [Parameter]
+    public bool VerificationIssue { get; set; } = false;
+
+    [Parameter]
+    public string? placeholder { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnUpdateClicked { get; set; }
+
+    protected override void OnInitialized()
+    {
+        placeholder = $"{Loc["EndingIn"]} {creditDebitCard.CardNumber.Substring(creditDebitCard.CardNumber.Length - 4, 4)}";
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+    private void OnVerifyCardClicked()
+    {
+        if (cardNumber == creditDebitCard.CardNumber)
+        {
+            Verified = true;
+        }
+        else
+        {
+            VerificationIssue = true;
+        }
+    }
+    private async Task OnUpdate()
+    {
+        await OnUpdateClicked.InvokeAsync();
+        Close();
+    }
+}

@@ -1,0 +1,85 @@
+﻿@page "/Account/Manage/Name"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using MethaWebsite.Data
+@using Microsoft.EntityFrameworkCore
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@inject IStringLocalizer<SharedResource> Loc
+
+<PageTitle>Profile</PageTitle>
+<div class="container-lg" style="max-width: 700px;">
+    <h3>@Loc["Name"]</h3>
+    <StatusMessage />
+    <div class="row">
+        <div class="col-xl-6">
+            <EditForm Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" role="alert" />
+                <div class="form-floating mb-3">
+                    <input type="text" value="@name" id="name" class="form-control" placeholder="Enter your name" disabled />
+                    <label for="name" class="form-label">Current Name</label>
+                </div>
+                <div class="form-floating mb-3">
+                    <InputText @bind-Value="Input.Name" id="Input.Name" class="form-control" placeholder="Change name" />
+                    <label for="Input.Name" class="form-label">New Name</label>
+                    <ValidationMessage For="() => Input.Name" class="text-danger" />
+                </div>
+                <button type="submit" class="w-100 btn btn-lg btn-primary" style="background-color: #2f4f4f;
+                        border-color:transparent; border-radius: 5px;">
+                    Save
+                </button>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private ApplicationUser user = default!;
+    private string? name;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        name = user.Name;
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        if (Input.Name != name)
+        {
+            user.Name = Input.Name;
+            using var context = DbFactory.CreateDbContext();
+            context.Attach(user!).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+            if (user.Name is null)
+            {
+                RedirectManager.RedirectToCurrentPageWithStatus("Error: Failed to set name.", HttpContext);
+            }
+        }
+
+        await SignInManager.RefreshSignInAsync(user);
+        RedirectManager.RedirectToCurrentPageWithStatus("Your profile has been updated", HttpContext);
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [Display(Name = "New name")]
+        public string? Name { get; set; }
+    }
+}
+

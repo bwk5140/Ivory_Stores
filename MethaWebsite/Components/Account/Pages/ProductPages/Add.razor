@@ -1,0 +1,1061 @@
+﻿@page "/Account/products/create"
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@using System.Globalization
+@using MethaWebsite.Components.Account.Pages
+@using Blazored.TextEditor
+
+@inject IJSRuntime JSRuntime
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Create</PageTitle>
+<div class="container-sm mt-5 mb-5" style="display: flex; justify-content: center;">
+    <div class="card" style="width: 60%;">
+        <div class="card-header">
+            <div style="text-align: right;">
+                <button type="button" class="btn-close" aria-label="Close" @onclick="OnCancelClicked"></button>
+            </div>
+            <strong class="header">@Loc["AddProduct"]</strong>
+        </div>
+        <div class="card-body">
+            <EditForm method="post" Model="Product" OnValidSubmit="AddProduct" FormName="create" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" role="alert" />
+                @if (!NextClicked)
+                {
+                    <div class="form form-floating mb-3">
+                        <InputText id="name" @bind-Value="Product.Name" class="form-control" placeholder="" />
+                        <label for="Product.Name" class="form-label">@Loc["Name"]:</label>
+                        <ValidationMessage For="() => Product.Name" class="text-danger" />
+                    </div>
+                    <label for="Product.Description" class="form-label" style="color:gray;">
+                        @Loc["Description"]
+                    </label>
+                    <div class="form form-floating mb-3">
+                        <BlazoredTextEditor @ref="QuillHtml" Placeholder=@Loc["Description"]>
+                            <ToolbarContent>
+                                <select class="ql-header" data-bs-toggle="tooltip" title=@Loc["Heading"]>
+                                    <option selected=""></option>
+                                    <option value="1"></option>
+                                    <option value="2"></option>
+                                    <option value="3"></option>
+                                    <option value="4"></option>
+                                    <option value="5"></option>
+                                </select>
+                                <span class="ql-formats">
+                                    <button class="ql-bold" data-bs-toggle="tooltip" title=@Loc["Bold"]></button>
+                                    <button class="ql-italic" data-bs-toggle="tooltip" title=@Loc["Italic"]></button>
+                                    <button class="ql-underline" data-bs-toggle="tooltip" title=@Loc["Underline"]></button>
+                                    <button class="ql-strike" data-bs-toggle="tooltip" title=@Loc["Strike"]></button>
+                                </span>
+                            <span class="ql-formats">
+                                <select class="ql-color" data-bs-toggle="tooltip" title=@Loc["Color"]></select>
+                                <select class="ql-background" data-bs-toggle="tooltip" title=@Loc["Background"]></select>
+                            </span>
+                            <span class="ql-formats">
+                                <button class="ql-list" value="ordered" data-bs-toggle="tooltip" title=@Loc["NumberedList"]></button>
+                                <button class="ql-list unordered" value="bullet" data-bs-toggle="tooltip" title=@Loc["BulletedList"]></button>
+                            </span>
+                            <span class="ql-formats">
+                                <button class="ql-link" data-bs-toggle="tooltip" title=@Loc["AddLink"]></button>
+                                <button class="ql-image" data-bs-toggle="tooltip" title=@Loc["AddAnImage"]></button>
+                            </span>
+                            </ToolbarContent>
+                            <EditorContent>
+                                @((MarkupString)Product.Description)
+                            </EditorContent>
+                        </BlazoredTextEditor>
+                        <ValidationMessage For="() => Product.Description" class="text-danger" />
+                    </div>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            @if (CategoryName is null)
+                            {
+                                <div class="row">
+                                    <div class="col">
+                                        <label style="color: gray;">@Loc["SelectCategory"]</label>
+                                    </div>
+                                    <div class="col" style="text-align: right;">
+                                        <button type="button" class="btn" data-bs-toggle="tooltip" title=@Loc["SelectCategory"]
+                                                aria-label="Select" @onclick="OnCategoryClicked" style="text-align:end; 
+                                                        border-radius: 25px; background-color: #89c182;">
+                                            @Loc["Select"]
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="row">
+                                    <div class="col">
+                                        <label>
+                                            @CategoryName
+                                        </label>
+                                    </div>
+                                    <div class="col" style="text-align: right;">
+                                        <button type="button" class="btn" data-bs-toggle="tooltip" title=@Loc["ChangeCategory"]
+                                                aria-label="Select" @onclick="OnCategoryClicked" style="text-align:end;
+                                                        border-radius: 25px; background-color: #89c182;">
+                                            @Loc["Change"]
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <CascadingValue Value="original_categories">
+                        <CascadingValue Value="Product">
+                            <MethaWebsite.Components.Account.Pages.CategoryPages.CategoryPopOver @ref="CategoriesPopUp" 
+                                                                                                  OnCategorySelected="OnCategorySelected"/>
+                        </CascadingValue>
+                    </CascadingValue>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col">
+                                    <label style="color: gray;">@Loc["AddCategory"]</label>
+                                </div>
+                                <div class="col" style="text-align: right;">
+                                    <button type="button" class="btn" data-bs-toggle="tooltip" title=@Loc["AddCategory"]
+                                            aria-label="Add" @onclick="OnCreateCategoryClicked" style="text-align:end;">
+                                            <img src="plus-square.svg" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <MethaWebsite.Components.Account.Pages.CategoryPages.Add @ref="AddNewCategoryPopUp"
+                                                                                 OnCategoryAdded="UpdateCategories" />
+                    <div class="form form-floating mb-3">
+                        <InputText id="brand" @bind-Value="Product.Brand" class="form-control" placeholder="" />
+                        <label for="Product.Brand" class="form-label">@Loc["Brand"]:</label>
+                        <ValidationMessage For="() => Product.Brand" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputNumber id="rating" @bind-Value="Product.Rating" class="form-control" placeholder="" hidden />
+                        <label for="Product.Rating" class="form-label" hidden>@Loc["Rating"]:</label>
+                        <ValidationMessage For="() => Product.Rating" class="text-danger" />
+                    </div>
+                    <div class="input-group input-group-sm mb-3">
+                        <div class="form form-floating">
+                            <InputText id="color" @bind-Value="Product.Color" class="form-control" placeholder="" 
+                                        style="border-right-color: transparent;"/>
+                            <label for="Product.Color" class="form-label">@Loc["Colors"]:</label>
+                            <ValidationMessage For="() => Product.Color" class="text-danger" />
+                        </div>
+                        <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip" title=@Loc["AddMultipleColors"]
+                                aria-label="Add" style="text-align:end; background-color: transparent;
+                                        border-left-color: transparent; border-right-color: lightgrey;
+                                        border-top-color: lightgrey; border-bottom-color: lightgrey;" 
+                                        @onclick="OnAddNewColorClicked">
+                            <img src="plus-square.svg" />
+                        </button>
+                    </div>
+                    @if (MultiColoredProducts!.Count() > 0)
+                    {
+                        <div class="row mb-5" style="word-wrap: normal;">
+                            @foreach (var product in MultiColoredProducts!)
+                            {
+                                @if (product.Color is not null)
+                                {
+                                    <div class="col-sm-3 mb-5">
+                                        @{
+                                            var showClass = MultiColoredPopovers[product.Id] ? "d-block" : "d-none";
+                                        }
+                                        <div class="toast-container @showClass" data-bs-autohide="true" data-bs-delay="5000"
+                                                style="z-index: 999;">
+                                            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                                                    style="width: fit-content; border-radius: 25px;">
+                                                <div class="toast-header" style="width: fit-content; border-radius: 25px;">
+                                                    <strong class="me-2">@product!.Color</strong>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                                                        class="bi bi-circle-fill" viewBox="0 0 4 4">
+                                                        <circle cx="2" cy="2" r="2" fill="gray"/>
+                                                        <circle cx="2" cy="2" r="1.9" fill="@product.Color"/>
+                                                    </svg>
+                                                    <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                                                            aria-label="Close" @onclick="@(()=>CloseColor(product))">
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div> 
+                                }
+                            }
+                        </div>
+                    }
+                    
+                    <div class="form form-floating mb-3">
+                        <InputNumber id="price" @bind-Value="Product.Price" class="form-control" placeholder="" />
+                        <label for="price" class="form-label">@Loc["Price"]:</label>
+                        <ValidationMessage For="() => Product.Price" class="text-danger" />
+                    </div>
+                    <div class="input-group input-group-sm mb-1">
+                            <div class="form form-floating">
+                                <InputText id="size" @bind-Value="Product.Size" class="form-control" placeholder="" 
+                                        style="border-right-color: transparent;"/>
+                                <label for="Product.size" class="form-label">@Loc["Sizes"]:</label>
+                                <ValidationMessage For="() => Product.Size" class="text-danger" />
+                            </div>
+                        <button type="button" class="btn btn-secondary" data-bs-toggle="tooltip" title=@Loc["AddMultipleSizes"]
+                                aria-label="Add" style="text-align:end; background-color: transparent;
+                                            border-left-color: transparent; border-right-color: lightgrey;
+                                            border-top-color: lightgrey; border-bottom-color: lightgrey;" 
+                                            @onclick="OnAddNewSizeClicked">
+                            <img src="plus-square.svg" />
+                        </button>
+                    </div>    
+                    <div class="row mb-5" style="word-wrap: normal;">
+                        @foreach (var product in MultiSizedProducts!)
+                        {
+                            @if (product.Size is not null)
+                            {  <div class="col-sm-3 mb-5">
+                                    @{
+                                        var showClass1 = MultiSizedPopovers[product.Id] ? "block" : "none";
+                                     }
+                                    <div class="toast-container @showClass1" data-bs-autohide="true" data-bs-delay="5000" draggable="true"
+                                        style="z-index: 999;">
+                                        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true" draggable="true"
+                                             style="width: fit-content; border-radius: 25px;">
+                                             <div class="toast-header" style="width: fit-content; border-radius: 25px;">
+                                                <strong class="ms-2 me-2">@product.Size</strong>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                                                    class="bi bi-circle-fill" viewBox="0 0 4 4">
+                                                    <circle cx="2" cy="2" r="2" fill="gray"/>
+                                                    <circle cx="2" cy="2" r="1.9" fill="@product.Color"/>
+                                                </svg>
+                                                <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                                                    aria-label="Close" @onclick="@(()=>CloseSize(product))"></button>
+                                             </div>
+                                        </div>
+                                    </div>
+                                </div>  
+                            }
+                        }
+                    </div>
+                    @if (MultiColoredProducts!.Count() > 0)
+                    {
+                        <CascadingValue Value="MultiColoredProducts">
+                            <CascadingValue Value="CurrentProductSizeColor">
+                                <SelectColorPopover @ref="selectColorPopover"
+                                            OnNewSizeAdded="AddNewSize"/>
+                            </CascadingValue>
+                        </CascadingValue>
+                    }
+                    <div style="text-align: right;">
+                        <button type="button" class="btn btn-primary" @onclick="OnNextClicked"
+                                style="background-color: #2f4f4f;border-color:transparent;
+                                border-radius: 5px;">
+                            @Loc["Next"]
+                        </button>
+                    </div>
+                }
+                @if (NextClicked)
+                {
+                    <div class="mb-3" style="text-align: left;">
+                        <button type="button" class="btn" @onclick="OnBackClicked" data-bs-toggle="tooltip" title=@Loc["Back"]>
+                            <img src="arrow-left-circle.svg" />
+                            <strong style="color: #2f4f4f;">@Loc["Back"]</strong>
+                        </button>
+                    </div>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            @if (category is not null)
+                            {
+                                <button type="button" class="btn" style="border: unset; outline:none; background-color: transparent;
+                                            color: dodgerblue;" @onclick="OnSizeChartClicked">
+                                    @Loc["SizeChart"]
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" Style="color: dodgerblue; background-color: transparent; border: unset;"
+                                        data-bs-toggle="tooltip" title=@Loc["PleaseSelectCategoryToView"]
+                                        @onclick="e => showViewSize = !showViewSize">
+                                    @Loc["SizeChart"]
+                                </button>
+                                var showViewSizeClass = showViewSize ? "d-block" : "d-none";
+                               <div class="toast-container @showViewSizeClass"
+                                     data-bs-autohide="true" data-bs-delay="5000">
+                                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                                         style="width: fit-content; max-width: 550px;">
+                                        <div class="toast-header">
+                                            <strong class="me-auto">@Loc["SelectCategory"]</strong>
+                                            <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                                                    aria-label="Close" @onclick="e => showViewSize = !showViewSize"></button>
+                                        </div>
+                                        <div class="toast-body">
+                                            @Loc["PleaseSelectCategoryToView"]
+                                        </div>
+                                        <div class="toast-footer mb-2 me-1" style="text-align: right;">
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-secondary me-2"
+                                                        @onclick="e => showViewSize = !showViewSize">
+                                                    @Loc["Cancel"]
+                                                </button>
+                                                <button type="button" class="btn btn-primary"
+                                                        @onclick="e => showViewSize = !showViewSize">
+                                                    @Loc["Ok"]
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                               </div>
+                               <div class="@showViewSizeClass darker-background"></div>
+                            }
+                        </div>
+                    </div>
+                    <CascadingValue Value="productGroup">
+                        <MethaWebsite.Components.SizeGuidePages.TrousersSizeGuidePages.TrouserSizeGuidePopover @ref="TrouserSizeGuidePopUp"/>
+                        <MethaWebsite.Components.SizeGuidePages.ShirtsSizeGuidePages.ShirtSizeGuidePopover @ref="ShirtSizeGuidePopUp"/>
+                        <MethaWebsite.Components.SizeGuidePages.ShoesSizeGuidePages.ShoeSizeGuidePopover @ref="ShoeSizeGuidePopUp"/>
+                    </CascadingValue>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col">
+                                    <label style="color: gray;">@Loc["AddSizeChart"]</label>
+                                </div>
+                                <div class="col" style="text-align: right;">
+                                    @if (category is not null)
+                                    {
+                                        <button type="button" class="btn" data-bs-toggle="tooltip" title=@Loc["AddSizeChart"]
+                                                aria-label="Add" @onclick="OnCreateSizeChartClicked" style="text-align:end;">
+                                            <img src="plus-square.svg" />
+                                        </button>
+                                    }
+                                    else
+                                    {
+
+                                        <button type="button" Style="color: dodgerblue; background-color: transparent; border:none;"
+                                                data-bs-toggle="tooltip" title=@Loc["PleaseSelectCategoryToAdd"]
+                                                @onclick="e => showAddNewSize = !showAddNewSize">
+                                            <img src="plus-square.svg" />
+                                        </button>
+                                        var showAddNewSizeClass = showAddNewSize ? "d-block" : "d-none";
+                                        <div class="toast-container @showAddNewSizeClass"
+                                             data-bs-autohide="true" data-bs-delay="5000">
+                                            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                                                 style="width: fit-content; max-width: 550px;">
+                                                <div class="toast-header">
+                                                    <strong class="me-auto">@Loc["SelectCategory"]</strong>
+                                                    <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                                                            aria-label="Close" @onclick="e => showAddNewSize = !showAddNewSize"></button>
+                                                </div>
+                                                <div class="toast-body">
+                                                    @Loc["PleaseSelectCategoryToAdd"]
+                                                </div>
+                                                <div class="toast-footer mb-2 me-1">
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn btn-secondary me-2"
+                                                                @onclick="e => showAddNewSize = !showAddNewSize">
+                                                            @Loc["Cancel"]
+                                                        </button>
+                                                        <button type="button" class="btn btn-primary"
+                                                                @onclick="e => showAddNewSize = !showAddNewSize">
+                                                            @Loc["Ok"]
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="@showAddNewSizeClass darker-background"></div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <CascadingValue Value="productGroup">
+                        <MethaWebsite.Components.SizeGuidePages.TrousersSizeGuidePages.Add @ref="AddNewTrouserSizeGuidePopUp"
+                                                                                      OnTrouserSizeGuideAdded="UpdateSizeGuides"/>
+                        <MethaWebsite.Components.SizeGuidePages.ShirtsSizeGuidePages.Add @ref="AddNewShirtSizeGuidePopUp"
+                                                                                             OnShirtsSizeGuideAdded="UpdateSizeGuides"/>
+                        <MethaWebsite.Components.SizeGuidePages.ShoesSizeGuidePages.Add @ref="AddNewShoesSizeGuidePopUp"
+                                                                                               OnShoesSizeGuideAdded="UpdateSizeGuides"/>
+                    </CascadingValue>
+                    <div class="form form-floating mb-3">
+                        <InputNumber id="price" @bind-Value="Product.Stock" class="form-control" placeholder="" />
+                        <label for="price" class="form-label">@Loc["Stock"]:</label>
+                        <ValidationMessage For="() => Product.Stock" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputTextArea id="fabric" @bind-Value="Product.Fabric" class="form-control" placeholder="" />
+                        <label for="Product.Fabric" class="form-label">@Loc["Fabric"]:</label>
+                        <ValidationMessage For="() => Product.Fabric" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputTextArea id="wash_instructions" @bind-Value="Product.WashInstructions" class="form-control" placeholder="" />
+                        <label for="Product.WashInstructions" class="form-label">@Loc["WashInstructions"]:</label>
+                        <ValidationMessage For="() => Product.WashInstructions" class="text-danger" />
+                    </div>
+                    <div class="input-group" style="display: flex;  justify-content: space-between;">
+                        <label for="Product.Lifestyle" class="form-label ms-1" style="color: gray;">@Loc["Lifestyle"]</label>
+                        <label for="Product.Lifestyle" class="form-label ms-1" style="color: gray;">@Loc["Gender"]</label>
+                    </div>
+                    <div class="input-no-focus form form-floating mb-3" style="display: flex; justify-content: space-between;">
+                            <InputSelect id="category" @bind-Value="Product.Lifestyle" class="form-select-sm ms-1"
+                                style="border-color: lightgray;">
+                                <option value="null" style="color: gray;">@Loc["SelectLifestyle"]</option>
+                                @foreach (var choice in LifestyleChoices)
+                                {
+                                    <option value="@choice" style="color: black;">@choice</option>
+                                }
+                            </InputSelect>
+                            <InputSelect id="category" @bind-Value="Product.Gender" class="form-select-sm ms-1"
+                                style="border-color: lightgray;">
+                                <option value="null" style="color: gray;">@Loc["SelectGender"]</option>
+                                @foreach (var choice in GenderChoices)
+                                {
+                                    <option value="@choice" style="color: black;">@choice</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col">
+                                    <label style="color: gray;">@Loc["AddImages"]</label>
+                                </div>
+                                <div class="col" style="text-align: right;">
+                                    <button type="button" class="btn" data-bs-toggle="tooltip" title=@Loc["AddImage"]
+                                            aria-label="Add" @onclick="OnAddImageClicked" style="text-align:end;">
+                                        <img src="plus-square.svg" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <CascadingValue Value="Product">
+                            <CascadingValue Value="productGroup">
+                                <MethaWebsite.Components.Account.Pages.ProductImagePages.Add @ref="AddNewImagePopUp"
+                                                                                OnImageAdded="UpdateImages" />
+                            </CascadingValue>
+                        </CascadingValue>
+                    </div>
+                    @if (MultiColoredProducts is not null)
+                    {
+                        @foreach (var color_group in productGroup.ProductColorGroups)
+                        {
+                            var product = color_group.Products.FirstOrDefault(p => p.Images != null);
+                            @if (product is not null && product.Images.Count > 0)
+                            {
+                                <button class="btn btn-sm btn-secondary" style="background-color: transparent; border-color: transparent;
+                                    width: fit-content; height: fit-content; color: dodgerblue;" type="button" 
+                                    @onclick="e => showColoredImage[product.Id] = 
+                                    !showColoredImage[product.Id]">
+                                    <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg"
+                                        class="bi bi-circle-fill" viewBox="0 0 16 16">
+                                        <circle cx="8" cy="8" r="8" fill="gray" />
+                                        <circle cx="8" cy="8" r="7.5" fill="@product.Color" />
+                                    </svg>
+                                    @Loc["ViewImages"]
+                                </button>
+
+                                var showClassImages = showColoredImage[product.Id] ? "d-block" : "d-none";
+                                <div class="toast-container @showClassImages" style="top: 10%; left: 10%;"
+                                        data-bs-autohide="true" data-bs-delay="5000">
+                                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                                         style="width: fit-content; max-width: 550px; max-height: 600px; overflow-y: auto;">
+                                        <div class="toast-header">
+                                            <strong class="me-auto">@Loc["Images"]</strong>
+                                            <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                                                aria-label="Close" @onclick="@(()=>CloseProductImages(product))"></button>
+                                        </div>
+                                        <div class="toast-body">
+                                            <dl class="row mt-3">
+                                                @foreach (var img in product.Images)
+                                                {
+                                                    <dd class="col-md" style="max-width: fit-content;">
+                                                        <div class="card">
+                                                            <div class="card-header" style="background-color: transparent; border:none; text-align: right;">
+                                                                <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                                                                    aria-label="Close" @onclick="@(()=>DeleteImageFromProduct(product, img))">
+                                                                </button>
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <img src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(img.Image!)))"
+                                                                    alt=@Loc["ProductImage"] style="width:200px; height:200px; object-fit:contain;" />
+                                                            </div>
+                                                        </div>
+                                                    </dd>
+                                                }
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="@showClassImages darker-background"></div>
+                            }
+                        }
+                    }
+                    else if (Product.Images is not null && Product.Images.Count() > 0)
+                    {
+                        <dl class="row mt-3">
+                            @foreach (var img in Product.Images)
+                            {
+                                <dd class="col">
+                                    <img src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(img.Image!)))"
+                                         alt=@Loc["ProductImage"] style="width:200px; height:200px; object-fit:cover;" />
+                                </dd>
+                            }
+                        </dl>
+                    }
+                    <div class="mt-5" style="text-align: right;">
+                        <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;border-color:transparent;
+                                border-radius: 5px;">
+                            @Loc["Add"]
+                        </button>
+                    </div>
+                }
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Product Product { get; set; } = new();
+
+    BlazoredTextEditor? QuillHtml;
+
+    private string? CategoryName;
+
+    [Parameter]
+    public bool NextClicked { get; set; } = false;
+
+    [Parameter]
+    public bool NewCategoryAdded { get; set; } = false;
+
+    [Parameter]
+    public bool AddImageClicked { get; set; } = false;
+
+    [Parameter]
+    public List<ProductImage>? Images { get; set; }
+
+    [Parameter]
+    public List<Category>? categories { get; set; }
+
+    [Parameter]
+    public List<Product>? MultiColoredProducts { get; set; } = new List<Product>();
+
+    [Parameter]
+    public List<Product>? MultiSizedProducts { get; set; } = new List<Product>();
+
+    public string? CurrentProductSizeColor { get; set; }
+
+    private ProductGroup? productGroup { get; set; }
+
+    private List<Category>? original_categories { get; set; }
+    private List<string> LifestyleChoices { get; set; } = new List<string>();
+    private List<string> GenderChoices { get; set; } = new List<string>();
+
+    private bool showAddNewSize = false;
+    private bool showViewSize = false;
+    private bool showLifestyleChoices = false;
+
+    private delegate bool TryFindSizeGuide(string id, DbContext context);
+    private record SizeGuideHandler(TryFindSizeGuide TryFind, Action Action);
+
+    private Category? category { get; set; }
+    private Dictionary<string, bool> showColoredImage = new ();
+    private Dictionary<string, bool> MultiColoredPopovers = new ();
+    private Dictionary<string, bool> MultiSizedPopovers = new ();
+    private CategoryPages.Add? AddNewCategoryPopUp;
+    private CategoryPages.CategoryPopOver? CategoriesPopUp;
+    private ProductImagePages.Add? AddNewImagePopUp;
+    private SizeGuidePages.TrousersSizeGuidePages.Add? AddNewTrouserSizeGuidePopUp;
+    private SizeGuidePages.ShirtsSizeGuidePages.Add? AddNewShirtSizeGuidePopUp;
+    private SizeGuidePages.ShoesSizeGuidePages.Add? AddNewShoesSizeGuidePopUp;
+    private SizeGuidePages.TrousersSizeGuidePages.TrouserSizeGuidePopover? TrouserSizeGuidePopUp;
+    private SizeGuidePages.ShirtsSizeGuidePages.ShirtSizeGuidePopover? ShirtSizeGuidePopUp;
+    private SizeGuidePages.ShoesSizeGuidePages.ShoeSizeGuidePopover? ShoeSizeGuidePopUp;
+    private SelectColorPopover? selectColorPopover;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        categories = context.Category.ToList<Category>();
+        Product.Images = new List<ProductImage>();
+        Product.Quantity = 1;
+        original_categories = categories.Where(c => c.ParentID == null).ToList();
+
+        LifestyleChoices.Add(Loc["BusinessCasual"]);
+        LifestyleChoices.Add(Loc["Casual"]);
+        LifestyleChoices.Add(Loc["Comfort"]);
+        LifestyleChoices.Add(Loc["Evening"]);
+        LifestyleChoices.Add(Loc["Formal"]);
+
+        GenderChoices.Add(Loc["Men"]);
+        GenderChoices.Add(Loc["Women"]);
+        GenderChoices.Add(Loc["Boys"]);
+        GenderChoices.Add(Loc["Girls"]);
+        GenderChoices.Add(Loc["Babies"]);
+        GenderChoices.Add(Loc["Unisex"]);
+    }
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddProduct()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        if (productGroup is not null)
+        {
+            if (productGroup.ProductColorGroups is not null)
+            {
+                foreach (var productColorGroup in productGroup.ProductColorGroups)
+                {
+                    foreach (var product in productColorGroup.Products)
+                    {
+                        CopyProductMetadata(product, Product);
+                        context.Product.Add(product);
+                    }
+                    productColorGroup.ProductGroupID = productGroup.Id;
+                    productColorGroup.Name = productColorGroup.Products.First().Name;
+                    context.ProductColorGroup.Add(productColorGroup);
+                }
+                if (Product.Color is null)
+                {
+                    Product.Color = productGroup.ProductColorGroups.Last().Color;
+                }
+                if (Product.Size is null)
+                {
+                    Product.Size = productGroup.ProductColorGroups.Last().Products.Last().Size;
+                }
+            }
+
+            context.ProductGroup.Add(productGroup);
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            context.Product.Add(Product);
+            await context.SaveChangesAsync();
+        }
+        NavigationManager.NavigateTo("Account/products");
+    }
+    private void CopyProductMetadata(Product target, Product source)
+    {
+        target.Brand = source.Brand;
+        target.Name = source.Name;
+        target.Description = source.Description;
+        target.CategoryId = source.CategoryId;
+        target.Fabric = source.Fabric;
+        target.Lifestyle = source.Lifestyle;
+        target.WashInstructions = source.WashInstructions;
+        target.Gender = source.Gender;
+        target.Stock = source.Stock;
+        target.Quantity = source.Quantity;
+    }
+    private void OnCancelClicked()
+    {
+        NavigationManager.NavigateTo("Account/products");
+    }
+    public void OnCreateCategoryClicked()
+    {
+        AddNewCategoryPopUp.Show();
+    }
+    private async Task OnCreateSizeChartClicked()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var parent = await context.Category.FirstOrDefaultAsync(m => m.Id == category!.ParentID);
+
+        // Define keyword-action mapping
+        var keywordActions = new Dictionary<string, Action>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "trouser", () => AddNewTrouserSizeGuidePopUp!.Show() },
+            { "trunks", () => AddNewTrouserSizeGuidePopUp!.Show() },
+            { "jeans", () => AddNewTrouserSizeGuidePopUp!.Show() },
+            { "shirt", () => AddNewShirtSizeGuidePopUp!.Show() },
+            { "top", () => AddNewShirtSizeGuidePopUp!.Show() },
+            { "jacket", () => AddNewShirtSizeGuidePopUp!.Show() },
+            { "shoe", () => AddNewShoesSizeGuidePopUp!.Show() },
+            { "dress", () => AddNewShirtSizeGuidePopUp!.Show() }
+        };
+
+        // Try matching against CategoryName
+        bool found = TryShowSizeGuide(CategoryName!, keywordActions);
+
+        while (!found && parent is not null)
+        {
+            found = TryShowSizeGuide(parent.Name!, keywordActions);
+            parent = await context.Category.FirstOrDefaultAsync(m => m.Id == parent.ParentID);
+        }
+    }
+    private bool TryShowSizeGuide(string name, Dictionary<string, Action> keywordActions)
+    {
+        foreach (var kvp in keywordActions)
+        {
+            if (name.Contains(kvp.Key, StringComparison.OrdinalIgnoreCase))
+            {
+                kvp.Value.Invoke();
+                return true;
+            }
+        }
+        return false;
+    }
+    private async Task OnSizeChartClicked()
+    {
+        if (Product.SizeGuideId is not null)
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+
+            var sizeGuideHandlers = new List<SizeGuideHandler>
+        {
+            new SizeGuideHandler(
+                (id, ctx) => context.ShirtsSizeGuide.Any(s => s.Id == id),
+                () => ShirtSizeGuidePopUp!.Show()
+            ),
+            new SizeGuideHandler(
+                (id, ctx) => context.ShoesSizeGuide.Any(s => s.Id == id),
+                () => ShoeSizeGuidePopUp!.Show()
+            ),
+            new SizeGuideHandler(
+                (id, ctx) => context.TrousersSizeGuide.Any(s => s.Id == id),
+                () => TrouserSizeGuidePopUp!.Show()
+            )
+        };
+
+            foreach (var handler in sizeGuideHandlers)
+            {
+                if (handler.TryFind(Product.SizeGuideId, context))
+                {
+                    handler.Action();
+                    break;
+                }
+            }
+        }
+    }
+    private async Task OnNextClicked()
+    {
+        var htmlDescription = await QuillHtml.GetHTML();
+
+        if (productGroup?.ProductColorGroups is not null)
+        {
+            foreach (var colorGroup in productGroup.ProductColorGroups)
+            {
+                foreach (var product in colorGroup.Products)
+                {
+                    product.Description = htmlDescription;
+                }
+            }
+
+            Product.Description = htmlDescription;
+        }
+        else
+        {
+            productGroup ??= new ProductGroup
+            {
+                Name = Product.Name,
+                ProductColorGroups = new List<ProductColorGroup>()
+            };
+
+            var newProduct = new Product
+            {
+                Color = Product.Color,
+                Size = Product.Size,
+                Price = Product.Price,
+                Description = htmlDescription
+            };
+
+            showColoredImage[newProduct.Id] = false;
+
+            var colorGroup = productGroup.ProductColorGroups
+                .FirstOrDefault(cg => cg.Color == newProduct.Color);
+
+            if (colorGroup is null)
+            {
+                colorGroup = new ProductColorGroup
+                {
+                    Name = newProduct.Name,
+                    Color = newProduct.Color,
+                    Products = new List<Product> { newProduct }
+                };
+
+                productGroup.ProductColorGroups.Add(colorGroup);
+            }
+            else
+            {
+                colorGroup.Products.Add(newProduct);
+            }
+
+            newProduct.ProductColorGroupID = colorGroup.Id;
+            Product.Description = htmlDescription;
+        }
+
+        NextClicked = true;
+    }
+    private async Task OnBackClicked()
+    {
+        NextClicked = false;
+    }
+    private void OnAddImageClicked()
+    {
+        AddNewImagePopUp.Show();
+    }
+    private async Task OnCategorySelected()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        category = await context.Category.FirstOrDefaultAsync<Category>(n => n.Id == Product.CategoryId);
+        if (category is not null)
+        {
+            CategoryName = category.Name;
+            StateHasChanged();
+        }
+    }  
+    public async Task UpdateCategories(SaveChangesEventArgs args)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        original_categories = context.Category.Where(c => c.ParentID == null).ToList();
+        StateHasChanged();
+    }
+    public async Task UpdateSizeGuides()
+    {
+        if (productGroup?.ProductColorGroups is not null)
+        {
+            var products = productGroup.ProductColorGroups
+                .SelectMany(cg => cg.Products)
+                .ToList();
+
+            var lastWithSizeGuide = products
+                .LastOrDefault(p => p.SizeGuideId is not null);
+
+            if (lastWithSizeGuide is not null)
+            {
+                Product.SizeGuideId = lastWithSizeGuide.SizeGuideId;
+            }
+        }
+
+        if (Product.SizeGuideId is not null)
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+
+            var sizeGuideHandlers = new List<SizeGuideHandler>
+        {
+            new SizeGuideHandler(
+                (id, ctx) => context.ShirtsSizeGuide.Any(s => s.Id == id),
+                () => ShirtSizeGuidePopUp!.Update()
+            ),
+            new SizeGuideHandler(
+                (id, ctx) => context.ShoesSizeGuide.Any(s => s.Id == id),
+                () => ShoeSizeGuidePopUp!.Update()
+            ),
+            new SizeGuideHandler(
+                (id, ctx) => context.TrousersSizeGuide.Any(s => s.Id == id),
+                () => TrouserSizeGuidePopUp!.Update()
+            )
+        };
+
+            foreach (var handler in sizeGuideHandlers)
+            {
+                if (handler.TryFind(Product.SizeGuideId, context))
+                {
+                    handler.Action();
+                    break;
+                }
+            }
+        }
+    }
+    public void UpdateImages(SaveChangesEventArgs args)
+    {
+        StateHasChanged();
+    }
+    public List<Category> setCategoryTree(Category cat)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var categories = context.Category.Where(c => c.ParentID == cat.Id).ToList();
+        return categories;
+    }
+    public void OnCategoryClicked()
+    {
+        CategoriesPopUp.Show();
+    }
+    private ProductGroup EnsureProductGroup(ProductGroup? current, string productName)
+    {
+        return current ?? new ProductGroup
+        {
+            Name = productName,
+            ProductColorGroups = new List<ProductColorGroup>()
+        };
+    }
+    private Product CreateProductFrom(Product source)
+    {
+        return new Product
+        {
+            Color = source.Color,
+            Size = source.Size,
+            Price = source.Price
+        };
+    }
+    private ProductColorGroup AssignToColorGroup(ProductGroup group, Product product)
+    {
+        var colorGroup = group.ProductColorGroups
+            .FirstOrDefault(cg => cg.Color == product.Color);
+
+        if (colorGroup is null)
+        {
+            colorGroup = new ProductColorGroup
+            {
+                Name = product.Name,
+                Color = product.Color,
+                Products = new List<Product> { product }
+            };
+
+            group.ProductColorGroups.Add(colorGroup);
+        }
+        else
+        {
+            colorGroup.Products.Add(product);
+        }
+
+        product.ProductColorGroupID = colorGroup.Id;
+        return colorGroup;
+    }
+    public async Task OnAddNewSizeClicked()
+    {
+
+        if (MultiColoredProducts.Count > 0)
+        {
+            selectColorPopover.Show();
+            return;
+        }
+
+        if (Product.Size is null)
+        {
+            if (MultiSizedProducts?.Count > 0)
+                Product.Size = MultiSizedProducts.Last().Size;
+
+            return;
+        }
+
+        productGroup = EnsureProductGroup(productGroup, Product.Name);
+
+        var newProduct = CreateProductFrom(Product);
+        showColoredImage[newProduct.Id] = false;
+        MultiSizedProducts!.Add(newProduct);
+        MultiSizedPopovers[newProduct.Id] = true;
+
+        AssignToColorGroup(productGroup, newProduct);
+
+    }
+    public async Task OnAddNewColorClicked()
+    {
+        if (!string.IsNullOrWhiteSpace(Product.Color))
+        {
+            var product = new Product
+            {
+                Price = Product.Price,
+                Size = Product.Size,
+                Color = Product.Color
+            };
+
+            MultiColoredProducts.Add(product);
+            MultiColoredPopovers[product.Id] = true;
+        }
+    }
+    private void CloseSize(Product product)
+    {
+        if (productGroup is not null)
+        {
+            MultiSizedPopovers[product.Id] = false;
+            MultiSizedPopovers.Remove(product.Id);
+            var colorGroup = productGroup.ProductColorGroups.FirstOrDefault(m => m.Color == product.Color);
+            colorGroup.Products.Remove(product);
+            MultiSizedProducts!.Remove(product);
+
+            if (colorGroup.Products.Count == 0)
+            {
+                productGroup.ProductColorGroups.Remove(colorGroup);
+            }
+        }
+        StateHasChanged();
+    }
+    private void CloseColor(Product product)
+    {
+        MultiColoredPopovers[product.Id] = false;
+        MultiColoredPopovers.Remove(product.Id);
+        MultiColoredProducts!.Remove(product);
+        if (productGroup is not null)
+        {
+            //Remove colored products of various sizes
+            var colorGroup = productGroup.ProductColorGroups.FirstOrDefault(m => m.Color == product.Color);
+            if (colorGroup?.Products is not null && MultiSizedProducts?.Count > 0)
+            {
+                foreach (var prod in colorGroup.Products)
+                {
+                    MultiSizedPopovers[prod.Id] = false;
+                    MultiSizedPopovers.Remove(prod.Id);
+                    MultiSizedProducts!.Remove(prod);
+                }
+            }
+            StateHasChanged();
+        }
+    }
+    private void CloseProductImages(Product product)
+    {
+        showColoredImage[product.Id] = false;
+        StateHasChanged();
+    }
+    private async Task DeleteImageFromProduct(Product product, ProductImage img)
+    {
+        product.Images!.Remove(img);
+        if (Product.Images.Contains(img))
+        {
+            Product.Images.Remove(img);
+        }
+        if (product.Images.Count == 0)
+        {
+            CloseProductImages(product);
+        }
+        StateHasChanged();
+        using var context = await DbFactory.CreateDbContextAsync();
+        if (context.ProductImage.Contains(img))
+        {
+            context.ProductImage.Remove(img);
+            context.SaveChanges();
+        }
+    }
+    private Product CreateSizedProduct(string color)
+    {
+        return new Product
+        {
+            Size = Product.Size,
+            Price = Product.Price,
+            Color = color
+        };
+    }
+    private async Task AddNewSize()
+    {
+        if (!string.IsNullOrWhiteSpace(Product.Size))
+        {
+            productGroup ??= new ProductGroup
+            {
+                Name = Product.Name,
+                ProductColorGroups = new List<ProductColorGroup>()
+            };
+
+            var colors = selectColorPopover.CurrentProductSizeColor.Equals(Loc["All"])
+                ? MultiColoredProducts.Select(p => p.Color)
+                : new[] { selectColorPopover.CurrentProductSizeColor };
+
+            foreach (var color in colors)
+            {
+                var product = CreateSizedProduct(color);
+
+                showColoredImage[product.Id] = false;
+                MultiSizedProducts!.Add(product);
+                MultiSizedPopovers[product.Id] = true;
+
+                AssignToColorGroup(productGroup, product);
+            }
+
+            selectColorPopover.Close();
+            StateHasChanged();
+        }
+    }
+}

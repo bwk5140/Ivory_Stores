@@ -1,0 +1,71 @@
+﻿@page "/shirtssizeguides"
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.EntityFrameworkCore
+
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@implements IAsyncDisposable
+
+@rendermode InteractiveServer
+
+<PageTitle>Index</PageTitle>
+
+<div class="container-md mt-5">
+    <h3 class="header mt-3">@Loc["ShirtSizeGuide"]</h3>
+    <hr />
+</div>
+<div class="container-sm mt-5">
+    <QuickGrid Class="table table-bordered" Items="context.ShirtsSizeGuide">
+        <TemplateColumn Context="shirtssizeguide" Title=@Loc["BrandSize"]>
+            <a style="text-decoration:none;"
+               href="@($"shirtssizeguides/details?id={shirtssizeguide.Id}")">@shirtssizeguide.BrandSize</a>
+        </TemplateColumn>
+        <PropertyColumn Title=@Loc["Chest"] Property="shirtssizeguide => shirtssizeguide.ChestSize" />
+        <PropertyColumn Title=@Loc["Shoulder"] Property="shirtssizeguide => shirtssizeguide.ShoulderSize" />
+        <PropertyColumn Title=@Loc["Sleeve"] Property="shirtssizeguide => shirtssizeguide.SleeveLength" />
+        <PropertyColumn Title=@Loc["CenterBack"] Property="shirtssizeguide => shirtssizeguide.CenterBackLength" />
+        <PropertyColumn Title=@Loc["Waist"] Property="shirtssizeguide => shirtssizeguide.WaistSize" />
+        <PropertyColumn Title=@Loc["Hip"] Property="shirtssizeguide => shirtssizeguide.HipSize" />
+        <PropertyColumn Title=@Loc["Bust"] Property="shirtssizeguide => shirtssizeguide.BustSize" />
+        <PropertyColumn Title=@Loc["Length"] Property="shirtssizeguide => shirtssizeguide.Length" />
+
+        <TemplateColumn Context="shirtssizeguide">
+            <div style="text-align: right;">
+                <div class="btn-group">
+                    <button type="button" class="btn" data-bs-toggle="tooltip" title="@Loc["Edit"] @shirtssizeguide.BrandSize"
+                            @onclick="@(() => OnEditClicked(shirtssizeguide))">
+                        <img src="pencil-fill.svg" />
+                    </button>
+                    <button type="button" class="btn" data-bs-toggle="tooltip" title="@Loc["Delete"] @shirtssizeguide.BrandSize"
+                            @onclick="@(() => OnDeleteClicked(shirtssizeguide))">
+                        <img src="trash.svg" />
+                    </button>
+                </div>
+            </div>
+        </TemplateColumn>
+    </QuickGrid>
+</div>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+    }
+    public void OnEditClicked(ShirtsSizeGuide shirtssizeguide)
+    {
+        NavigationManager.NavigateTo($"shirtssizeguides/edit?id={shirtssizeguide.Id}");
+    }
+
+    public void OnDeleteClicked(ShirtsSizeGuide shirtssizeguide)
+    {
+        NavigationManager.NavigateTo($"shirtssizeguides/delete?id={shirtssizeguide.Id}");
+    }
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

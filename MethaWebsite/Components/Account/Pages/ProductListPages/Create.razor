@@ -1,0 +1,77 @@
+﻿@page "/productlists/create"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<div class="container-sm">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+         style="top: 35%;">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["AddList"]</strong>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body">
+                <EditForm method="post" Model="ProductList" OnValidSubmit="AddProductList" FormName="create" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" role="alert" />
+                    <div class="form form-floating mb-3">
+                        <InputText id="name" @bind-Value="ProductList.Name" class="form-control" placeholder=""/>
+                        <label for="name" class="form-label">Name:</label>
+                        <ValidationMessage For="() => ProductList.Name" class="text-danger" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="private" class="form-label">@Loc["ListsArePrivateByDefault"]</label>
+                    </div>
+                    <div class="ms-1" style="text-align: right;">
+                        <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                            border-color:transparent; border-radius: 5px;">
+                            @Loc["Add"]
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background"></div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private ProductList ProductList { get; set; } = new();
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddProductList()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.ProductList.Add(ProductList);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/productlists");
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

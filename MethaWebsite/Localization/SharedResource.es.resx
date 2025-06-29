@@ -1,0 +1,831 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>Por favor confirme la contraseña</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Correo electrónico</value>
+  </data>
+  <data name="EmailOrUsername" xml:space="preserve">
+    <value>Correo o usuario</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Registrarse</value>
+  </data>
+  <data name="or" xml:space="preserve">
+    <value>o</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Contraseña</value>
+  </data>
+  <data name="Register" xml:space="preserve">
+    <value>Regístrate</value>
+  </data>
+  <data name="Registration" xml:space="preserve">
+    <value>Crea una cuenta nueva</value>
+  </data>
+  <data name="TermsAndConditions" xml:space="preserve">
+    <value>Acepto nuestros términos y condiciones</value>
+  </data>
+  <data name="UserRegistration" xml:space="preserve">
+    <value>Inscribirse</value>
+  </data>
+  <data name="RememberMe" xml:space="preserve">
+    <value>Recuérdame</value>
+  </data>
+  <data name="ForgotPassword" xml:space="preserve">
+    <value>Olvidaste tu contraseña?</value>
+  </data>
+  <data name="InvalidLogin" xml:space="preserve">
+    <value>Intento de inicio de sesión no válido</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Cerrar sesión</value>
+  </data>
+  <data name="SearchCompany" xml:space="preserve">
+    <value>Buscar en Ivory Stores</value>
+  </data>
+  <data name="All" xml:space="preserve">
+    <value>Todos</value>
+  </data>
+  <data name="Men" xml:space="preserve">
+    <value>Hombres</value>
+  </data>
+  <data name="Women" xml:space="preserve">
+    <value>Las mujeres</value>
+  </data>
+  <data name="Girls" xml:space="preserve">
+    <value>Niñas</value>
+  </data>
+  <data name="Boys" xml:space="preserve">
+    <value>Niños</value>
+  </data>
+  <data name="EnterEmail" xml:space="preserve">
+    <value>Su dirección de correo electrónico, por favor</value>
+  </data>
+  <data name="ResetPassword" xml:space="preserve">
+    <value>Crear una contraseña nueva</value>
+  </data>
+  <data name="Mobile" xml:space="preserve">
+    <value>Teléfono móvil</value>
+  </data>
+  <data name="AddImage" xml:space="preserve">
+    <value>Agregar imágenes nueva</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="NewImage" xml:space="preserve">
+    <value>Imagen nueva</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>Abacado</value>
+  </data>
+  <data name="Upload" xml:space="preserve">
+    <value>Cargar</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Borrar</value>
+  </data>
+  <data name="ProductImage" xml:space="preserve">
+    <value>Imagen de producto</value>
+  </data>
+  <data name="DeleteImage" xml:space="preserve">
+    <value>Seguro que quieres borrar esta foto?</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Actualización</value>
+  </data>
+  <data name="EditImage" xml:space="preserve">
+    <value>Editar la imagen</value>
+  </data>
+  <data name="Image" xml:space="preserve">
+    <value>Detalles de la imagen</value>
+  </data>
+  <data name="Images" xml:space="preserve">
+    <value>Imágenes del producto</value>
+  </data>
+  <data name="AddProduct" xml:space="preserve">
+    <value>Añadir Producto Nuevo</value>
+  </data>
+  <data name="Brand" xml:space="preserve">
+    <value>Marca</value>
+  </data>
+  <data name="Rating" xml:space="preserve">
+    <value>Calificación</value>
+  </data>
+  <data name="Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Precio</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>Tamaño</value>
+  </data>
+  <data name="AddCategory" xml:space="preserve">
+    <value>Agregar categoría nueva</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="UploadImage" xml:space="preserve">
+    <value>Cargue fotos</value>
+  </data>
+  <data name="BackImages" xml:space="preserve">
+    <value>Volver a las imágenes</value>
+  </data>
+  <data name="CategoryDetails" xml:space="preserve">
+    <value>Detalles de la categoría</value>
+  </data>
+  <data name="DeleteCategory" xml:space="preserve">
+    <value>Seguro que quieres borrar esta categoría?</value>
+  </data>
+  <data name="Categories" xml:space="preserve">
+    <value>Las Categorías</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="SelectImage" xml:space="preserve">
+    <value>Seleccionar imagen</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Siguiente</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Volver</value>
+  </data>
+  <data name="ProductDetails" xml:space="preserve">
+    <value>Detalles del producto</value>
+  </data>
+  <data name="AddToList" xml:space="preserve">
+    <value>Agregar a la lista</value>
+  </data>
+  <data name="Shop" xml:space="preserve">
+    <value>Comprar productos de</value>
+  </data>
+  <data name="ReturnPolicy" xml:space="preserve">
+    <value>Política de devoluciones</value>
+  </data>
+  <data name="SizeChart" xml:space="preserve">
+    <value>Tabla de Tallas</value>
+  </data>
+  <data name="Fabric" xml:space="preserve">
+    <value>La tela</value>
+  </data>
+  <data name="WashInstructions" xml:space="preserve">
+    <value>Instrucciones de lavado</value>
+  </data>
+  <data name="ProductIssue" xml:space="preserve">
+    <value>Informar de un problema con este producto</value>
+  </data>
+  <data name="AddToCart" xml:space="preserve">
+    <value>Agregar al carrito</value>
+  </data>
+  <data name="BuyNow" xml:space="preserve">
+    <value>Compre ya</value>
+  </data>
+  <data name="FreeShipping" xml:space="preserve">
+    <value>Envío gratis a</value>
+  </data>
+  <data name="SelectLocation" xml:space="preserve">
+    <value>Seleccionar ubicación</value>
+  </data>
+  <data name="ShipsFrom" xml:space="preserve">
+    <value>Barcos desde</value>
+  </data>
+  <data name="SoldyBy" xml:space="preserve">
+    <value>Vendido por</value>
+  </data>
+  <data name="MoreInfo" xml:space="preserve">
+    <value>Más sobre este producto</value>
+  </data>
+  <data name="ReturnsAndOrders" xml:space="preserve">
+    <value>Devoluciones y pedidos</value>
+  </data>
+  <data name="Seat" xml:space="preserve">
+    <value>Los fondillos</value>
+  </data>
+  <data name="Inseam" xml:space="preserve">
+    <value>La pernera</value>
+  </data>
+  <data name="BrandSize" xml:space="preserve">
+    <value>Talla</value>
+  </data>
+  <data name="Waist" xml:space="preserve">
+    <value>Cintura</value>
+  </data>
+  <data name="Hip" xml:space="preserve">
+    <value>La cadera</value>
+  </data>
+  <data name="Bust" xml:space="preserve">
+    <value>El busto</value>
+  </data>
+  <data name="Length" xml:space="preserve">
+    <value>El largo</value>
+  </data>
+  <data name="AddSizeChart" xml:space="preserve">
+    <value>Agregar Carta del tamaño Nuevo</value>
+  </data>
+  <data name="UKSize" xml:space="preserve">
+    <value>Talla UK</value>
+  </data>
+  <data name="USSize" xml:space="preserve">
+    <value>Talla US</value>
+  </data>
+  <data name="EUSize" xml:space="preserve">
+    <value>Talla EU</value>
+  </data>
+  <data name="CenterBack" xml:space="preserve">
+    <value>Longitud del centro de la espalda</value>
+  </data>
+  <data name="Chest" xml:space="preserve">
+    <value>Pecho</value>
+  </data>
+  <data name="Sleeve" xml:space="preserve">
+    <value>Largo de la manga</value>
+  </data>
+  <data name="Shoulder" xml:space="preserve">
+    <value>Hombro</value>
+  </data>
+  <data name="ShoesSizeGuide" xml:space="preserve">
+    <value>Tabla de tallas de zapatos</value>
+  </data>
+  <data name="ShirtSizeGuide" xml:space="preserve">
+    <value>Tabla de tallas de camisas</value>
+  </data>
+  <data name="TrousersSizeGuide" xml:space="preserve">
+    <value>Tabla de tallas de pantalones</value>
+  </data>
+  <data name="Products" xml:space="preserve">
+    <value>Productos</value>
+  </data>
+  <data name="EditTrouserSizeChart" xml:space="preserve">
+    <value>Editar la tabla de tallas de pantalones</value>
+  </data>
+  <data name="DeleteTrouserSizeGuide" xml:space="preserve">
+    <value>Eliminar la tabla de tallas de pantalones</value>
+  </data>
+  <data name="TrouserSizeChartDetails" xml:space="preserve">
+    <value>Detalles de la tabla de tallas de pantalones</value>
+  </data>
+  <data name="DeleteShirtSizeGuide" xml:space="preserve">
+    <value>Eliminar la tabla de tallas de camisas</value>
+  </data>
+  <data name="EditShirtSizeChart" xml:space="preserve">
+    <value>Editar la tabla de tallas de camisas</value>
+  </data>
+  <data name="DeleteShoeSizeGuide" xml:space="preserve">
+    <value>Eliminar la tabla de tallas de zapatos</value>
+  </data>
+  <data name="ShirtSizeChartDetails" xml:space="preserve">
+    <value>Detalles de la tabla de tallas de camisas</value>
+  </data>
+  <data name="ShoesSizeChartDetails" xml:space="preserve">
+    <value>Detalles de la tabla de tallas de zapatos</value>
+  </data>
+  <data name="SelectParentCategory" xml:space="preserve">
+    <value>Seleccionar categoría de progenitor</value>
+  </data>
+  <data name="CompanyLogo" xml:space="preserve">
+    <value>Ivory Stores</value>
+  </data>
+  <data name="SelectCategory" xml:space="preserve">
+    <value>Seleccionar categoría</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>Seleccionar</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>Cambiar</value>
+  </data>
+  <data name="ChangeCategory" xml:space="preserve">
+    <value>Cambiar de categoría</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Ahorrar</value>
+  </data>
+  <data name="PleaseSelectCategoryToView" xml:space="preserve">
+    <value>Seleccione una categoría para ver las tablas de tallas disponibles</value>
+  </data>
+  <data name="PleaseSelectCategoryToAdd" xml:space="preserve">
+    <value>Seleccione una categoría para agregar una tabla de tallas nueva</value>
+  </data>
+  <data name="AddMultipleSizes" xml:space="preserve">
+    <value>También puede añadir mas tamaño</value>
+  </data>
+  <data name="AddMultipleColors" xml:space="preserve">
+    <value>También puede añadir mas colores</value>
+  </data>
+  <data name="SelectProductColor" xml:space="preserve">
+    <value>El color del producto</value>
+  </data>
+  <data name="ViewImages" xml:space="preserve">
+    <value>Ver imágenes</value>
+  </data>
+  <data name="Colors" xml:space="preserve">
+    <value>Color(es)</value>
+  </data>
+  <data name="Sizes" xml:space="preserve">
+    <value>Talla(s)</value>
+  </data>
+  <data name="NumberedList" xml:space="preserve">
+    <value>Lista de numerada</value>
+  </data>
+  <data name="BulletedList" xml:space="preserve">
+    <value>Lista con viñetas</value>
+  </data>
+  <data name="AddLink" xml:space="preserve">
+    <value>Añadir un enlace</value>
+  </data>
+  <data name="AddAnImage" xml:space="preserve">
+    <value>Añadir una imagen</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>Título</value>
+  </data>
+  <data name="Bold" xml:space="preserve">
+    <value>Negrita</value>
+  </data>
+  <data name="Underline" xml:space="preserve">
+    <value>Subrayar</value>
+  </data>
+  <data name="Strike" xml:space="preserve">
+    <value>Tachado</value>
+  </data>
+  <data name="Background" xml:space="preserve">
+    <value>Fondo</value>
+  </data>
+  <data name="AddImages" xml:space="preserve">
+    <value>Agregar imágene(s)</value>
+  </data>
+  <data name="DeleteProduct" xml:space="preserve">
+    <value>Eliminar producto</value>
+  </data>
+  <data name="Gender" xml:space="preserve">
+    <value>Género</value>
+  </data>
+  <data name="Unisex" xml:space="preserve">
+    <value>Unisex</value>
+  </data>
+  <data name="Babies" xml:space="preserve">
+    <value>Bebés</value>
+  </data>
+  <data name="Genders" xml:space="preserve">
+    <value>Géneros</value>
+  </data>
+  <data name="Brands" xml:space="preserve">
+    <value>Marcas</value>
+  </data>
+  <data name="BusinessCasual" xml:space="preserve">
+    <value>Informal de negocios</value>
+  </data>
+  <data name="Casual" xml:space="preserve">
+    <value>Informal</value>
+  </data>
+  <data name="Comfort" xml:space="preserve">
+    <value>Comodidad</value>
+  </data>
+  <data name="Evening" xml:space="preserve">
+    <value>Noche</value>
+  </data>
+  <data name="Formal" xml:space="preserve">
+    <value>Formal</value>
+  </data>
+  <data name="DealsAndDiscounts" xml:space="preserve">
+    <value>Ofertas y descuentos</value>
+  </data>
+  <data name="TodaysDeals" xml:space="preserve">
+    <value>Oferta del día</value>
+  </data>
+  <data name="AllDiscounts" xml:space="preserve">
+    <value>Todos los descuentos</value>
+  </data>
+  <data name="CustomerReviews" xml:space="preserve">
+    <value>Opiniones de los clientes</value>
+  </data>
+  <data name="Results" xml:space="preserve">
+    <value>Resultados</value>
+  </data>
+  <data name="Higher" xml:space="preserve">
+    <value>o más</value>
+  </data>
+  <data name="SelectLifestyle" xml:space="preserve">
+    <value>Estilo de vida seleccionado</value>
+  </data>
+  <data name="Lifestyle" xml:space="preserve">
+    <value>Estilo de vida</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Vale</value>
+  </data>
+  <data name="SelectCategoryToProceed" xml:space="preserve">
+    <value>Seleccione categoría para continuar</value>
+  </data>
+  <data name="SelectGender" xml:space="preserve">
+    <value>Seleccione género</value>
+  </data>
+  <data name="AreYouSureYouWantToDeleteAllProductsOfThisColor" xml:space="preserve">
+    <value>Estás seguro de que deseas eliminar todos los tamaños de productos con este color?</value>
+  </data>
+  <data name="EditProduct" xml:space="preserve">
+    <value>Editar producto</value>
+  </data>
+  <data name="PersonalRecommendations" xml:space="preserve">
+    <value>Recomendaciones personales</value>
+  </data>
+  <data name="MatchingOutfits" xml:space="preserve">
+    <value>Trajes a juego</value>
+  </data>
+  <data name="EditCategory" xml:space="preserve">
+    <value>Editar Categoría</value>
+  </data>
+  <data name="Shoes" xml:space="preserve">
+    <value>Zapatos</value>
+  </data>
+  <data name="Shirts" xml:space="preserve">
+    <value>Camisas</value>
+  </data>
+  <data name="Cosmetics" xml:space="preserve">
+    <value>Productos cosméticos</value>
+  </data>
+  <data name="and" xml:space="preserve">
+    <value>y</value>
+  </data>
+  <data name="Hello" xml:space="preserve">
+    <value>Hola</value>
+  </data>
+  <data name="YourAccount" xml:space="preserve">
+    <value>Tu Cuenta</value>
+  </data>
+  <data name="YourLists" xml:space="preserve">
+    <value>Tus Listas</value>
+  </data>
+  <data name="CreateList" xml:space="preserve">
+    <value>Crear una lista</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>Cuenta</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>Pedidos</value>
+  </data>
+  <data name="CustomerService" xml:space="preserve">
+    <value>Servicio al cliente</value>
+  </data>
+  <data name="NoAccount" xml:space="preserve">
+    <value>Sin cuenta</value>
+  </data>
+  <data name="AddList" xml:space="preserve">
+    <value>Crear una lista</value>
+  </data>
+  <data name="ListsArePrivateByDefault" xml:space="preserve">
+    <value>Todas las listas son privadas a menos.</value>
+  </data>
+  <data name="YourOrders" xml:space="preserve">
+    <value>Tus pedidos</value>
+  </data>
+  <data name="YourOrderInfo" xml:space="preserve">
+    <value>Rastrear y ordenar, descargar una factura, o comprar de nuevo</value>
+  </data>
+  <data name="AccountSecurity" xml:space="preserve">
+    <value>Seguridad de la cuenta</value>
+  </data>
+  <data name="EditAccountInfo" xml:space="preserve">
+    <value>Editar nombre de usuario, correo electrónico, número de teléfono móvil y más</value>
+  </data>
+  <data name="YourAddresses" xml:space="preserve">
+    <value>Direcciones del usuario</value>
+  </data>
+  <data name="EditRemoveSetDefaultAddresses" xml:space="preserve">
+    <value>Editar, eliminar o establecer una dirección predeterminada</value>
+  </data>
+  <data name="YourPayments" xml:space="preserve">
+    <value>Tus pagos</value>
+  </data>
+  <data name="ViewAllPaymentsManagePaymentMethods" xml:space="preserve">
+    <value>Ver todos los pagos, administrar métodos de pago y más</value>
+  </data>
+  <data name="ViewModifyOrCreateNewLists" xml:space="preserve">
+    <value>Ver, modificar o crear nuevas listas</value>
+  </data>
+  <data name="BrowseOrContactUs" xml:space="preserve">
+    <value>Explorar preguntas frecuentes o contáctanos</value>
+  </data>
+  <data name="CreateAddress" xml:space="preserve">
+    <value>Agregar nueva dirección</value>
+  </data>
+  <data name="FullName" xml:space="preserve">
+    <value>Nombre completo (nombre y apellido)</value>
+  </data>
+  <data name="PhoneNumber" xml:space="preserve">
+    <value>Número de teléfono</value>
+  </data>
+  <data name="AddressLine1" xml:space="preserve">
+    <value>Línea de dirección 1</value>
+  </data>
+  <data name="AddressLine2" xml:space="preserve">
+    <value>Línea de dirección 2</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>País o región</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>Ciudad</value>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>Estado / Provincia / Región</value>
+  </data>
+  <data name="Zip" xml:space="preserve">
+    <value>Código Postal</value>
+  </data>
+  <data name="DefaultAddress" xml:space="preserve">
+    <value>Dirección predeterminada</value>
+  </data>
+  <data name="CreateCountry" xml:space="preserve">
+    <value>Añadir nuevo país</value>
+  </data>
+  <data name="OrderConfirmation" xml:space="preserve">
+    <value>Confirmación de pedido</value>
+  </data>
+  <data name="OrderAbandoned" xml:space="preserve">
+    <value>Pedido Abandonado</value>
+  </data>
+  <data name="Delivery" xml:space="preserve">
+    <value>Tarifa de entrega</value>
+  </data>
+  <data name="Stock" xml:space="preserve">
+    <value>Cantidad de existencias</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Total parcial</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>productos</value>
+  </data>
+  <data name="Italic" xml:space="preserve">
+    <value>Itálica</value>
+  </data>
+  <data name="ProceedToCheckout" xml:space="preserve">
+    <value>Proceder al pago</value>
+  </data>
+  <data name="ShoppingCart" xml:space="preserve">
+    <value>Carrito</value>
+  </data>
+  <data name="AddedToCart" xml:space="preserve">
+    <value> Agregado al carrito</value>
+  </data>
+  <data name="GoToCart" xml:space="preserve">
+    <value>Ir al Carrito</value>
+  </data>
+  <data name="CartTotal" xml:space="preserve">
+    <value>Subtotal del carrito</value>
+  </data>
+  <data name="PaymentMethods" xml:space="preserve">
+    <value>Métodos de pago</value>
+  </data>
+  <data name="NameOnCard" xml:space="preserve">
+    <value>Nombre en la tarjeta</value>
+  </data>
+  <data name="CardNumber" xml:space="preserve">
+    <value>Número de tarjeta</value>
+  </data>
+  <data name="ExpirationDate" xml:space="preserve">
+    <value>Fecha de vencimiento</value>
+  </data>
+  <data name="AddMpesaPayment" xml:space="preserve">
+    <value>Añadir método de pago Mpesa nuevo</value>
+  </data>
+  <data name="AddVisaPayment" xml:space="preserve">
+    <value>Añadir método de pago Visa</value>
+  </data>
+  <data name="CardEnding" xml:space="preserve">
+    <value>Tarjeta que termina en</value>
+  </data>
+  <data name="ExpiredOn" xml:space="preserve">
+    <value>Venció el</value>
+  </data>
+  <data name="ExpiresOn" xml:space="preserve">
+    <value>Vence el</value>
+  </data>
+  <data name="RegisteredName" xml:space="preserve">
+    <value>Nombre registrado</value>
+  </data>
+  <data name="AddPayment" xml:space="preserve">
+    <value>Añadir nuevo método de pago</value>
+  </data>
+  <data name="AddNewPaymentMethod" xml:space="preserve">
+    <value>Añadir nuevo método de pago</value>
+  </data>
+  <data name="CreditOrDebit" xml:space="preserve">
+    <value>Tarjetas de crédito o débito</value>
+  </data>
+  <data name="MajorCardsAccepted" xml:space="preserve">
+    <value>Ivory Stores acepta las principales tarjetas de crédito y débito</value>
+  </data>
+  <data name="AddCreditOrDebit" xml:space="preserve">
+    <value>Agregar una tarjeta de crédito o débito</value>
+  </data>
+  <data name="MpesaAccepted" xml:space="preserve">
+    <value>Ivory Stores aceptan Mpesa</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>producto</value>
+  </data>
+  <data name="EditPayment" xml:space="preserve">
+    <value>Editar método de pago</value>
+  </data>
+  <data name="RemovePayment" xml:space="preserve">
+    <value>Eliminar método de pago</value>
+  </data>
+  <data name="RemovePaymentInfo" xml:space="preserve">
+    <value>Haz clic en "Eliminar" si ya no quieres esta tarjeta como opción de pago. Esto no cancelará ninguno de tus pedidos pendientes.</value>
+  </data>
+  <data name="SetAsDefaultPayment" xml:space="preserve">
+    <value>Establecer como método de pago predeterminado</value>
+  </data>
+  <data name="BillingAddress" xml:space="preserve">
+    <value>Dirección de facturación</value>
+  </data>
+  <data name="SetDefaultAddress" xml:space="preserve">
+    <value>Usar como mi dirección predeterminada</value>
+  </data>
+  <data name="RemoveAddress" xml:space="preserve">
+    <value>Eliminas esta dirección</value>
+  </data>
+  <data name="RemoveAddressInfo" xml:space="preserve">
+    <value>Ten en cuenta lo siguiente: Si eliminas esta dirección, no se evitará el envío de los pedidos pendientes a ella</value>
+  </data>
+  <data name="EditFailed" xml:space="preserve">
+    <value>Fallo en la edición</value>
+  </data>
+  <data name="EditFailedInfo" xml:space="preserve">
+    <value>Esta dirección se utiliza como tu dirección residencial para compras digitales</value>
+  </data>
+  <data name="EndingIn" xml:space="preserve">
+    <value>que termina en</value>
+  </data>
+  <data name="ChangeBillingAddress" xml:space="preserve">
+    <value>Cambiar dirección de facturación</value>
+  </data>
+  <data name="DeleteFailed" xml:space="preserve">
+    <value>Error al eliminar</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Predeterminado</value>
+  </data>
+  <data name="EditMpesaPayment" xml:space="preserve">
+    <value />
+  </data>
+  <data name="DefaultAddressChanged" xml:space="preserve">
+    <value>Dirección predeterminada cambiada</value>
+  </data>
+  <data name="WeWillUpdateCard" xml:space="preserve">
+    <value>Actualizaremos tu cuenta para usar</value>
+  </data>
+  <data name="UpdateAccount" xml:space="preserve">
+    <value>Actualice su cuenta</value>
+  </data>
+  <data name="VerifyCardInfo" xml:space="preserve">
+    <value>Vuelve a escribir el número de tu tarjeta para verificar que este es un uso autorizado de tu cuenta</value>
+  </data>
+  <data name="SetAsDefault" xml:space="preserve">
+    <value>Establecer como predeterminado</value>
+  </data>
+  <data name="VerifyCard" xml:space="preserve">
+    <value>Verificar tarjeta</value>
+  </data>
+  <data name="CardVerified" xml:space="preserve">
+    <value>Su tarjeta ha sido verificada</value>
+  </data>
+  <data name="VerificationIssue" xml:space="preserve">
+    <value>El número de tarjeta ingresado es incorrecto</value>
+  </data>
+</root>
