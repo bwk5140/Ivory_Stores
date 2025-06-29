@@ -813,9 +813,6 @@
   <data name="UpdateAccount" xml:space="preserve">
     <value>Update your account</value>
   </data>
-  <data name="VerifyCardInfo" xml:space="preserve">
-    <value>Please re-enter your card number to verify this is an authorized use of your account</value>
-  </data>
   <data name="SetAsDefault" xml:space="preserve">
     <value>Set as Default</value>
   </data>
@@ -825,7 +822,13 @@
   <data name="CardVerified" xml:space="preserve">
     <value>Your card has been verified</value>
   </data>
+  <data name="VerifyCardError" xml:space="preserve">
+    <value>Please verify the card number to continue</value>
+  </data>
+  <data name="VerifyCardInfo" xml:space="preserve">
+    <value>Please re-enter your card number to verify this is an authorized use of your account</value>
+  </data>
   <data name="VerificationIssue" xml:space="preserve">
-    <value>The entered card number is incorrect</value>
+    <value>The card number entered was incorrect</value>
   </data>
 </root>

@@ -1,6 +1,8 @@
-﻿@inherits LayoutComponentBase
+﻿@using MethaWebsite.Services
+@inherits LayoutComponentBase
 @layout MethaWebsite.Components.Layout.MainLayout
 
+@inject StateChangeService StateChangeService
 @inject IStringLocalizer<SharedResource> Loc
 
 <div class="container-sm mt-5">
@@ -14,6 +16,15 @@
             <li class="breadcrumb-item active" aria-current="page">@Loc["PaymentMethods"]</li>
         </ol>
     </nav>
+    @if (HasStateChanged)
+    {
+        <div class="card mt-2 mb-2" style="border-color: green; max-width: 1200px;">
+            <div class="card-body">
+                <img src="check-circle-fill.svg" />
+                @Loc["DefaultPaymentChanged"]
+            </div>
+        </div>
+    }
     <h3>@Loc["PaymentMethods"]</h3>
     <div class="card">
         <div class="card-body">
@@ -28,3 +39,7 @@
         </div>
     </div>
 </div>
+@code{
+    [Parameter]
+    public bool HasStateChanged { get; set; } = false;
+}
