@@ -1,2 +1,19 @@
 ﻿@layout PaymentsLayout
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+@using MethaWebsite.Localization
+@using MethaWebsite.Components.Account.Shared
+@using MethaWebsite.Components
+@using MethaWebsite.Components.Pages
+@using MethaWebsite.Components.Account.Pages.ProductPages
+@using MethaWebsite.Components.Account.Pages.ProductListPages
+@using MethaWebsite.Components.SizeGuidePages.ShirtsSizeGuidePages
+@using MethaWebsite.Components.SizeGuidePages.ShoesSizeGuidePages
+@using MethaWebsite.Components.SizeGuidePages.TrousersSizeGuidePages
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Services
+@using MethaWebsite.Data

@@ -1,9 +1,4 @@
-﻿@using MethaWebsite.Data
-@using MethaWebsite.Services
-@using Microsoft.AspNetCore.Identity
-@using Microsoft.EntityFrameworkCore
-
-@inject ApplicationUserService ApplicationUserService
+﻿@inject ApplicationUserService ApplicationUserService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
 @inject IStringLocalizer<SharedResource> Loc
@@ -13,7 +8,7 @@
 
 @if (Addresses is null)
 {
-    <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
 }
 else
 {

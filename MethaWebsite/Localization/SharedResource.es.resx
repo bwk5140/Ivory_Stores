@@ -802,7 +802,7 @@
     <value>Predeterminado</value>
   </data>
   <data name="EditMpesaPayment" xml:space="preserve">
-    <value />
+    <value>Editar método de pago de M-Pesa</value>
   </data>
   <data name="DefaultAddressChanged" xml:space="preserve">
     <value>Dirección predeterminada cambiada</value>
@@ -830,5 +830,131 @@
   </data>
   <data name="VerificationIssue" xml:space="preserve">
     <value>El número de tarjeta ingresado fue incorrecto</value>
+  </data>
+  <data name="DefaultPaymentChanged" xml:space="preserve">
+    <value>Pago predeterminada cambiada</value>
+  </data>
+  <data name="CreateListIssue" xml:space="preserve">
+    <value>Ya existe una lista con ese nombre</value>
+  </data>
+  <data name="ItemAddedTo" xml:space="preserve">
+    <value>artículo agregado a</value>
+  </data>
+  <data name="ContinueShopping" xml:space="preserve">
+    <value>Continuar comprando</value>
+  </data>
+  <data name="ViewList" xml:space="preserve">
+    <value>Ver tu lista</value>
+  </data>
+  <data name="VerifyMpesaInfo" xml:space="preserve">
+    <value>Por favor ingrese el código enviado a su número de teléfono</value>
+  </data>
+  <data name="PhoneVerificationIssue" xml:space="preserve">
+    <value>El código introducido es incorrecto. Inténtalo de nuevo.</value>
+  </data>
+  <data name="VerifyPhoneNUmberError" xml:space="preserve">
+    <value>Por favor, introduzca el código enviado al número proporcionado para continuar</value>
+  </data>
+  <data name="PhoneNumberVerified" xml:space="preserve">
+    <value>Su número de teléfono ha sido verificado</value>
+  </data>
+  <data name="VerifyPhone" xml:space="preserve">
+    <value>Verificar número de teléfono</value>
+  </data>
+  <data name="FillRegisteredName" xml:space="preserve">
+    <value>Por favor, rellene el campo de nombre registrado para continuar</value>
+  </data>
+  <data name="DeliveringTo" xml:space="preserve">
+    <value>Entregando a</value>
+  </data>
+  <data name="AddDeliveryInstructions" xml:space="preserve">
+    <value>Añadir instrucciones de entrega</value>
+  </data>
+  <data name="PaymentMethod" xml:space="preserve">
+    <value>Método de pago</value>
+  </data>
+  <data name="YourCreditDebitCards" xml:space="preserve">
+    <value>Sus tarjetas de crédito y débito</value>
+  </data>
+  <data name="OtherPaymentMethods" xml:space="preserve">
+    <value>Otros métodos de pago</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>número de teléfono</value>
+  </data>
+  <data name="UseThisPayment" xml:space="preserve">
+    <value>Use este método de pago</value>
+  </data>
+  <data name="Shipping&amp;Handling" xml:space="preserve">
+    <value>Envío y manipulación</value>
+  </data>
+  <data name="PromotionApplied" xml:space="preserve">
+    <value>Promoción aplicada</value>
+  </data>
+  <data name="EstimatedTaxAmount" xml:space="preserve">
+    <value>Importe estimado del impuesto a aplicar</value>
+  </data>
+  <data name="OrderTotal" xml:space="preserve">
+    <value>Total del pedido</value>
+  </data>
+  <data name="ReviewItemsAndShipping" xml:space="preserve">
+    <value>Revisar productos y costos de envío</value>
+  </data>
+  <data name="PayingWith" xml:space="preserve">
+    <value>Pagando con</value>
+  </data>
+  <data name="Standard" xml:space="preserve">
+    <value>Estándar</value>
+  </data>
+  <data name="Fast" xml:space="preserve">
+    <value>Rápida</value>
+  </data>
+  <data name="FreeDelivery" xml:space="preserve">
+    <value>Entrega gratuita</value>
+  </data>
+  <data name="PlaceOrder" xml:space="preserve">
+    <value>Haz tu pedido</value>
+  </data>
+  <data name="Items(caps)" xml:space="preserve">
+    <value>Productos</value>
+  </data>
+  <data name="Checkout" xml:space="preserve">
+    <value>Pago</value>
+  </data>
+  <data name="CardInfo" xml:space="preserve">
+    <value>No se guardará el número de su tarjeta. Solo los últimos cuatro dígitos</value>
+  </data>
+  <data name="Item(caps)" xml:space="preserve">
+    <value>Producto</value>
+  </data>
+  <data name="Verifying" xml:space="preserve">
+    <value>Verificando</value>
+  </data>
+  <data name="Processing" xml:space="preserve">
+    <value>Tratamiento</value>
+  </data>
+  <data name="EmptyCart" xml:space="preserve">
+    <value>Su carrito de Ivory Stores está vacío</value>
+  </data>
+  <data name="By" xml:space="preserve">
+    <value>Por</value>
+  </data>
+  <data name="Private" xml:space="preserve">
+    <value>Privada</value>
+  </data>
+  <data name="Public" xml:space="preserve">
+    <value>Pública</value>
+  </data>
+  <data name="EditList" xml:space="preserve">
+    <value>Editar lista</value>
+  </data>
+  <data name="DeleteList" xml:space="preserve">
+    <value>Eliminar esta lista?</value>
+  </data>
+  <data name="Transactions" xml:space="preserve">
+    <value>Transacciones </value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Configuración</value>
   </data>
 </root>

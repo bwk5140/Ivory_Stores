@@ -19,7 +19,7 @@
 
 @if (Product is null)
 {
-    <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
 }
 else
 {
@@ -444,7 +444,7 @@ else
                         <div class="input-no-focus form form-floating mb-3" style="display: flex; justify-content: space-between;">
                             <InputSelect id="category" @bind-Value="Product.Lifestyle" class="form-select-sm ms-1"
                                          style="border-color: lightgray;">
-                                <option value="null" style="color: gray;">@Loc["SelectLifestyle"]</option>
+                                <option disabled hidden value="null" style="color: gray;">@Loc["SelectLifestyle"]</option>
                                 @foreach (var choice in LifestyleChoices)
                                 {
                                     <option value="@choice" style="color: black;">@choice</option>
@@ -452,7 +452,7 @@ else
                             </InputSelect>
                             <InputSelect id="category" @bind-Value="Product.Gender" class="form-select-sm ms-1"
                                          style="border-color: lightgray;">
-                                <option value="null" style="color: gray;">@Loc["SelectGender"]</option>
+                                <option disabled hidden value="null" style="color: gray;">@Loc["SelectGender"]</option>
                                 @foreach (var choice in GenderChoices)
                                 {
                                     <option value="@choice" style="color: black;">@choice</option>

@@ -1,53 +1,85 @@
 ﻿@page "/productlists/edit"
 @using Microsoft.EntityFrameworkCore
 @using MethaWebsite.Data
+
+@inject IStringLocalizer<SharedResource> Loc
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 
+@rendermode InteractiveServer
+
 <PageTitle>Edit</PageTitle>
 
-<h1>Edit</h1>
-
-<h2>ProductList</h2>
-<hr />
 @if (ProductList is null)
 {
-    <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
 }
 else
 {
-    <div class="row">
-        <div class="col-md-4">
-            <EditForm method="post" Model="ProductList" OnValidSubmit="UpdateProductList" FormName="edit" Enhance>
-                <DataAnnotationsValidator />
-                <ValidationSummary role="alert"/>
-                <input type="hidden" name="ProductList.Id" value="@ProductList.Id" />
-                <div class="mb-3">
-                    <label for="name" class="form-label">Name:</label>
-                    <InputText id="name" @bind-Value="ProductList.Name" class="form-control" />
-                    <ValidationMessage For="() => ProductList.Name" class="text-danger" />
+
+    <div class="container-sm">
+        @{
+            var showClass = IsVisible ? "d-block" : "d-none";
+        }
+        <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+             style="top: 35%;">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                 style="background-color: white;">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["EditList"]</strong>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
                 </div>
-                <div class="mb-3">
-                    <label for="private" class="form-label">Private:</label>
-                    <InputCheckbox id="private" @bind-Value="ProductList.Private" class="form-check-input" />
-                    <ValidationMessage For="() => ProductList.Private" class="text-danger" />
+                <div class="toast-body">
+                    <EditForm method="post" Model="ProductList" OnValidSubmit="UpdateProductList" FormName="edit" Enhance>
+                        <DataAnnotationsValidator />
+                        <ValidationSummary role="alert" />
+                        <input type="hidden" name="ProductList.Id" value="@ProductList.Id" />
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name:</label>
+                            <InputText id="name" @bind-Value="ProductList.Name" class="form-control" />
+                            <ValidationMessage For="() => ProductList.Name" class="text-danger" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="private" class="form-label">Private:</label>
+                            <InputCheckbox id="private" @bind-Value="ProductList.Private" class="form-check-input" />
+                            <ValidationMessage For="() => ProductList.Private" class="text-danger" />
+                        </div>
+                        <div class="ms-1" style="text-align: right;">
+                            <button type="button" class="btn btn-danger" style="border-color:transparent; 
+                                        border-radius: 5px;" @onclick="OnDeleteListClicked">
+                                @Loc["Delete"]
+                            </button>
+                            <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                                    border-color:transparent; border-radius: 5px;">
+                                @Loc["Save"]
+                            </button>
+                        </div>
+                    </EditForm>
                 </div>
-                <button type="submit" class="btn btn-primary">Save</button>
-            </EditForm>
+            </div>
         </div>
+        <div class="@showClass darker-background"></div>
     </div>
+    <CascadingValue Value="ProductList">
+        <MethaWebsite.Components.Account.Pages.Lists.DeleteListPopover @ref=DeleteListPopover OnDeleteList="OnListDeleted" />
+    </CascadingValue>
 }
 
-<div>
-    <a href="/productlists">Back to List</a>
-</div>
 
 @code {
     [SupplyParameterFromQuery]
     private string Id { get; set; }
 
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
     [SupplyParameterFromForm]
     private ProductList? ProductList { get; set; }
+
+    private MethaWebsite.Components.Account.Pages.Lists.DeleteListPopover DeleteListPopover;
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnListdeleted { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -59,7 +91,11 @@ else
             NavigationManager.NavigateTo("notfound");
         }
     }
-
+    protected override async Task OnParametersSetAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        ProductList ??= await context.ProductList.FirstOrDefaultAsync(m => m.Id == Id);
+    }
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task UpdateProductList()
@@ -85,10 +121,28 @@ else
 
         NavigationManager.NavigateTo("/productlists");
     }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
 
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
     private bool ProductListExists(string id)
     {
         using var context = DbFactory.CreateDbContext();
         return context.ProductList.Any(e => e.Id == id);
+    }
+    private void OnDeleteListClicked()
+    {
+        DeleteListPopover.Show();
+    }
+    private async Task OnListDeleted()
+    {
+        Close();
     }
 }

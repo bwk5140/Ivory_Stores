@@ -1,6 +1,7 @@
-﻿@using MethaWebsite.Data
-@using Microsoft.EntityFrameworkCore
+﻿@using Stripe
 @inject IStringLocalizer<SharedResource> Loc
+@inject IJSRuntime JS
+@inject HttpClient Http
 
 <div class="container-sm">
     @{
@@ -72,18 +73,19 @@
                         </div>
                     </div>
                 }
-                <div class="mt-2" style="display: inline-block;">
-                    <div style="display: inline-block;">
-                        <InputText id="cardnumber" @bind-Value="cardNumber" class="form-control"
-                                   placeholder="@placeholder" style="height: 43px;" />
+                <div class="mt-2">
+                    <div class="card" style="border: none;">
+                        <div class="card-body">
+                            <div id="card-element"></div>
+                        </div>
                     </div>
-                    <div class="form form-floating" style="display: inline-block;">
-                        <button @onclick="OnVerifyCardClicked" class="btn btn-primary me-2" style="background-color: #2f4f4f;
-                                                                        border-color:transparent; border-radius: 15px;">
-                            @Loc["VerifyCard"]
+                    <div class="form form-floating">
+                        <button @onclick="VerifyCard" class="btn btn-primary me-2" style="background-color: #2f4f4f;
+                                    border-color:transparent; border-radius: 15px;" disabled="@isProcessing">
+                            @(isProcessing ? Loc["Verifying"] + "..." : Loc["VerifyCard"])
                         </button>
                     </div>
-                    
+
                 </div>
                 <div style="text-align: right">
                     <button type="reset" class="btn btn-secondary me-2" style="border: none; font-size: medium;" @onclick="Close">
@@ -123,9 +125,20 @@
     [Parameter]
     public EventCallback<SaveChangesEventArgs> OnUpdateClicked { get; set; }
 
+    private bool _cardMounted = false;
+    private bool isProcessing = false;
+
     protected override void OnInitialized()
     {
         placeholder = $"{Loc["EndingIn"]} {creditDebitCard.CardNumber.Substring(creditDebitCard.CardNumber.Length - 4, 4)}";
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initializeCardElement", "pk_test_51RdfvCR5Q65HyKGxDrFmdKdCtElG1UXSkaUMQy1lqSuoOBIUSYYwrjxd3xJ6gCxoOLMz9E2iiaVkvN84OaB1Zpw500WUtqL6wk");
+            _cardMounted = true;
+        }
     }
     public void Show()
     {
@@ -140,6 +153,46 @@
         cardNumber = "";
         StateHasChanged();
     }
+    private async Task VerifyCard()
+    {
+        isProcessing = true;
+        if (!_cardMounted) return;
+
+        var result = await JS.InvokeAsync<StripeResult>("tokenizeCard");
+        if (!string.IsNullOrEmpty(result?.Error))
+        {
+            VerificationIssue = true;
+            Verified = false;
+            return;
+        }
+        var service = new PaymentMethodService();
+        var paymentMethod = await service.GetAsync(result.PaymentMethodId);
+        var fingerprint = paymentMethod.Card.Fingerprint;
+
+        string savedFingerPrint = creditDebitCard.Fingerprint;
+        if (savedFingerPrint == fingerprint)
+        {
+            Verified = true;
+        }
+        else
+        {
+            VerificationIssue = true;
+        }
+        isProcessing = false;
+    }
+    private class StripeResult
+    {
+        public string PaymentMethodId { get; set; }
+        public string Fingerprint { get; set; }
+        public string Error { get; set; }
+    }
+
+
+    public class VerificationResponse
+    {
+        public bool Valid { get; set; }
+    }
+
     private void OnVerifyCardClicked()
     {
         if (cardNumber == creditDebitCard.CardNumber)

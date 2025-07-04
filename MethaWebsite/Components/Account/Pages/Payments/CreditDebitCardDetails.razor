@@ -1,6 +1,4 @@
 ﻿@page "/Account/Payments/CreditDebit/details"
-@using Microsoft.EntityFrameworkCore
-@using MethaWebsite.Data
 
 @inject IStringLocalizer<SharedResource> Loc
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
@@ -13,7 +11,7 @@
 <div class="container-sm" style="max-width: 700px;">
     @if (creditdebitcard is null)
     {
-        <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div>
+        <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
     }
     else
     {
@@ -74,8 +72,11 @@
         </div>
     }
 </div>
-<MethaWebsite.Components.Account.Pages.Payments.CreditDebitCardPages.Edit @ref="EditDebitCreditCard"/>
-<MethaWebsite.Components.Account.Pages.Payments.CreditDebitCardPages.Delete @ref="DeleteDebitCreditCard" />
+<CascadingValue Value="HasStateChanged">
+    <MethaWebsite.Components.Account.Pages.Payments.CreditDebitCardPages.Edit @ref="EditDebitCreditCard" OnStateChanged="OnEditStateFinished" />
+    <MethaWebsite.Components.Account.Pages.Payments.CreditDebitCardPages.Delete @ref="DeleteDebitCreditCard" />
+</CascadingValue>
+
 @code {
     private CreditDebitCard? creditdebitcard;
     private CreditDebitCardPages.Edit? EditDebitCreditCard;
@@ -86,6 +87,9 @@
 
     [SupplyParameterFromQuery]
     private string? Id { get; set; }
+
+    [SupplyParameterFromQuery]
+    private bool HasStateChanged { get; set; }
 
     private int CurrentMonth;
     private int CurrentYear;
@@ -139,5 +143,9 @@
     public void OnDeleteClicked()
     {
         DeleteDebitCreditCard.Show();
+    }
+    private void OnEditStateFinished()
+    {
+        HasStateChanged = true;
     }
 }

@@ -197,6 +197,9 @@ namespace MethaWebsite.Migrations
                     b.Property<int>("ExpirationYear")
                         .HasColumnType("int");
 
+                    b.Property<string>("Fingerprint")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ImageSource")
                         .HasColumnType("nvarchar(max)");
 
@@ -204,6 +207,9 @@ namespace MethaWebsite.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NameOnCard")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentMethodId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Type")
@@ -235,9 +241,11 @@ namespace MethaWebsite.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RegisteredName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Type")
@@ -306,14 +314,14 @@ namespace MethaWebsite.Migrations
                     b.Property<string>("ProductColorGroupID")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ProductListId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
                     b.Property<double>("Rating")
                         .HasColumnType("float");
+
+                    b.Property<string>("ShippingId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Size")
                         .IsRequired()
@@ -333,8 +341,6 @@ namespace MethaWebsite.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductColorGroupID");
-
-                    b.HasIndex("ProductListId");
 
                     b.ToTable("Product");
                 });
@@ -416,11 +422,20 @@ namespace MethaWebsite.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Private")
                         .HasColumnType("bit");
+
+                    b.PrimitiveCollection<string>("ProductIds")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -457,6 +472,31 @@ namespace MethaWebsite.Migrations
                     b.ToTable("ProductRating");
                 });
 
+            modelBuilder.Entity("MethaWebsite.Data.Shipping", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<double>("BaseCost")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Cost")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Distance")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Rate")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Shipping");
+                });
+
             modelBuilder.Entity("MethaWebsite.Data.ShoppingCart", b =>
                 {
                     b.Property<string>("Id")
@@ -477,6 +517,22 @@ namespace MethaWebsite.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ShoppingCart");
+                });
+
+            modelBuilder.Entity("MethaWebsite.Data.ShoppingCartProduct", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProductId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ShoppingCartProduct");
                 });
 
             modelBuilder.Entity("MethaWebsite.Data.SizeGuides.ShirtsSizeGuide", b =>
@@ -728,10 +784,6 @@ namespace MethaWebsite.Migrations
                     b.HasOne("MethaWebsite.Data.ProductColorGroup", null)
                         .WithMany("Products")
                         .HasForeignKey("ProductColorGroupID");
-
-                    b.HasOne("MethaWebsite.Data.ProductList", null)
-                        .WithMany("Products")
-                        .HasForeignKey("ProductListId");
                 });
 
             modelBuilder.Entity("MethaWebsite.Data.ProductColorGroup", b =>
@@ -825,11 +877,6 @@ namespace MethaWebsite.Migrations
             modelBuilder.Entity("MethaWebsite.Data.ProductGroup", b =>
                 {
                     b.Navigation("ProductColorGroups");
-                });
-
-            modelBuilder.Entity("MethaWebsite.Data.ProductList", b =>
-                {
-                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("MethaWebsite.Data.ProductRating", b =>

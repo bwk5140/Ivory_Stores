@@ -1,0 +1,48 @@
+﻿@page "/shoppingcartproducts/details"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>ShoppingCartProduct</h2>
+    <hr />
+    @if (shoppingcartproduct is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">ProductId</dt>
+            <dd class="col-sm-10">@shoppingcartproduct.ProductId</dd>
+            <dt class="col-sm-2">Quantity</dt>
+            <dd class="col-sm-10">@shoppingcartproduct.Quantity</dd>
+        </dl>
+        <div>
+            <a href="@($"/shoppingcartproducts/edit?id={shoppingcartproduct.Id}")">Edit</a> |
+            <a href="@($"/shoppingcartproducts")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private ShoppingCartProduct? shoppingcartproduct;
+
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        shoppingcartproduct = await context.ShoppingCartProduct.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (shoppingcartproduct is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

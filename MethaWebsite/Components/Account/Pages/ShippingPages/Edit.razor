@@ -1,0 +1,104 @@
+﻿@page "/shippings/edit"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>Shipping</h2>
+<hr />
+@if (Shipping is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Shipping" OnValidSubmit="UpdateShipping" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="Shipping.Id" value="@Shipping.Id" />
+                <div class="mb-3">
+                    <label for="type" class="form-label">Type:</label>
+                    <InputText id="type" @bind-Value="Shipping.Type" class="form-control" />
+                    <ValidationMessage For="() => Shipping.Type" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="cost" class="form-label">Cost:</label>
+                    <InputNumber id="cost" @bind-Value="Shipping.Cost" class="form-control" />
+                    <ValidationMessage For="() => Shipping.Cost" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="distance" class="form-label">Distance:</label>
+                    <InputNumber id="distance" @bind-Value="Shipping.Distance" class="form-control" />
+                    <ValidationMessage For="() => Shipping.Distance" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="rate" class="form-label">Rate:</label>
+                    <InputNumber id="rate" @bind-Value="Shipping.Rate" class="form-control" />
+                    <ValidationMessage For="() => Shipping.Rate" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/shippings">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Shipping? Shipping { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Shipping ??= await context.Shipping.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Shipping is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateShipping()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Shipping!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ShippingExists(Shipping!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/shippings");
+    }
+
+    private bool ShippingExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Shipping.Any(e => e.Id == id);
+    }
+}

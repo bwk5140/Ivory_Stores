@@ -1,17 +1,20 @@
-﻿@page "/productlists/create"
+﻿@page "/Account/productlists/create"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using MethaWebsite.Data
 
 @inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
 
 @rendermode InteractiveServer
 
 @attribute [Authorize]
 
-<div class="container-sm">
+<div class="container-sm" style="display: block; justify-content: center;">
     @{
         var showClass = IsVisible ? "d-block" : "d-none";
     }
@@ -24,6 +27,15 @@
                 <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
             </div>
             <div class="toast-body">
+                @if (CreateIssue)
+                {
+                    <div class="card mt-2 mb-2" style="border-color: red; color:red; max-width: 1200px;">
+                        <div class="card-body">
+                            <img src="info-circle.svg" />
+                            @Loc["CreateListIssue"]
+                        </div>
+                    </div>
+                }
                 <EditForm method="post" Model="ProductList" OnValidSubmit="AddProductList" FormName="create" Enhance>
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger" role="alert" />
@@ -52,16 +64,39 @@
     [SupplyParameterFromForm]
     private ProductList ProductList { get; set; } = new();
 
+    private ApplicationUser? ApplicationUser { get; set; }
+
     [Parameter]
     public bool IsVisible { get; set; } = false;
+
+    [Parameter]
+    public bool CreateIssue { get; set; } = false;
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnAddToList { get; set; }
 
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddProductList()
     {
         using var context = DbFactory.CreateDbContext();
-        context.ProductList.Add(ProductList);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/productlists");
+        if (context.ProductList.FirstOrDefault(l => l.Name == ProductList.Name) == null)
+        {
+            CreateIssue = false;
+            ProductList.Private = true;
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+            ProductList.UserId = ApplicationUser.Id;
+            context.ProductList.Add(ProductList);
+            await context.SaveChangesAsync();
+            await OnAddToList.InvokeAsync();
+            Close();
+        }
+        else
+        {
+            CreateIssue = true;
+        }
+
+        
     }
     public void Show()
     {

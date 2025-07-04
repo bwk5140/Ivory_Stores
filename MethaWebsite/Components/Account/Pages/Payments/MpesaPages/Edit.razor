@@ -1,6 +1,4 @@
 ﻿@page "/Account/Payments/Mpesa/edit"
-@using Microsoft.EntityFrameworkCore
-@using MethaWebsite.Data
 
 @inject IStringLocalizer<SharedResource> Loc
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
@@ -10,7 +8,7 @@
 
 @if (Mpesa is null)
 {
-    <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
 }
 else
 {
@@ -77,13 +75,13 @@ else
                     </div>
                         
                     <div style="text-align: right;">
-                            <button type="submit" class="btn btn-primary me-2 mt-3" style="background-color: #2f4f4f;
+                            <button type="button" class="btn btn-secondary me-2 mt-3" style="border-color:transparent;
+                                                                                border-radius: 5px;" @onclick="Close">
+                                @Loc["Cancel"]
+                            </button>
+                            <button type="submit" class="btn btn-primary mt-3" style="background-color: #2f4f4f;
                                                                             border-color:transparent; border-radius: 5px;">
                                 @Loc["Save"]
-                            </button>
-                            <button type="button" class="btn btn-secondary mt-3" style="border-color:transparent;
-                                                                            border-radius: 5px;" @onclick="Close">
-                                @Loc["Cancel"]
                             </button>
                     </div>
                     </EditForm>

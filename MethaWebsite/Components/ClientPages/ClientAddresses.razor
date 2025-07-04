@@ -1,9 +1,5 @@
 ﻿@page "/AddressSettings"
 
-@using MethaWebsite.Components.Account.Pages.AddressPages
-@using MethaWebsite.Data
-@using MethaWebsite.Data.Contexts
-@using MethaWebsite.Services
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 
@@ -20,7 +16,6 @@
 @rendermode InteractiveServer
 
 <PageTitle>@Loc["YourAddresses"]</PageTitle>
-
 <div class="container-sm mt-5">
     <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -95,25 +90,26 @@
                                     @Loc["PhoneNumber"] : @address.PhoneNumber
                                 </div>
                                 <div>
-                                    <a href="" style="text-decoration: none;">Add delivery instructions</a>
+                                    <a href="" style="text-decoration: none;">@Loc["AddDeliveryInstructions"]</a>
                                 </div>
                             </div>
                         </div>
                         <div class="card-footer" style="text-align: right;">
                             <div class="btn-group">
-                                <button type="button" class="btn btn-secondary me-2" style="background-color: transparent; border: none;
+                                <button type="button" class="btn btn-secondary" style="background-color: transparent; border: none;
                                                                 color: #2f4f4f; font-size: medium;" @onclick="@(()=>OnEditClicked(address))">
                                     @Loc["Edit"]
                                 </button>
-                                <button type="button" class="btn btn-danger me-2" style="background-color: transparent; border: none;
+                                <button type="button" class="btn btn-danger" style="background-color: transparent; border: none;
                                                                         color: #2f4f4f; font-size: medium;" @onclick="@(()=>OnDeleteClicked(address))">
-                                    @Loc["Delete"]
+                                    <div class="me-2" style="display: inline-block;">|</div>  @Loc["Delete"]
                                 </button>
                                 @if (!address.DefaultAddress)
                                 {
-                                    <button type="button" class="btn btn-primary" style="background-color: transparent; border: none;
+                                    
+                                    <button type="button" class="btn btn-primary me-1" style="background-color: transparent; border: none;
                                                                          color: #2f4f4f; font-size: medium;" @onclick="@(() => OnSetDefault(address))">
-                                        @Loc["SetAsDefault"]
+                                        <div class="me-2" style="display: inline-block;">|</div> @Loc["SetAsDefault"]
                                     </button>
                                 }
                             </div>
@@ -237,13 +233,13 @@
                                             <ValidationMessage For="() => address.DefaultAddress" class="text-danger" />
                                         </div>
                                         <div class="ms-1" style="text-align: right;">
+                                            <button type="button" class="btn btn-secondary" style="border-color:transparent;
+                                                                                    border-radius: 5px;" @onclick="@(() => CloseEdit(address))">
+                                                @Loc["Cancel"]
+                                            </button>
                                             <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
                                                         border-color:transparent; border-radius: 5px;">
                                                 @Loc["Save"]
-                                            </button>
-                                            <button type="button" class="btn btn-secondary" style="border-color:transparent;
-                                                                            border-radius: 5px;" @onclick="@(() => CloseEdit(address))">
-                                                @Loc["Cancel"]
                                             </button>
                                         </div>
                                     </EditForm>
@@ -501,6 +497,8 @@
             }
         }
         address.DefaultAddress = true;
+        applicationUser.DefaultAddressId = address.Id;
+        context.Attach(applicationUser).State = EntityState.Modified;
         StateChangeService.ChangeState();
         context.Attach(address).State = EntityState.Modified;
         await context.SaveChangesAsync();

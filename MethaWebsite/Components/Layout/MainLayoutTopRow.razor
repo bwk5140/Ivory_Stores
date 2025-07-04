@@ -22,7 +22,9 @@
 @if (!NavigationManager.Uri.Contains("Login") && !NavigationManager.Uri.Contains("Register") &&
     !NavigationManager.Uri.Contains("ConfirmEmail") && !NavigationManager.Uri.Contains("Invalid") && 
     !NavigationManager.Uri.Contains("AccessDenied") && !NavigationManager.Uri.Contains("Lockout") && 
-    !NavigationManager.Uri.Contains("EmailConfirmation") && !NavigationManager.Uri.Contains("Forgot"))
+    !NavigationManager.Uri.Contains("EmailConfirmation") && !NavigationManager.Uri.Contains("Forgot")&& 
+    !NavigationManager.Uri.Contains("Checkout") && !NavigationManager.Uri.Contains("OrderComplete")&& 
+    !NavigationManager.Uri.Contains("OrderAbandoned") && !currentUrl!.Contains("checkout"))
 {
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark top-row">
         <a class="navbar-brand ms-2" href="/">@Loc["CompanyLogo"]</a>
@@ -169,7 +171,29 @@
                                     <tbody>
                                         <tr>
                                             <td class="border-end" style="padding-right: 40px;">
-                                                <button type="submit" class="btn btn-sm" style="background-color: transparent; width: fit-content; padding: 0px;">
+                                                @if (defaultList is not null)
+                                                {
+                                                    <div>
+                                                        <a style="text-decoration: none; font-size: small; color: black;" href="@($"/wishlist/details?id={defaultList.Id}")">
+                                                            @defaultList.Name
+                                                        </a>
+                                                    </div>
+                                                }
+                                                @if (ProductLists is not null)
+                                                {
+                                                    @foreach (var list in ProductLists)
+                                                    {
+                                                        <div>
+                                                            <a style="text-decoration: none; font-size: small; color: black;" href="@($"/wishlist/details?id={list.Id}")">
+                                                                @list.Name
+                                                            </a>
+                                                        </div>
+                                                    }
+                                                }
+                                                
+                                                <hr class="dropdown-divider">
+                                                <button type="submit" class="btn btn-sm" style="background-color: transparent; width: fit-content; padding: 0px;"
+                                                            @onclick="OnCreateListClicked">
                                                     @Loc["CreateList"]
                                                 </button>
                                             </td>
@@ -222,7 +246,7 @@
     </nav>
 
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark second-top-row">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark second-top-row-dark">
         <div class="container-fluid">
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
@@ -328,6 +352,14 @@
 
     private string[] filters = { "All", "Men", "Women", "Boys", "Girls", "Babies", "Unisex" };
 
+    [Parameter]
+    public List<ProductList>? ProductLists { get; set; }
+
+    [Parameter]
+    public ProductList? defaultList { get; set; }
+
+    private MethaWebsite.Components.Account.Pages.Lists.EditListPopOver CreateListPopUp;
+
     protected override async Task OnInitializedAsync()
     {
         selectedCulture = CultureInfo.CurrentCulture;
@@ -338,6 +370,9 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
         using var context = await DbFactory.CreateDbContextAsync();
+        ProductLists = context.ProductList.Where(c => c.UserId == ApplicationUser.Id).ToList();
+        defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default");
+        ProductLists.Remove(defaultList);
 
         if (ApplicationUser is not null)
         {
@@ -415,5 +450,9 @@
                 $"Culture/Set?culture={cultureEscaped}&redirectUri={uriEscaped}",
                 forceLoad: true);
         }
+    }
+    private void OnCreateListClicked()
+    {
+        NavigationManager.NavigateTo($"/wishlist/details/default?create={true}", true);
     }
 }

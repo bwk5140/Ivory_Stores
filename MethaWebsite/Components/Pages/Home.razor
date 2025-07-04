@@ -2,6 +2,8 @@
 
 @rendermode InteractiveServer
 
+@inject LayoutState LayoutState
+
 <PageTitle>Home</PageTitle>
 
 <div class="container-xxl">
@@ -395,5 +397,11 @@
         </div>
     </div>
 </div>
+@code{
+    protected override void OnInitialized()
+    {
+        LayoutState.SetBackground("bg-home");
+    }
 
+}
 

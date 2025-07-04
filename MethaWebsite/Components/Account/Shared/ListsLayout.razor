@@ -1,0 +1,36 @@
+﻿@using MethaWebsite.Services
+@using MethaWebsite.Components.Account.Pages.ProductListPages
+
+@inherits LayoutComponentBase
+@layout MethaWebsite.Components.Layout.MainLayout
+
+@inject LayoutState LayoutState
+@inject StateChangeService StateChangeService
+@inject IStringLocalizer<SharedResource> Loc
+@inject LayoutRefreshService LayoutRefreshService
+
+<div class="container-sm mt-5">
+    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="AccountSettings" style="text-decoration: none;">
+                    @Loc["YourAccount"]
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">@Loc["YourLists"]</li>
+        </ol>
+    </nav>
+    <ListLayoutWrapper />
+    <div class="card" style="border-color: gray;">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-3">
+                    <ListsNavMenu />
+                </div>
+                <div class="col-lg-9">
+                    @Body
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

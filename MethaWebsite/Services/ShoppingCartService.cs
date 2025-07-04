@@ -15,14 +15,14 @@ namespace MethaWebsite.Services
             }
             return ShoppingCart;
         }
-        public void AddToShoppingCart(Product product)
+        public void AddToShoppingCart(ShoppingCartProduct ShoppingCartProduct, Product product)
         {
-            ShoppingCart.ProductIds.Add(product.Id);
+            ShoppingCart.ProductIds.Add(ShoppingCartProduct.Id);
             ShoppingCart.Subtotal += product.Price; 
         }
-        public void RemoveFromShoppingCart(Product product)
+        public void RemoveFromShoppingCart(ShoppingCartProduct ShoppingCartProduct, Product product)
         {
-            ShoppingCart.ProductIds.Remove(product.Id);
+            ShoppingCart.ProductIds.Remove(ShoppingCartProduct.Id);
             ShoppingCart.Subtotal -= product.Price;
         }
     }

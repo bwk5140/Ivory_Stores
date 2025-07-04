@@ -1,0 +1,21 @@
+﻿.card {
+    background-color: white;
+    border: none;
+}
+
+.card-body {
+    background-color: white;
+    border: none;
+}
+
+.card-header {
+    border: none;
+    background-color: white;
+}
+
+.card-footer {
+    border: none;
+    background-color: white;
+}
+
+

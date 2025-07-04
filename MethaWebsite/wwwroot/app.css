@@ -23,6 +23,39 @@ h1:focus {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+.page.bg-add-to-cart-confirmation {
+    background-color: rgb(220, 230, 222, 0.25);
+    height: 100vh;
+}
+.page.bg-cart {
+    background-color: whitesmoke;
+    height: 100vh;
+}
+.page.bg-checkout {
+    background-color: whitesmoke;
+    height: 100vh;
+}
+.page.bg-home {
+    background-color: whitesmoke;
+    height: 100vh;
+}
+.page.bg-payments {
+    background-color: whitesmoke;
+    height: 100vh;
+}
+
+.card {
+    background-color: white;
+    border-color: black;
+    border-radius: 10px;
+    border: thin;
+    border-style: ridge;
+}
+
+.card-footer {
+    border: none;
+    background-color: white;
+}
 
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
@@ -51,9 +84,15 @@ h1:focus {
     background-image: linear-gradient(180deg, #032222 0%, #053d3d 60%);
     color: white;
 }
-.second-top-row {
+.second-top-row-dark {
     background-image: linear-gradient(180deg, #065151 0%, #2f4f4f 60%);
     color: white;
+    max-height: min-content;
+    padding: 0px;
+}
+.second-top-row-light {
+    background-color: white;
+    color: black;
     max-height: min-content;
     padding: 0px;
 }

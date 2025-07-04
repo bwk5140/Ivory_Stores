@@ -1,9 +1,5 @@
 ﻿@page "/Account/Payments/creditdebitcards/create"
-@using MethaWebsite.Services
-@using Microsoft.AspNetCore.Identity
-@using Microsoft.EntityFrameworkCore
-@using MethaWebsite.Data
-@using System.Text
+@using Stripe
 
 @inject IStringLocalizer<SharedResource> Loc
 @inject AuthenticationStateProvider AuthStateProvider
@@ -11,6 +7,9 @@
 @inject ApplicationUserService ApplicationUserService
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+@inject HttpClient Https
+
 
 @rendermode InteractiveServer
 
@@ -29,49 +28,25 @@
                 <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
             </div>
             <div class="toast-body">
-                <EditForm method="post" Model="CreditDebitCard" OnValidSubmit="AddCreditDebitCard" FormName="create" Enhance>
-                    <DataAnnotationsValidator />
-                    <ValidationSummary class="text-danger" role="alert" />
-                    <InputText id="Id" @bind-Value="CreditDebitCard.Id" class="form-control" placeholder="" hidden/>
-                    <div class="form form-floating mb-3">
-                        <InputText id="cardnumber" @bind-Value="CreditDebitCard.CardNumber" class="form-control" placeholder="" />
-                        <label for="cardnumber" class="form-label">@Loc["CardNumber"]:</label>
-                        <ValidationMessage For="() => CreditDebitCard.CardNumber" class="text-danger" />
+                <div class="card mt-2 mb-2" style="border-color: blue; max-width: 1200px;">
+                    <div class="card-body">
+                        <img src="info-circle.svg" />
+                        @Loc["CardInfo"]
                     </div>
+                </div>
+                <EditForm method="post" Model="CreditDebitCard" OnValidSubmit="SaveCard" FormName="create" Enhance>
+                    <ValidationSummary class="text-danger" role="alert" />
                     <div class="form form-floating mb-3">
-                        <InputText id="nameoncard" @bind-Value="CreditDebitCard.NameOnCard" class="form-control" placeholder="" />
-                        <label for="nameoncard" class="form-label">@Loc["NameOnCard"]:</label>
+                        <InputText id="Name" @bind-Value="CreditDebitCard.NameOnCard" class="form-control" placeholder="" />
+                        <label for="CreditDebitCard.NameOnCard" class="form-label">@Loc["NameOnCard"]:</label>
                         <ValidationMessage For="() => CreditDebitCard.NameOnCard" class="text-danger" />
                     </div>
-                    <label for="expirationmonth" class="form-label">@Loc["ExpirationDate"]:</label>
-                    <div class="input-no-focus form form-floating mb-3">
-                        <InputSelect id="category" @bind-Value="CreditDebitCard.ExpirationMonth" class="form-select-sm ms-1"
-                                     style="border-color: lightgray;">
-                            @if (Months!.Any())
-                            {
-                                @foreach (var month in Months!)
-                                {
-                                    <option value="@month" style="color: black;">@month</option>
-                                }
-                            }
-
-                        </InputSelect>
-                        <InputSelect id="category" @bind-Value="CreditDebitCard.ExpirationYear" class="form-select-sm ms-1"
-                                     style="border-color: lightgray;">
-                            @if (Years!.Any())
-                            {
-                                @foreach (var year in Years!)
-                                {
-                                    <option value="@year" style="color: black;">@year</option>
-                                }
-                            }
-
-                        </InputSelect>
+                    <div id="card-element" class="mb-3">
                     </div>
-                    <div style="text-align: right;">
+                    <div class="mt-4" style="text-align: right;">
                         <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
-                            border-color:transparent; border-radius: 5px;">
-                            @Loc["Add"]
+                            border-color:transparent; border-radius: 5px;" disabled="@isSaving">
+                            @(isSaving ? "Saving..." : @Loc["Add"])
                         </button>
                     </div>
                 </EditForm>
@@ -97,7 +72,76 @@
     public List<int>? Years { get; set; } = new List<int>();
 
     private ApplicationUser? applicationUser { get; set; }
-    public Address? Address { get; set; }
+    public Data.Address? Address { get; set; }
+    private bool isSaving = false;
+    private string Status;
+    private bool loading = false;
+    private string paymentMethodId;
+    private string NameOnCard;
+    private Dictionary<string, string>? ImageSource { get; set; } = new();
+    private Dictionary<string, string>? LogoSource { get; set; } = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initializeCardElement", "pk_test_51RdfvCR5Q65HyKGxDrFmdKdCtElG1UXSkaUMQy1lqSuoOBIUSYYwrjxd3xJ6gCxoOLMz9E2iiaVkvN84OaB1Zpw500WUtqL6wk");
+        }
+    }
+
+    private async Task SaveCard()
+    {
+        isSaving = true;
+        Status = null;
+        var customerService = new CustomerService();
+        var customer = await customerService.CreateAsync(new CustomerCreateOptions
+        {
+            Email = applicationUser.Email,
+            Name = applicationUser.Name
+        });
+        var customerId = customer.Id;
+        NameOnCard = CreditDebitCard.NameOnCard;
+        var response = await Https.PostAsJsonAsync("/api/stripe/create-setup-intent", new { CustomerId = customerId });
+        var result = await response.Content.ReadFromJsonAsync<SetupIntentResponse>();
+
+        var confirmation = await JS.InvokeAsync<StripeSetupResult>("confirmCardSetup", result.ClientSecret);
+        paymentMethodId = confirmation.setupIntent.payment_method;
+        if (string.IsNullOrWhiteSpace(paymentMethodId))
+        {
+            errorMessage = "No payment method ID returned.";
+            return;
+        }
+
+        var infoRes = await Https.PostAsJsonAsync("/api/stripe/get-card-info", new { PaymentMethodId = paymentMethodId });
+        if (infoRes.IsSuccessStatusCode)
+        {
+            CreditDebitCard = await infoRes.Content.ReadFromJsonAsync<CreditDebitCard>();
+            await AddCreditDebitCard();
+
+        }
+        else
+        {
+            errorMessage = $"Failed to get card info: {infoRes.StatusCode}";
+        }
+
+
+        isSaving = false;
+    }
+
+    public class SetupIntentResponse { public string ClientSecret { get; set; } }
+    public class StripeSetupResult
+    {
+        public SetupIntent setupIntent { get; set; }
+        public StripeError Error { get; set; }
+
+        public class SetupIntent
+        {
+            public string id { get; set; }
+            public string payment_method { get; set; }
+        }
+    }
+    public class StripeError { public string Message { get; set; } }
+    public class SetupIntentResult { public string PaymentMethod { get; set; } }
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,114 +157,35 @@
         }
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        ImageSource["visa"] = "generic_card_visa.svg";
+        ImageSource["mastercard"] = "generic_card_mastercard.svg";
+        ImageSource["amex"] = "generic_card_amex.svg";
+        ImageSource["discover"] = "generic_card_discover.svg";
+        ImageSource["unionpay"] = "generic_card_mastercard.svg";
+        ImageSource["jcb"] = "generic_card_visa.svg";
+
+        LogoSource["visa"] = "visa.svg";
+        LogoSource["mastercard"] = "mastercard.svg";
+        LogoSource["amex"] = "amex.svg";
+        LogoSource["discover"] = "discover.svg";
+        LogoSource["unionpay"] = "unionpay.svg";
+        LogoSource["jcb"] = "jcb.svg";
     }
 
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddCreditDebitCard()
     {
         using var context = DbFactory.CreateDbContext();
-        CreditDebitCard.CardNumber = CreditDebitCard.CardNumber.Replace(" ", "");
-        if (!CheckCardValidity(CreditDebitCard.CardNumber))
-        {
-            errorMessage = "Invalid card number";
-            return;
-        }
-        CreditDebitCard.Type = GetCardType(CreditDebitCard.CardNumber);
-        if (!CreditDebitCard.Type.Equals("Invalid"))
-        {
-            CreditDebitCard.Id = Guid.NewGuid().ToString();
-            CreditDebitCard.BillingAddress = applicationUser.DefaultAddressId;
-            CreditDebitCard.UserId = applicationUser.Id;
-            context.CreditDebitCard.Add(CreditDebitCard);
-            await context.SaveChangesAsync();
-            NavigationManager.NavigateTo("/Account/Payments", true);
-        }
-    }
-    public bool CheckCardValidity(string number)
-    {
-        int num, sum = 0, length = number.Length;
-        string modified_number = "";
-        modified_number.Append(number[0]);
-        for (int i = 0; i < length; i++)
-        {
-            if (i % 2 == 0)
-            {
-                num = number[i] - '0';
-                num = num * 2;
-                if (num > 9)
-                    num -= 9;
-                modified_number += num.ToString();
-                sum += num;
-            }
-            else
-            {
-                modified_number += number[i];
-                sum += number[i] - '0';
-            }
-        }
-        if (sum % 10 == 0)
-            return true;
-        return false;
-    }
-    public string GetCardType(string cardNumber)
-    {
-        if (string.IsNullOrWhiteSpace(cardNumber))
-            return "Invalid";
-
-        cardNumber = cardNumber.Replace(" ", "");
-
-        if (cardNumber.StartsWith("4"))
-        {
-            CreditDebitCard.ImageSource = "generic_card_visa.svg";
-            CreditDebitCard.LogoSource = "visa.svg";
-            return "Visa";
-        }
-
-
-        if (cardNumber.StartsWith("34") || cardNumber.StartsWith("37"))
-        {
-            CreditDebitCard.ImageSource = "generic_card_amex.svg";
-            CreditDebitCard.LogoSource = "amex.svg";
-            return "American Express";
-        }
-
-        if (cardNumber.StartsWith("5") && int.TryParse(cardNumber.Substring(0, 2), out int prefix) && prefix >= 51 && prefix <= 55)
-        {
-            CreditDebitCard.ImageSource = "generic_card_mastercard.svg";
-            CreditDebitCard.LogoSource = "mastercard.svg";
-            return "Mastercard";
-        }
-
-        if (int.TryParse(cardNumber.Substring(0, 4), out int range4) && range4 >= 2221 && range4 <= 2720)
-        {
-            CreditDebitCard.ImageSource = "generic_card_mastercard.svg";
-            CreditDebitCard.LogoSource = "mastercard.svg";
-            return "Mastercard";
-        }
-
-        if (cardNumber.StartsWith("6011") || cardNumber.StartsWith("65"))
-        {
-            CreditDebitCard.ImageSource = "generic_card_discover.svg";
-            CreditDebitCard.LogoSource = "discover.svg";
-            return "Discover";
-        }
-
-
-        if (cardNumber.StartsWith("62"))
-        {
-            CreditDebitCard.ImageSource = "generic_card_mastercard.svg";
-            CreditDebitCard.LogoSource = "unionpay.svg";
-            return "UnionPay";
-        }
-
-        if (int.TryParse(cardNumber.Substring(0, 4), out int jcbPrefix) && jcbPrefix >= 3528 && jcbPrefix <= 3589)
-        {
-            CreditDebitCard.ImageSource = "generic_card_visa.svg";
-            CreditDebitCard.LogoSource = "jcb.svg";
-            return "JCB";
-        }
-
-        return "Unknown";
+        CreditDebitCard.NameOnCard = NameOnCard;
+        CreditDebitCard.Id = Guid.NewGuid().ToString();
+        CreditDebitCard.BillingAddress = applicationUser.DefaultAddressId;
+        CreditDebitCard.UserId = applicationUser.Id;
+        CreditDebitCard.ImageSource = ImageSource[CreditDebitCard.Type];
+        CreditDebitCard.LogoSource = LogoSource[CreditDebitCard.Type];
+        CreditDebitCard.PaymentMethodId = paymentMethodId;
+        context.CreditDebitCard.Add(CreditDebitCard);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/Account/Payments", true);
     }
     public void Show()
     {

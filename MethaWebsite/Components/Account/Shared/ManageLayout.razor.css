@@ -1,0 +1,24 @@
+﻿.card {
+    background-color: white;
+    border-color: lightgray;
+    border-radius: 10px;
+    border: thin;
+    border-style: ridge;
+}
+
+.card-body {
+    background-color: white;
+    border-radius: 25px;
+}
+
+.card-header {
+    border: none;
+    background-color: white;
+    border-radius: 25px;
+}
+
+.card-footer {
+    border: none;
+    background-color: white;
+    border-radius: 25px;
+}

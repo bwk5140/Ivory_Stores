@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
+@inject LayoutState LayoutState
 
-<div class="page">
+
+<div class="page @LayoutState.BackgroundClass">
     <main>
         <MainLayoutTopRow/>
         <article>
@@ -19,3 +21,15 @@
     <span class="dismiss">🗙</span>
 </div>
 
+@code {
+    protected override void OnInitialized()
+    {
+        LayoutState.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        LayoutState.OnChange -= StateHasChanged;
+    }
+
+}

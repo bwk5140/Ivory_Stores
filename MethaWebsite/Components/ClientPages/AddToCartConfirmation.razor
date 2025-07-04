@@ -1,10 +1,8 @@
 ﻿@page "/shoppingcart/confirmation"
-@using MethaWebsite.Data
-@using MethaWebsite.Data.Contexts
-@using MethaWebsite.Services
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 
+@inject LayoutState LayoutState
 @inject ApplicationUserService ApplicationUserService
 @inject ShoppingCartService ShoppingCartService
 @inject AuthenticationStateProvider AuthStateProvider
@@ -15,7 +13,7 @@
 
 @if (product is null)
 {
-    <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+    <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
 }
 else
 {
@@ -60,10 +58,10 @@ else
                         <h5 style="font-weight: 450;">@ShoppingCart.Subtotal.ToString("C2")</h5>
                     </div>
                     <div>
-                        <button class="mb-3" style="border-bottom-left-radius: 15px; border-top-left-radius: 15px; border-bottom-right-radius: 15px;
-                                    border-top-right-radius: 15px; border: unset; background-color: #2f4f4f; color: white; padding: 5px; width: 250px;">
+                        <a href="/Checkout" class="mb-3 btn btn-primary" style="border-bottom-left-radius: 25px; border-top-left-radius: 25px; border-bottom-right-radius: 25px;
+                                    border-top-right-radius: 25px; border: unset; background-color: #2f4f4f; color: white; padding: 5px; width: 250px;">
                             @Loc["ProceedToCheckout"] (@ShoppingCart.ProductIds.Count() @Loc["Items"])
-                        </button>
+                        </a>
                     </div>
                     <div>
                         <a href="/shoppingcart" class="mb-3 btn btn-secondary" style="border-bottom-left-radius: 15px; border-top-left-radius: 15px; border-bottom-right-radius: 15px;
@@ -93,6 +91,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        LayoutState.SetBackground("bg-add-to-cart-confirmation");
         context = await DbFactory.CreateDbContextAsync();
         product = await context.Product.FirstOrDefaultAsync(m => m.Id == Id);;
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();

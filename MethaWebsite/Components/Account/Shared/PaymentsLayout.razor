@@ -2,9 +2,12 @@
 @inherits LayoutComponentBase
 @layout MethaWebsite.Components.Layout.MainLayout
 
+@inject LayoutState LayoutState
 @inject StateChangeService StateChangeService
 @inject IStringLocalizer<SharedResource> Loc
+@inject LayoutRefreshService LayoutRefreshService
 
+<PaymentsLayoutWrapper />
 <div class="container-sm mt-5">
     <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -30,7 +33,9 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-lg-3">
-                    <PaymentsNavMenu />
+                    <CascadingValue Value="HasStateChanged">
+                        <PaymentsNavMenu />
+                    </CascadingValue>
                 </div>
                 <div class="col-lg-9">
                     @Body
@@ -42,4 +47,14 @@
 @code{
     [Parameter]
     public bool HasStateChanged { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        LayoutRefreshService.OnRefreshRequested += LayoutRefresh;
+        LayoutState.SetBackground("bg-payments");
+    }
+    private void LayoutRefresh()
+    {
+        HasStateChanged = true;
+    }
 }

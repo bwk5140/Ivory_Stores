@@ -1,0 +1,95 @@
+﻿@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Services
+@using Microsoft.AspNetCore.Identity
+@using MethaWebsite.Data
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationUserService ApplicationUserService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject LayoutRefreshService LayoutRefreshService
+
+@rendermode InteractiveServer
+
+<ul class="nav nav-pills flex-column" style="width: max-content;">
+    @if (defaultList is not null)
+    {
+        <li class="nav-item" style="width: 250px;">
+            <NavLink class="nav-link" href="/wishlist/details/default">
+                <div class="row" style="text-wrap: nowrap;">
+                    <div class="col">
+                        @defaultList.Name
+                    </div>
+                    <div class="col" style="text-align: right; font-size: smaller">
+                        @if (defaultList.Private)
+                        {
+                            @Loc["Private"]
+                        }
+                        else
+                        {
+                            @Loc["Public"]
+                        }
+                    </div>
+                </div>
+            </NavLink>
+        </li>
+    }
+    @if (ProductLists is not null)
+    {
+        @foreach (var list in ProductLists)
+        {
+            <li class="nav-item" style="width: 250px;">
+                <NavLink class="nav-link" href="@($"/wishlist/details?id={list.Id}")">
+                    <div class="row" style="text-wrap: nowrap;">
+                        <div class="col">
+                            @list.Name
+                        </div>
+                        <div class="col" style="text-align: right; font-size: smaller">
+                                @if (list.Private)
+                                {
+                                    @Loc["Private"]
+                                }
+                                else
+                                {
+                                    @Loc["Public"]
+                                }
+                        </div>
+                    </div>
+                </NavLink>
+            </li>
+        }
+    }
+</ul>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    [Parameter]
+    public List<ProductList>? ProductLists { get; set; }
+
+    [Parameter]
+    public ProductList? defaultList { get; set; }
+
+    [CascadingParameter]
+    public bool HasStateChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnStateChanged { get; set; }
+
+    private ApplicationUser? applicationUser { get; set; }
+
+    string? currentUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        ProductLists = context.ProductList.Where(c => c.UserId == applicationUser.Id).ToList();
+        defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default");
+        ProductLists.Remove(defaultList);
+    }
+}

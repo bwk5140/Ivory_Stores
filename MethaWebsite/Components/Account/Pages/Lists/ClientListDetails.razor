@@ -1,0 +1,164 @@
+﻿@page "/wishlist/details"
+
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+@if (List is not null)
+{   <h4>@List.Name</h4>
+    <div class="card-header" style="text-align: right; border: none; background-color: transparent">
+        <button style="border-radius: 10px; border: medium;" @onclick="OnEditListClicked">
+            <img src="pencil-fill.svg" data-bs-toggle="tooltip" title=@Loc["EditList"] />
+        </button>
+    </div>
+    <hr/>
+    @if (Products is not null)
+    {
+        foreach (var product in Products)
+        {
+            using var context = DbFactory.CreateDbContext();
+            product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+            CurrentImage = product.Images[0];
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-3" style="background-color: whitesmoke; padding: 0px;">
+                            <a href="@($"product/details?id={product.Id}")" class="btn">
+                                <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                     alt=@Loc["ProductImage"] style="width:150px; height:150px; object-fit:contain; vertical-align: central;" />
+                            </a>
+                        </div>
+                        <div class="col-sm-9">
+                            <a href="@($"product/details?id={product.Id}")" style="padding: 0px; text-decoration:none;">
+                                <p>@product.Name</p>
+                            </a>
+                            <p>
+                                @Loc["by"] @product.Brand
+                            </p>
+                            <div>
+                                @if (product.Rating > 0)
+                                {
+                                    <strong class="me-1">@product.Rating</strong>
+                                }
+                                @if (product.Rating == 0)
+                                {
+                                    @for (int i = 0; i < 5; i++)
+                                    {
+                                        <img src="star.svg" />
+                                    }
+                                    <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
+                                                                    color: dodgerblue;">
+                                        (0)
+                                    </button>
+                                }
+                                else
+                                {
+                                    @for (int i = 0; i < product.Rating; i++)
+                                    {
+                                        <img src="star-fill.svg" />
+                                    }
+                                    var rating_difference = 5 - product.Rating;
+                                    @if (rating_difference > 0)
+                                    {
+                                        if (rating_difference > 1)
+                                        {
+                                            @for (int i = 0; i < (5 - product.Rating); i++)
+                                            {
+                                                <img src="star.svg" />
+                                            }
+                                            if (rating_difference.GetType() != typeof(int))
+                                            {
+                                                <img src="star-half.svg" />
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <img src="star-half.svg" />
+                                        }
+                                    }
+                                    <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
+                                                                    color: dodgerblue;">
+                                        (@product.Rating)
+                                    </button>
+                                }
+                            </div>
+                            <p style="font-size: smaller;"><strong>@product.Price.ToString("C2")</strong></p>
+                            <div style="display: inline-block;">
+                                <p style="font-size: smaller;">
+                                    @Loc["Size"]: @product.Size
+                                </p>
+                            </div>
+                            <div style="display: inline-block;">
+                                <p style="font-size: smaller;">
+                                    <div class="me-2" style="display: inline-block;">|</div>
+                                    @Loc["Color"] @product.Color
+                                </p>
+                            </div>
+                            <div>
+                                <div class="btn-group">
+                                    <button class="me-2" style="border-bottom-left-radius: 10px; border-top-left-radius: 10px; border: unset;
+                                                            background-color: #2f4f4f; color: white;">
+                                        @Loc["AddToCart"]
+                                    </button>
+                                    <button style="border: medium;">
+                                        @Loc["Move"]
+                                    </button>
+                                    <button class="ms-2" style="border-bottom-right-radius: 10px; border-top-right-radius: 10px; border: medium;">
+                                        <img src="trash.svg" />
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+}
+<CascadingValue Value="List">
+    <MethaWebsite.Components.Account.Pages.Lists.EditListPopOver @ref=EditListPopUp />
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public List<Product>? Products { get; set; }
+
+    [Parameter]
+    public ProductList? List { get; set; }
+
+    [Parameter]
+    public ProductImage? CurrentImage { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Id { get; set; }
+
+    private MethaWebsite.Components.Account.Pages.Lists.EditListPopOver EditListPopUp;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        List = await context.ProductList.FirstOrDefaultAsync(l => l.Id == Id);
+        if (List is not null && List.ProductIds is not null)
+        {
+            Products = await context.Product.Where(p => List.ProductIds.Contains(p.Id)).Distinct()
+                        .ToListAsync();
+        }
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        List = await context.ProductList.FirstOrDefaultAsync(l => l.Id == Id);
+        if (List is not null && List.ProductIds is not null)
+        {
+            Products = await context.Product.Where(p => List.ProductIds.Contains(p.Id)).Distinct()
+                        .ToListAsync();
+        }
+    }
+    public void OnEditListClicked()
+    {
+        EditListPopUp.Show();
+    }
+}

@@ -1,0 +1,132 @@
+﻿@page "/productlists/create"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
+
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+@if (Product is not null && ProductList is not null)
+{
+    <div class="container-sm" style="display:block; justify-content: center;">
+        @{
+            var showClass = IsVisible ? "d-block" : "d-none";
+        }
+        <div class="toast-container @showClass" data-bs-autohide="true" data-bs-delay="5000"
+             style="top: 35%;">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                 style="background-color: white; width: max-content;">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["AddToList"]</strong>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <h5>1 @Loc["ItemAddedTo"] <a href="@($"/productlists/details?id={ProductList.Id}")" style="text-decoration: none;">@ListName</a></h5>
+                    <div class="card" style="border: none; max-width: 750px;">
+                        <div class="row">
+                            <div class="col" style="text-align: center;">
+                                <div class="card" style="border: none">
+                                    <div class="card-body">
+                                        <div style="display: inline-block;">
+                                            @if (Images.Any())
+                                            {
+                                                var CurrentImage = Images[0];
+                                                var Id = Product.Id;
+                                                <a href="@($"product/details?id={Product.Id}")" class="btn">
+                                                    <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                                         alt=@Loc["ProductImage"] style="width:75px; height:75px; object-fit:contain;" />
+                                                </a>
+                                            }
+                                        </div>
+                                        <div style="display: inline-block;">
+                                            <div style="display: inline-block">
+                                                <a href="@($"product/details?id={Product.Id}")" style="text-decoration: none;">@Product.Name</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="card me-2" style="width: 300px;">
+                                    <div class="card-body" style="text-align: center;">
+                                        <div>
+                                            <a href="@($"/productlists/details?id={ProductList.Id}")" class="mb-3 btn btn-secondary" style="border-bottom-left-radius: 15px; border-top-left-radius: 15px; border-bottom-right-radius: 15px;
+                                                            border-top-right-radius: 15px; border: unset; padding: 5px; width: 250px;">
+                                                @Loc["ViewList"]
+                                            </a>
+                                        </div>
+                                        <div>
+                                            <button class="mb-3" style="border-bottom-left-radius: 15px; border-top-left-radius: 15px; border-bottom-right-radius: 15px;
+                                                            border-top-right-radius: 15px; border: unset; background-color: #2f4f4f; color: white; padding: 5px; width: 250px;" @onclick=Close>
+                                                @Loc["ContinueShopping"]
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="@showClass darker-background"></div>
+    </div>
+}
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    [Parameter]
+    public ProductList? ProductList { get; set; }
+
+    [Parameter]
+    public List<ProductImage>? Images { get; set; } = new List<ProductImage>();
+
+    [CascadingParameter]
+    public string? ListName { get; set; }
+
+    [CascadingParameter]
+    public Product? Product { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+        ProductList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == ListName);
+        if (Product is not null)
+        {
+            Images = context.ProductImage.Where(i => i.ProductColorGroupId == Product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
+        }
+        StateHasChanged();
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        ProductList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == ListName);
+        if (Product is not null)
+        {
+            Images = context.ProductImage.Where(i => i.ProductColorGroupId == Product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
+        }
+        StateHasChanged();
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+    
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

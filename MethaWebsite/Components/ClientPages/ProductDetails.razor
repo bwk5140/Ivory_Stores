@@ -1,13 +1,6 @@
 ﻿@page "/product/details"
-@using MethaWebsite.Components.Account.Pages.ProductPages
-@using MethaWebsite.Components.SizeGuidePages.ShirtsSizeGuidePages
-@using MethaWebsite.Components.SizeGuidePages.ShoesSizeGuidePages
-@using MethaWebsite.Components.SizeGuidePages.TrousersSizeGuidePages
-@using MethaWebsite.Data.Contexts
-@using MethaWebsite.Services
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
-@using MethaWebsite.Data
 @using System.Globalization
 
 @inject ApplicationUserService ApplicationUserService
@@ -25,9 +18,33 @@
 <div class="container-sm mt-5">
     @if (product is null)
     {
-        <div class="spinner-border" role="status">   <span class="visually-hidden">Loading...</span> </div>
+        <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
     }
-    else {
+    else
+    {
+        <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                @if (Categories is not null)
+                {
+                    for (int i = Categories.Count - 1; i >= 0; i--)
+                    {
+                        @if (Categories[i] != category)
+                        {
+                            <li class="breadcrumb-item">
+                                <a href="@($"searchresults?filter=All&search={Categories[i].Name}")" style="text-decoration: none;
+                                                        font-size: small;">
+                                    @Categories[i].Name
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="breadcrumb-item active" aria-current="page" style="font-size: small; padding: 3px;">@category.Name</li>
+                        }
+                    }
+                }
+            </ol>
+        </nav>
         <div class="row">
             <div class="col-sm-1" style="max-width: 80px; max-height: 600px;">
                 @if (Images is not null)
@@ -66,9 +83,9 @@
             </div>
             <div class="col-md">
                 <div>
-                    <button class="btn" style="border: unset; outline:none; background-color: transparent; color: dodgerblue;">
+                    <a href="@($"searchresults?search={product.Brand}")" class="btn btn-link" style="text-decoration: none; padding: 0px;">
                         @Loc["Shop"] @product.Brand
-                    </button>
+                    </a>
                 </div>
                 <h3 class="header mt-3">@product.Name</h3>
                 <div style="display: inline-block;">
@@ -127,7 +144,7 @@
                     
                 </div>
                 <div class="mt-3 mb-3">
-                    <button class="btn" style="border: unset; outline:none; background-color: transparent; color: dodgerblue;">
+                    <button class="btn" style="border: unset; outline:none; background-color: transparent; color: dodgerblue; padding: 0px;">
                         @Loc["ReturnPolicy"]
                     </button>
                 </div>
@@ -166,7 +183,7 @@
                 }
                 <div class="mt-3">
                     <button class="btn" style="border: unset; outline:none; background-color: transparent;
-                                        color: dodgerblue;" @onclick="OnSizeChartClicked">
+                                            color: dodgerblue; padding: 0px;" @onclick="OnSizeChartClicked">
                         @Loc["SizeChart"]
                     </button>
                     <CascadingValue Value="productGroup">
@@ -234,7 +251,7 @@
                                 </button>
                             </div>
                             <div class="mb-2">
-                                <button class="btn" style="border-radius: 10px; background-color: #2f4f4f; color:#F5F5F5; 
+                                <button @onclick="OnBuyNow" class="btn" style="border-radius: 10px; background-color: #2f4f4f; color:#F5F5F5; 
                                                     border: unset; min-width: 99%;">
                                     @Loc["BuyNow"]
                                 </button>
@@ -261,14 +278,38 @@
                             </dt>
                         </dl>
                         <dl class="row mt-3">
-                            <dd class="col-sm-9 mt-3" style="color: #2f4f4f; font-size: small;">
-                                <label class="form-label" style="text-align: left;">@Loc["AddToList"]:</label>
-                            </dd>
-                            <dt class="col-sm-2">
-                                <button type="button" class="btn" @onclick="OnAddToListClicked" data-bs-toggle="tooltip" title=@Loc["AddToList"]>
-                                    <img src="plus-square.svg" />
-                                </button>
-                            </dt>
+                            @if (!AddToListClicked)
+                            {
+                                <dd class="col-sm-9 mt-3" style="color: #2f4f4f; font-size: small;">
+                                    <label class="form-label" style="text-align: left;">@Loc["AddToList"]:</label>
+                                </dd>
+                                <dt class="col-sm-2">
+                                    <button type="button" class="btn" @onclick="OnAddToListClicked" data-bs-toggle="tooltip" title=@Loc["AddToList"]>
+                                        <img src="plus-square.svg" />
+                                    </button>
+                                </dt>
+                            }
+                            @if (AddToListClicked)
+                            {
+                                <AuthorizeView>
+                                    <dd class="col-md-12 mt-3" style="color: #2f4f4f; font-size: small; text-align: center;">
+                                        <InputSelect id="list" @bind-Value="ListAddedTo" @bind-Value:after="OnListSelected" class="form-select-sm"
+                                                     @onselect="OnListSelected" style="width: 200px;">
+                                            <option disabled hidden value="@Loc["AddToList"]">@Loc["AddToList"]</option>
+                                            @if (Lists is not null && Lists.Any())
+                                            {
+                                                @foreach (var list in Lists)
+                                                {
+                                                    <option value="@list.Name">@list.Name</option>
+                                                }
+                                            }
+                                            <option value="@Loc[" CreateList"]">@Loc["CreateList"]</option>
+                                        </InputSelect>
+                                    </dd>
+                                    <MethaWebsite.Components.Account.Pages.ProductListPages.Create @ref=AddListPopUp OnAddToList="OnNewListItemCreated" />
+                                </AuthorizeView>
+                            }
+                            
                         </dl>
                     </div>
                 </div>
@@ -276,6 +317,11 @@
         </div>
     }
 </div>
+<CascadingValue Value="product">
+    <CascadingValue Value="ListAddedTo">
+        <NewItemAddedToList @ref="newItemAddedToListPopUp" />
+    </CascadingValue>
+</CascadingValue>
 
 @code {
     private Product? product;
@@ -297,10 +343,22 @@
     public List<string>? Sizes { get; set; } = new List<string>();
 
     [Parameter]
+    public List<ProductList>? Lists { get; set; } = new List<ProductList>();
+
+    [Parameter]
+    public List<Category>? Categories { get; set; } = new List<Category>();
+
+    [Parameter]
     public string? CurrentSize { get; set; }
 
     [Parameter]
+    public string? ListAddedTo { get; set; }
+
+    [Parameter]
     public List<Product>? products { get; set; } = new List<Product>();
+
+    [Parameter]
+    public bool AddToListClicked { get; set; }
 
     private delegate bool TryFindSizeGuide(string id, DbContext context);
     private record SizeGuideHandler(TryFindSizeGuide TryFind, Action Action);
@@ -314,6 +372,8 @@
     private SizeGuidePages.ShirtsSizeGuidePages.ShirtSizeGuidePopover? ShirtSizeGuidePopUp;
     private SizeGuidePages.ShoesSizeGuidePages.ShoeSizeGuidePopover? ShoeSizeGuidePopUp;
     private ProductImagesPopOver? ProductImagesPopOver;
+    private Create? AddListPopUp;
+    private NewItemAddedToList? newItemAddedToListPopUp;
 
     private ApplicationUser? ApplicationUser { get; set; }
     private ShoppingCart? ShoppingCart { get; set; }
@@ -322,6 +382,8 @@
     {
         using var context = await DbFactory.CreateDbContextAsync();
         product = await context.Product.FirstOrDefaultAsync(m => m.Id == Id);
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
 
         if (product is null)
         {
@@ -366,11 +428,65 @@
                 }
             }
             category = await context.Category.FirstOrDefaultAsync(c => c.Id == product.CategoryId);
+            Categories.Add(category);
+            var ParentCat = await context.Category.FirstOrDefaultAsync(c => c.Id == category.ParentID);
+            while (ParentCat is not null)
+            {
+                Categories.Add(ParentCat);
+                ParentCat = await context.Category.FirstOrDefaultAsync(c => c.Id == ParentCat.ParentID);
+            }
+            if (ApplicationUser is not null)
+            {
+                Lists = context.ProductList.Where(l => l.UserId == ApplicationUser.Id).ToList();
+            }
         }
     }
     public void OnAddToListClicked()
     {
-
+        AddToListClicked = true;
+    }
+    private async Task OnListSelected()
+    {
+        if (ListAddedTo != "Add to List")
+        {
+            if (ListAddedTo == "Create a list")
+            {
+                AddListPopUp.Show();
+            }
+            else
+            {
+                using var context = await DbFactory.CreateDbContextAsync();
+                var list = await context.ProductList.FirstOrDefaultAsync(l => l.Name == ListAddedTo);
+                if (list is not null && list.ProductIds is null)
+                {
+                    list.ProductIds = new List<string>();
+                }
+                if (list is not null)
+                {
+                    list.ProductIds.Add(product.Id);
+                    context.Attach(list).State = EntityState.Modified;
+                    await context.SaveChangesAsync();
+                    newItemAddedToListPopUp.Show();
+                }
+                else
+                {
+                    AddListPopUp.Show();
+                }
+            }
+        }
+    }
+    private async Task OnNewListItemCreated()
+    {
+        AddToListClicked = false;
+        using var context = await DbFactory.CreateDbContextAsync();
+        if (ApplicationUser is not null)
+        {
+            Lists = context.ProductList.Where(l => l.UserId == ApplicationUser.Id).OrderBy(l => l.Created).ToList();
+        }
+        ListAddedTo = Lists.Last().Name;
+        await OnListSelected();
+        newItemAddedToListPopUp.Show();
+        StateHasChanged();
     }
     private async Task OnSizeChartClicked()
     {
@@ -429,9 +545,8 @@
     private async Task OnAddToCart()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
-
+        var ShoppingCartProduct = new ShoppingCartProduct();
+        ShoppingCartProduct.ProductId = product.Id;
         if (ApplicationUser is not null)
         {
             ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == ApplicationUser.Id);
@@ -443,7 +558,10 @@
                 context.ShoppingCart.Add(ShoppingCart);
                 await context.SaveChangesAsync();
             }
-            ShoppingCart.ProductIds.Add(product.Id);
+            
+            context.ShoppingCartProduct.Add(ShoppingCartProduct);
+            await context.SaveChangesAsync();
+            ShoppingCart.ProductIds.Add(ShoppingCartProduct.Id);
             ShoppingCart.Subtotal += product.Price;
             context.Attach(ShoppingCart!).State = EntityState.Modified;
             await context.SaveChangesAsync();
@@ -451,8 +569,33 @@
         else
         {
             ShoppingCart = ShoppingCartService.getShoppingCart();
-            ShoppingCartService.AddToShoppingCart(product);
+            ShoppingCartService.AddToShoppingCart(ShoppingCartProduct, product);
         }
         NavigationManager.NavigateTo($"/shoppingcart/confirmation?id={product.Id}", forceLoad: true);
+    }
+    private async Task OnBuyNow()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var ShoppingCartProduct = new ShoppingCartProduct();
+        ShoppingCartProduct.ProductId = product.Id;
+        if (ApplicationUser is not null)
+        {
+            ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == ApplicationUser.Id);
+
+            if (ShoppingCart is null)
+            {
+                ShoppingCart = ShoppingCartService.getShoppingCart();
+                ShoppingCart.UserId = ApplicationUser.Id;
+                context.ShoppingCart.Add(ShoppingCart);
+                await context.SaveChangesAsync();
+            }
+        }
+        else
+        {
+            ShoppingCart = ShoppingCartService.getShoppingCart();
+        }
+        context.ShoppingCartProduct.Add(ShoppingCartProduct);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo($"/Checkout?id={ShoppingCartProduct.Id}");
     }
 }

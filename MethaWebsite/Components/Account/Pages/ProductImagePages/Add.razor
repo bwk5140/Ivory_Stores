@@ -47,14 +47,14 @@
                     </div>
                     
                     <div style="text-align:right;">
+                        <button type="button" class="btn btn-secondary" @onclick="OnCancelClicked" style="border-radius: 5px;"
+                                data-bs-toggle="tooltip" title=@Loc["Cancel"]>
+                            @Loc["Cancel"]
+                        </button>
                         <button type="button" class="btn btn-outline-success" @onclick="OnUploadClicked" style="background-color:#2f4f4f;
                                         color: #F5F5F5; border-color:transparent;
                                                     border-radius: 5px;">
                             @Loc["Upload"]
-                        </button>
-                        <button type="button" class="btn btn-secondary" @onclick="OnCancelClicked" style="border-radius: 5px;"
-                                data-bs-toggle="tooltip" title=@Loc["Cancel"]>
-                            @Loc["Cancel"]
                         </button>
                     </div>  
                 }
@@ -68,7 +68,7 @@
                             </div>
                             <div class="col-sm-2">
                                 <InputSelect id="category" @bind-Value="CurrentProductColor" class="form-select-sm">
-                                    <option value="null">@Loc["Select"]</option>
+                                    <option disabled hidden value="null">@Loc["Select"]</option>
                                     @foreach (var colorGroup in ProductGroup.ProductColorGroups)
                                     {
                                         <option value="@colorGroup.Color">@colorGroup.Color</option>

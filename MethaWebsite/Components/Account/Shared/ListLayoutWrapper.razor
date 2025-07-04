@@ -1,0 +1,34 @@
+﻿@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<div class="row">
+    <div class="col" style="display: inline-block;">
+        <div>
+            <h3>@Loc["YourLists"]</h3>
+        </div>
+    </div>
+    <div class="col" style="text-align: end; display: inline-block;">
+        <div class="me-2">
+            <a type="button" class="btn btn-link" style="background-color: transparent; width: fit-content; padding: 0px;
+                        text-decoration: none;" @onclick="OnCreateListClicked">
+                @Loc["CreateList"]
+            </a>
+        </div>
+    </div>
+</div>
+<MethaWebsite.Components.Account.Pages.ProductListPages.Create @ref=CreateListPopUp  OnAddToList="UpdateView"/>
+@code {
+    [CascadingParameter]
+    private MethaWebsite.Components.Account.Pages.ProductListPages.Create? CreateListPopUp { get; set; }
+
+    public void OnCreateListClicked()
+    {
+        CreateListPopUp.Show();
+    }
+    public void UpdateView()
+    {
+        NavigationManager.NavigateTo("/wishlist/details/default", true);
+    }
+}

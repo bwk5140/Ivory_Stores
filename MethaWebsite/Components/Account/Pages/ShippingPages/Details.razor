@@ -1,0 +1,52 @@
+﻿@page "/shippings/details"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Shipping</h2>
+    <hr />
+    @if (shipping is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Type</dt>
+            <dd class="col-sm-10">@shipping.Type</dd>
+            <dt class="col-sm-2">Cost</dt>
+            <dd class="col-sm-10">@shipping.Cost</dd>
+            <dt class="col-sm-2">Distance</dt>
+            <dd class="col-sm-10">@shipping.Distance</dd>
+            <dt class="col-sm-2">Rate</dt>
+            <dd class="col-sm-10">@shipping.Rate</dd>
+        </dl>
+        <div>
+            <a href="@($"/shippings/edit?id={shipping.Id}")">Edit</a> |
+            <a href="@($"/shippings")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Shipping? shipping;
+
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        shipping = await context.Shipping.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (shipping is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

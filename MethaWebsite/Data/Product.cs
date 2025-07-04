@@ -19,12 +19,13 @@ namespace MethaWebsite.Data
         public int Discount { get; set; }
         public double DeliveryFee { get; set; }
         public DateTime Created { get; set; } = DateTime.Now;
+        public string? ShippingId { get; set; }
         public string? ProductColorGroupID { get; set; }
         [Required]
         public string? Brand { get; set; }
         [Required]
         public int Stock { get; set; }
-        public int Quantity { get; set; }
+        public int Quantity { get; set; } = 1;
         public double Rating { get; set; }
         [Required]
         public string? Color { get; set; }

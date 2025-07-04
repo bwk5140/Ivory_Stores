@@ -1,0 +1,76 @@
+﻿@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+@if (ProductList is not null)
+{
+    <div class="container-sm">
+        @{
+            var showClass = IsVisible ? "d-block" : "d-none";
+        }
+        <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+             style="top: 35%; z-index: 1500;">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                 style="background-color: white;">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["AddList"]</strong>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="toast-body">
+                    @Loc["DeleteList"]
+                    <div style="text-align: right;">
+                        <div class="ms-1 btn-group">
+                            <button type="button" class="me-2 btn btn-secondary" style="background-color: #2f4f4f;
+                                        border-color:transparent; border-radius: 5px;" @onclick="Close">
+                                @Loc["Cancel"]
+                            </button>
+                            <EditForm method="post" Model="ProductList" OnValidSubmit="DeleteProductList" FormName="delete" Enhance>
+                                <button type="submit" class="btn btn-danger" disabled="@isProcessing">
+                                    @(isProcessing? Loc["Deleting"] + "..." : Loc["Delete"])
+                                </button>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="@showClass darker-background-lev-2"></div>
+    </div>
+}
+
+
+@code{
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    [CascadingParameter]
+    private ProductList? ProductList { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnDeleteList { get; set; }
+
+    private bool isProcessing = false;
+
+    private async Task DeleteProductList()
+    {
+        isProcessing = true;
+        using var context = DbFactory.CreateDbContext();
+        context.ProductList.Remove(ProductList!);
+        await context.SaveChangesAsync();
+        await OnDeleteList.InvokeAsync();
+        isProcessing = false;
+        Close();
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}
