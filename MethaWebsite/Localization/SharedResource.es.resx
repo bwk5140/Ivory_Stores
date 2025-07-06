@@ -321,7 +321,7 @@
   <data name="ShipsFrom" xml:space="preserve">
     <value>Barcos desde</value>
   </data>
-  <data name="SoldyBy" xml:space="preserve">
+  <data name="SoldBy" xml:space="preserve">
     <value>Vendido por</value>
   </data>
   <data name="MoreInfo" xml:space="preserve">
@@ -956,5 +956,113 @@
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Configuración</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Finalizado</value>
+  </data>
+  <data name="SelectDeliveryAddress" xml:space="preserve">
+    <value>Seleccione una dirección de entrega</value>
+  </data>
+  <data name="DeliveryAddresses" xml:space="preserve">
+    <value>Direcciones de entrega</value>
+  </data>
+  <data name="DeliverHere" xml:space="preserve">
+    <value>Entregar aquí</value>
+  </data>
+  <data name="UserLists" xml:space="preserve">
+    <value>Listas de usuarios</value>
+  </data>
+  <data name="SignInToUseLists" xml:space="preserve">
+    <value>Inicie sesión para crear, ver, editar y agregar elementos a las listas</value>
+  </data>
+  <data name="NotCharged" xml:space="preserve">
+    <value>No se le ha cobrado nada</value>
+  </data>
+  <data name="UnsuccessfulOrder" xml:space="preserve">
+    <value>Su pedido no fue exitoso.</value>
+  </data>
+  <data name="SuccessfulOrder" xml:space="preserve">
+    <value>Su pedido fue exitoso.</value>
+  </data>
+  <data name="ThanksForShopping" xml:space="preserve">
+    <value>Gracias por comprar en Ivory Stores! Le avisaremos cuando el paquete salga del almacén.</value>
+  </data>
+  <data name="NotYetShipped" xml:space="preserve">
+    <value>Pendiente de envío</value>
+  </data>
+  <data name="CancelledOrders" xml:space="preserve">
+    <value>Pedidos cancelados</value>
+  </data>
+  <data name="ordersPlacedIn" xml:space="preserve">
+    <value>pedidos realizados en</value>
+  </data>
+  <data name="3Months" xml:space="preserve">
+    <value>Últimos 3 meses </value>
+  </data>
+  <data name="30Days" xml:space="preserve">
+    <value>últimos 30 días</value>
+  </data>
+  <data name="GetProductSupport" xml:space="preserve">
+    <value>Obtener soporte</value>
+  </data>
+  <data name="WriteReview" xml:space="preserve">
+    <value>Escribir una opinión</value>
+  </data>
+  <data name="ProductProblem" xml:space="preserve">
+    <value>Hay un problema con el pedido </value>
+  </data>
+  <data name="OrderPlaced" xml:space="preserve">
+    <value>Pedido realizado</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>TOTAL</value>
+  </data>
+  <data name="ShipTo" xml:space="preserve">
+    <value>ENVIAR A</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Pedido</value>
+  </data>
+  <data name="ViewInvoice" xml:space="preserve">
+    <value>Ver recibo</value>
+  </data>
+  <data name="ViewOrderDetails" xml:space="preserve">
+    <value>Ver detalles del pedido</value>
+  </data>
+  <data name="DeliverTo" xml:space="preserve">
+    <value>ENTREGAR A</value>
+  </data>
+  <data name="NoOrders" xml:space="preserve">
+    <value>Parece que no hiciste un pedido en</value>
+  </data>
+  <data name="NoOrders30Days" xml:space="preserve">
+    <value>Parece que no has realizado ningún pedido durante los últimos 30 días.</value>
+  </data>
+  <data name="NoOrders3Months" xml:space="preserve">
+    <value>Parece que no has realizado ningún pedido durante los últimos 3 meses.</value>
+  </data>
+  <data name="IndexProducts" xml:space="preserve">
+    <value>Indexar estos productos</value>
+  </data>
+  <data name="OrderDetails" xml:space="preserve">
+    <value>Detalles del pedido</value>
+  </data>
+  <data name="Item(s)Subtotal" xml:space="preserve">
+    <value>Producto(s)</value>
+  </data>
+  <data name="EstimatedTaxCollected" xml:space="preserve">
+    <value>Impuesto estimado a recaudar</value>
+  </data>
+  <data name="OrderSummary" xml:space="preserve">
+    <value>Resumen del pedido</value>
+  </data>
+  <data name="DeliverToSmall" xml:space="preserve">
+    <value>Entregar a</value>
+  </data>
+  <data name="OrderPlacedSmall" xml:space="preserve">
+    <value>Pedido realizado</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>Descargar</value>
   </data>
 </root>

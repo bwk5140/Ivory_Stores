@@ -1,7 +1,10 @@
 ﻿@page "/Account/OrderComplete"
+@using Microsoft.AspNetCore.Authorization
 
 @inject IStringLocalizer<SharedResource> Loc
 @inject NavigationManager NavigationManager
+
+@attribute [Authorize]
 
 @rendermode InteractiveServer
 
@@ -22,14 +25,13 @@
             <div class="card-body">
                 <div class="card mt-2 mb-2" style="border-color: green; max-width: 1200px;">
                     <div class="card-body">
-                        <img src="check-circle-fill.svg" /> Your order was successful.
+                        <img src="check-circle-fill.svg" /> @Loc["SuccessfulOrder"]
                     </div>
                 </div>
-                <p> Thank you for shopping with Ivory Stores! We will notify you once the package has left the warehouse.</p>
+                <p> @Loc["ThanksForShopping"]</p>
             </div>
         </div>
     </div>
-    
 </div>
 
 

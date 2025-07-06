@@ -1,0 +1,99 @@
+﻿@page "/transactions/edit"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>Transactions</h2>
+<hr />
+@if (Transactions is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Transactions" OnValidSubmit="UpdateTransactions" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="Transactions.Id" value="@Transactions.Id" />
+                <div class="mb-3">
+                    <label for="type" class="form-label">Type:</label>
+                    <InputText id="type" @bind-Value="Transactions.Type" class="form-control" />
+                    <ValidationMessage For="() => Transactions.Type" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="vendor" class="form-label">Vendor:</label>
+                    <InputText id="vendor" @bind-Value="Transactions.Vendor" class="form-control" />
+                    <ValidationMessage For="() => Transactions.Vendor" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="orderid" class="form-label">OrderId:</label>
+                    <InputText id="orderid" @bind-Value="Transactions.OrderId" class="form-control" />
+                    <ValidationMessage For="() => Transactions.OrderId" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/transactions">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Transaction? Transactions { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Transactions ??= await context.Transactions.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Transactions is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateTransactions()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Transactions!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!TransactionsExists(Transactions!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/transactions");
+    }
+
+    private bool TransactionsExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Transactions.Any(e => e.Id == id);
+    }
+}

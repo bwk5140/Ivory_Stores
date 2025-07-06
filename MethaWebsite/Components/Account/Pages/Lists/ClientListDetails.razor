@@ -156,6 +156,10 @@
             Products = await context.Product.Where(p => List.ProductIds.Contains(p.Id)).Distinct()
                         .ToListAsync();
         }
+        else
+        {
+            Products = null;
+        }
     }
     public void OnEditListClicked()
     {

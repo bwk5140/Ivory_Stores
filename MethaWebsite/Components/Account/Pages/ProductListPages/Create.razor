@@ -74,6 +74,8 @@
 
     [Parameter]
     public EventCallback<SaveChangesEventArgs> OnAddToList { get; set; }
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnCloseAddToList { get; set; }
 
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddProductList()
@@ -96,7 +98,7 @@
             CreateIssue = true;
         }
 
-        
+
     }
     public void Show()
     {
@@ -104,8 +106,9 @@
         StateHasChanged();
     }
 
-    private void Close()
+    private async Task Close()
     {
+        await OnCloseAddToList.InvokeAsync();
         IsVisible = false;
         StateHasChanged();
     }

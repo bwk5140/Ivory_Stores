@@ -1,0 +1,268 @@
+﻿@page "/Account/Order/details"
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+<div class="container-sm mt-5 mb-5" style="display: block; justify-content: center;">
+    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="AccountSettings" style="text-decoration: none;">
+                    @Loc["YourAccount"]
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="/Account/Orders" style="text-decoration: none;">
+                    @Loc["YourOrders"]
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">@Loc["OrderDetails"]</li>
+        </ol>
+    </nav>
+    <h3>@Loc["OrderDetails"]</h3>
+
+    @if (order is not null)
+    {
+        <div class="row" style="max-width: 1000px; padding: 0px;">
+            <div class="col">
+                <div class="mt-3 mb-3" style="text-wrap: nowrap;">
+                    @Loc["OrderPlacedSmall"] @order.Date.ToString("MMMM") @order.Date.Day, @order.Date.Year
+                    <div class="ms-3 me-3" style="display: inline-block;">|</div>
+                    @Loc["Order"]: @order.Id
+                </div>
+            </div>
+            <div class="col" style="text-align: right;">
+                <div class="mt-3 mb-3" >
+                    <a href="@($"Account/Order/invoice?id={order.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: transparent;
+                                                                                                                                                                          border-color:black; border-radius: 25px; color: black; width: 200px;">
+                        @Loc["ViewInvoice"]
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        using var context = DbFactory.CreateDbContext();
+        <div class="card mb-3" style="max-width: 1000px; padding: 0px;">
+            <div class="card-body mt-3" style="padding: 0px;">
+                <div class="row" style="padding: 0px;">
+                    <div class="col" style="padding: 0px;">
+                        <div>
+                            @{
+                                ShippedAddress = context.Address.FirstOrDefault(a => a.Id == order.ShippingAdressId);
+                            }
+                            <ul>
+                                <li class="list-group-item me-2 mb-1" style="background-color: transparent;">
+                                    <div class="col">
+                                        <div>
+                                            <strong>@Loc["DeliverToSmall"]</strong>
+                                        </div>
+                                        <div>
+                                            @ShippedAddress.FullName
+                                        </div>
+                                        <div style="color: gray;">
+                                            @ShippedAddress.AddressLine1
+                                        </div>
+                                        <div style="color: gray;">
+                                            @ShippedAddress.AddressLine2
+                                        </div>
+                                        <div style="color: gray;">
+                                            @ShippedAddress.Country
+                                        </div>
+                                        <div style="color: gray;">
+                                            @Loc["PhoneNumber"] : @ShippedAddress.PhoneNumber
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-sm-3" style="padding: 0px;">
+                        <div>
+                            <strong>@Loc["PaymentMethod"]</strong>
+                        </div>
+                        @{
+                            PaymentMethod = GetPaymentMethod(order.PaymentMethodId);
+                        }
+                        <div style="display: inline-block; text-wrap: nowrap;">
+                            <div class="mb-3" style="display: inline-block">
+                                <svg width="50" height="25" xmlns="http://www.w3.org/2000/svg">
+                                    <image href="@PaymentMethod.LogoSource" width="50" height="25" />
+                                </svg>
+                            </div>
+                            <div style="display: inline-block">
+                                <strong>@PaymentMethod.Type</strong>
+                            </div>
+                            <div style="display: inline-block">
+                                @Loc["EndingIn"]
+                            </div>
+                            <div style="display: inline-block; width: 30px;">
+                                @PaymentMethod.Number
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col" style="padding: 0px;">
+                        <div class="row" style="padding: 0px;">
+                            <div class="ms-5">
+                                <strong class="ms-1">@Loc["OrderSummary"]</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                <ul style="width: fit-content;">
+                                    <li class="list-group-item ms-2 me-2 mb-1" style="background-color: transparent;">
+                                        <div class="col ms-3 mt-3">
+                                            <div style="color: gray;">
+                                                @Loc["Item(s)Subtotal"]:
+                                            </div>
+                                            <div style="color: gray;">
+                                                @Loc["Shipping&Handling"]:
+                                            </div>
+                                            <div style="color: gray;">
+                                                @Loc["EstimatedTaxCollected"]:
+                                            </div>
+                                            <div style="color: gray;">
+                                                <strong>@Loc["OrderTotal"]:</strong>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-sm-6">
+                                <ul>
+                                    <li class="list-group-item ms-2 me-2 mb-1" style="background-color: transparent;">
+                                        <div class="col ms-3 mt-3">
+                                            <div style="color: gray;">
+                                                @{
+                                                    var SubTotal = (order.Amount - order.ShippingCosts) * 100 / 116;
+                                                }
+                                                @SubTotal.ToString("C2")
+                                            </div>
+                                            <div style="color: gray;">
+                                                @order.ShippingCosts.ToString("C2")
+                                            </div>
+                                            <div class="mt-4" style="color: gray;">
+                                                @{
+                                                    var Taxes = (order.Amount - order.ShippingCosts) * 16 / 116;
+                                                }
+                                                @Taxes.ToString("C2")
+                                            </div>
+                                            <div class="mt-4" style="color: gray;">
+                                                <strong>@order.Amount.ToString("C2")</strong>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        if (ApplicationUser is not null)
+        {
+            if (order.ProductIds is not null)
+            {
+                Products = context.Product.Where(p => order.ProductIds.Contains(p.Id)).Distinct()
+                .ToList();
+                @if (Products is not null)
+                {
+                    <div class="card mb-3" style="max-width: 1000px; padding: 0px;">
+                        <div class="card-body">
+                            @foreach (var product in Products)
+                            {
+                                product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+                                var CurrentImage = product.Images[0];
+
+                                <div class="row mt-3">
+                                    <div class="col-sm-2" style="padding: 0px;">
+                                        <a href="@($"product/details?id={product.Id}")" class="btn">
+                                            <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                                 alt=@Loc["ProductImage"] style="width:100px; height:100px; object-fit:contain; vertical-align: central;" />
+                                        </a>
+                                    </div>
+                                    <div class="col-sm-7">
+                                        <a href="@($"product/details?id={product.Id}")" style="padding: 0px; text-decoration:none;">
+                                            @product.Name
+                                        </a>
+                                        <div style="font-size: smaller;">
+                                            @Loc["SoldBy"]: @Loc["CompanyLogo"]
+                                        </div>
+                                        <div style="font-size: smaller;">
+                                            @product.Price.ToString("C2")
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div>
+                                            <button class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f;border-color:transparent; border-radius: 25px; width: 200px;">
+                                                @Loc["GetProductSupport"]
+                                            </button>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f; border-color:transparent; border-radius: 25px; width: 200px;">
+                                                @Loc["ProductProblem"]
+                                            </button>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-primary mt-1 me-2" style="background-color: transparent;border-color:black; border-radius: 25px; color: black; width: 200px;">
+                                                @Loc["WriteReview"]
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                }
+            }
+        }
+    }
+
+</div>
+@code {
+
+    private ApplicationUser? ApplicationUser { get; set; }
+    private Dictionary<string, bool> show = new();
+
+    [Parameter]
+    public List<Product>? Products { get; set; }
+
+    [Parameter]
+    public Order? order { get; set; }
+
+    [Parameter]
+    public Address ShippedAddress { get; set; }
+
+    [Parameter]
+    public Payment PaymentMethod { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Id { get; set; }
+
+    [Parameter]
+    public string? SelectionPeriod2 { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        order = await context.Order.FirstOrDefaultAsync(o => o.Id == Id);
+    }
+    private Payment GetPaymentMethod(string Id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var credit_debit_card = context.CreditDebitCard.FirstOrDefault(c => c.Id == Id);
+        if (credit_debit_card is not null)
+            return credit_debit_card;
+        else
+        {
+            var mpesa_payment = context.Mpesa.FirstOrDefault(m => m.Id == Id);
+            return mpesa_payment;
+        }
+    }
+}

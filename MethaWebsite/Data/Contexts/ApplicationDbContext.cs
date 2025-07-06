@@ -23,5 +23,7 @@ namespace MethaWebsite.Data.Contexts
         public DbSet<MethaWebsite.Data.Mpesa> Mpesa { get; set; } = default!;
         public DbSet<MethaWebsite.Data.Shipping> Shipping { get; set; } = default!;
         public DbSet<MethaWebsite.Data.ShoppingCartProduct> ShoppingCartProduct { get; set; } = default!;
+        public DbSet<MethaWebsite.Data.Order> Order { get; set; } = default!;
+        public DbSet<MethaWebsite.Data.Transaction> Transactions { get; set; } = default!;
     }
 }

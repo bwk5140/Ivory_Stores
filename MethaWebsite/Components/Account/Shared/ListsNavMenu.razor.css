@@ -1,6 +1,7 @@
 ﻿::deep .nav-link.active {
     background-color: whitesmoke;
     color: black;
+    border-left: 3px solid #2f4f4f;
 }
 
 ::deep .nav-link {

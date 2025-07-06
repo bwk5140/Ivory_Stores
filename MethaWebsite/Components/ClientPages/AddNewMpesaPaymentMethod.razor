@@ -1,0 +1,111 @@
+﻿@using MethaWebsite.Components.Account.Pages.Payments.MpesaPages
+@inject IStringLocalizer<SharedResource> Loc
+@inject SMS_Service SMS_Service
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationUserService ApplicationUserService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+<PageTitle>Create</PageTitle>
+
+<div class="container-sm" style="display: block; justify-content: center;">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+         style="top: 35%;">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["AddMpesaPayment"]</strong>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body">
+                <EditForm method="post" Model="Mpesa" OnValidSubmit="AddMpesa" FormName="create" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" role="alert" />
+                    <div class="form form-floating mb-3">
+                        <InputText id="phonenumber" @bind-Value="Mpesa.Number" class="form-control" placeholder="" />
+                        <label for="phonenumber" class="form-label">@Loc["PhoneNumber"]:</label>
+                        <ValidationMessage For="() => Mpesa.Number" class="text-danger" />
+                    </div>
+                    <div class="form form-floating mb-3">
+                        <InputText id="registeredname" @bind-Value="Mpesa.RegisteredName" class="form-control" placeholder=""/>
+                        <label for="registeredname" class="form-label">@Loc["RegisteredName"]:</label>
+                        <ValidationMessage For="() => Mpesa.RegisteredName" class="text-danger" />
+                    </div>
+                    <div style="text-align: right;">
+                        <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                            border-color:transparent; border-radius: 5px;">
+                            @Loc["Add"]
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background"></div>
+    <CascadingValue Value="Mpesa">
+        <SendVerificationSMS @ref="SendVerificationSMSPopUp" OnUpdateClicked="AddMpesaPaymentMethod" />
+    </CascadingValue>
+    
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Mpesa Mpesa { get; set; } = new();
+
+    [CascadingParameter]
+    private Mpesa? DefaultMpesaPaymentMethod { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    private ApplicationUser? applicationUser { get; set; }
+    private SendVerificationSMS? SendVerificationSMSPopUp;
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnMpesaPaymentMethodAdded { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+    }
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddMpesa()
+    {
+        SendVerificationSMSPopUp.Show();
+        SendVerificationSMSPopUp.SendCode();
+    }
+    private async Task AddMpesaPaymentMethod()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Mpesa.BillingAddress = applicationUser.DefaultAddressId;
+        Mpesa.UserId = applicationUser.Id;
+        Mpesa.ImageSource = "generic_mpesa_card.svg";
+        Mpesa.LogoSource = "Mpesa.svg";
+        Mpesa.Type = "Mpesa";
+        context.Mpesa.Add(Mpesa);
+        await context.SaveChangesAsync();
+        DefaultMpesaPaymentMethod = Mpesa;
+        await OnMpesaPaymentMethodAdded.InvokeAsync();
+        Close();
+
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}
+

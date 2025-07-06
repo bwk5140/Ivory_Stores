@@ -1,0 +1,54 @@
+﻿@page "/transactions/create"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Transactions</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Transactions" OnValidSubmit="AddTransactions" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="type" class="form-label">Type:</label> 
+                <InputText id="type" @bind-Value="Transactions.Type" class="form-control" /> 
+                <ValidationMessage For="() => Transactions.Type" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="vendor" class="form-label">Vendor:</label> 
+                <InputText id="vendor" @bind-Value="Transactions.Vendor" class="form-control" /> 
+                <ValidationMessage For="() => Transactions.Vendor" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="orderid" class="form-label">OrderId:</label> 
+                <InputText id="orderid" @bind-Value="Transactions.OrderId" class="form-control" /> 
+                <ValidationMessage For="() => Transactions.OrderId" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/transactions">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Transaction Transactions { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddTransactions()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Transactions.Add(Transactions);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/transactions");
+    }
+}

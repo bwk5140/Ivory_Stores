@@ -1,0 +1,298 @@
+﻿@page "/Account/Orders"
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+<div class="container-sm mt-5 mb-5" style="display: block; justify-content: center;">
+    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="AccountSettings" style="text-decoration: none;">
+                    @Loc["YourAccount"]
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">@Loc["YourOrders"]</li>
+        </ol>
+    </nav>
+    <h3>@Loc["YourOrders"]</h3>
+    
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <ul class="navbar-nav nav-underline mb-3">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/Account/Orders">@Loc["Orders"]</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">@Loc["NotYetShipped"]</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">@Loc["CancelledOrders"]</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+
+    @if (Orders is not null)
+    {
+        using var context = DbFactory.CreateDbContext();
+        <div class="row mb-3 mt-3">
+            <div class="col-sm-2">
+                <p>@Orders.Count @Loc["ordersPlacedIn"] </p>
+            </div>
+            <div class="col-sm-2">
+                <InputSelect id="category" @bind-Value="SelectedOrderPeriod" @bind-Value:after="SetOrdersFromSelectedPeriod"
+                             class="form-select-sm">
+                    <option selected value="@SelectionPeriod1">@SelectionPeriod1</option>
+                    <option value="@SelectionPeriod2">@SelectionPeriod2</option>
+                    @foreach (var year in OrderPeriodYears)
+                    {
+                        <option value="@year">@year</option>
+                    }
+                </InputSelect>
+            </div>
+        </div>
+        if (Orders.Any())
+        {
+            foreach (var order in Orders)
+            {
+                if (ApplicationUser is not null)
+                {
+                    if (order is not null && order.ProductIds is not null)
+                    {
+                        Products = context.Product.Where(p => order.ProductIds.Contains(p.Id)).Distinct()
+                        .ToList();
+                        @if (Products is not null)
+                        {
+                            <div class="card mb-3" style="max-width: 1000px; padding: 0px;">
+                                <div class="card-header">
+                                    <div class="row">
+                                        <div class="col-sm-2">
+                                            <div>
+                                                @Loc["OrderPlaced"]
+                                            </div>
+                                            <div>
+                                                @order.Date.ToString("MMMM") @order.Date.Day, @order.Date.Year
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div>
+                                                @Loc["Total"]
+                                            </div>
+                                            <div>
+                                                @order.Amount.ToString("C2")
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div>
+                                                @Loc["DeliverTo"]
+                                            </div>
+                                            <div class="dropdown">
+                                                @{
+                                                    ShippedAddress = context.Address.FirstOrDefault(a => a.Id == order.ShippingAdressId);
+                                                }
+                                                <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                                        style="background-color:transparent; color: black; padding: 0px;"
+                                                        @onclick="e => this.show[order.Id] = !this.show[order.Id]">
+                                                    @ShippedAddress.FullName
+                                                </button>
+                                                <ul class="dropdown-menu @(show[order.Id] ? "show" : "")" @onmouseleave="e => this.show[order.Id] = !this.show[order.Id]">
+                                                    <li class="list-group-item dropdown-item ms-2 me-2 mb-1" style="background-color: transparent;">
+                                                        <div class="col ms-3 mt-3">
+                                                            <div>
+                                                                <strong>@ShippedAddress.FullName</strong>
+                                                            </div>
+                                                            <div style="color: gray;">
+                                                                @ShippedAddress.AddressLine1
+                                                            </div>
+                                                            <div style="color: gray;">
+                                                                @ShippedAddress.AddressLine2
+                                                            </div>
+                                                            <div style="color: gray;">
+                                                                @ShippedAddress.Country
+                                                            </div>
+                                                            <div style="color: gray;">
+                                                                @Loc["PhoneNumber"] : @ShippedAddress.PhoneNumber
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <div>
+                                                @Loc["Order"]: @order.Id
+                                            </div>
+                                            <div>
+                                                <a class="ms-5 me-3" href="@($"Account/Order/details?id={@order.Id}")" style="text-decoration: none;">
+                                                    @Loc["ViewOrderDetails"]
+                                                </a>
+                                                |
+                                                <a class="ms-3" href="@($"Account/Order/invoice?id={@order.Id}")" style="text-decoration: none;">
+                                                    @Loc["ViewInvoice"]
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    @foreach (var product in Products)
+                                    {
+                                        product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+                                        var CurrentImage = product.Images[0];
+
+                                        <div class="row mt-3">
+                                            <div class="col-sm-2" style="padding: 0px;">
+                                                <a href="@($"product/details?id={product.Id}")" class="btn">
+                                                    <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                                         alt=@Loc["ProductImage"] style="width:100px; height:100px; object-fit:contain; vertical-align: central;" />
+                                                </a>
+                                            </div>
+                                            <div class="col-sm-7">
+                                                <a href="@($"product/details?id={product.Id}")" style="padding: 0px; text-decoration:none;">
+                                                    <p>@product.Name</p>
+                                                </a>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <div>
+                                                    <button class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f;
+                                                             border-color:transparent; border-radius: 25px; width: 200px;">
+                                                        @Loc["GetProductSupport"]
+                                                    </button>
+                                                </div>
+                                                <div>
+                                                    <button class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f;
+                                                                                                  border-color:transparent; border-radius: 25px; width: 200px;">
+                                                        @Loc["ProductProblem"]
+                                                    </button>
+                                                </div>
+                                                <div>
+                                                    <button class="btn btn-primary mt-1 me-2" style="background-color: transparent;
+                                                                                          border-color:black; border-radius: 25px; color: black; width: 200px;">
+                                                        @Loc["WriteReview"]
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                        }
+                    }
+                }
+
+            }
+        }
+        else
+        {
+            <div style="text-align: center;">
+                @if (SelectedOrderPeriod != SelectionPeriod1 && SelectedOrderPeriod != SelectionPeriod2)
+                {
+                    <p>@Loc["NoOrders"] @SelectedOrderPeriod</p>
+                }
+                else
+                {
+                    if (SelectedOrderPeriod == SelectionPeriod1)
+                    {
+                        <p>@Loc["NoOrders30Days"]</p>
+                    }
+                    else
+                    {
+                        <p>@Loc["NoOrders3Months"]</p>
+                    }
+
+                }
+                
+            </div>
+
+        }
+    }
+    
+</div>
+@code {
+
+    private ApplicationUser? ApplicationUser { get; set; }
+    private Dictionary<string,bool> show = new();
+
+    [Parameter]
+    public List<Product>? Products { get; set; }
+
+    [Parameter]
+    public List<Order>? Orders { get; set; } = new List<Order>();
+
+    [Parameter]
+    public List<string>? OrderPeriodYears { get; set; } = new List<string>();
+
+    [Parameter]
+    public string SelectedOrderPeriod { get; set; }
+
+    [Parameter]
+    public Address ShippedAddress { get; set; }
+
+    [Parameter]
+    public string? SelectionPeriod1 { get; set; }
+
+    [Parameter]
+    public string? SelectionPeriod2 { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        SelectionPeriod1 = Loc["30Days"];
+        SelectionPeriod2 = Loc["3Months"];
+        SelectedOrderPeriod = SelectionPeriod1;
+        using var context = await DbFactory.CreateDbContextAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        Orders = context.Order.Where(o => o.UserId == ApplicationUser.Id).OrderByDescending(o => o.Date).ToList();
+
+        for (int i = 0; i < 13; i++)
+        {
+            OrderPeriodYears.Add((DateTime.Now.Year - i).ToString());
+        }
+        foreach (var order in Orders)
+        {
+            show[order.Id] = false;
+        }
+        await SetOrdersFromSelectedPeriod();
+    }
+    private Payment GetPaymentMethod(string Id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var credit_debit_card = context.CreditDebitCard.FirstOrDefault(c => c.Id == Id);
+        if (credit_debit_card is not null)
+            return credit_debit_card;
+        else
+        {
+            var mpesa_payment = context.Mpesa.FirstOrDefault(m => m.Id == Id);
+            return mpesa_payment;
+        }
+    }
+    private async Task SetOrdersFromSelectedPeriod()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        if (SelectedOrderPeriod != SelectionPeriod1 && SelectedOrderPeriod != SelectionPeriod2)
+        {
+            Orders = context.Order.Where(o => o.Date.Year.ToString() == SelectedOrderPeriod).OrderByDescending(o => o.Date).ToList();
+        }
+        else
+        {
+            if (SelectedOrderPeriod == SelectionPeriod1)
+            {
+                Orders = context.Order.Where(o => o.Date.Month - 1 <= DateTime.Now.AddDays(-30).Month).OrderByDescending(o => o.Date).ToList();
+            }
+            else
+            {
+                Orders = context.Order.Where(o => o.Date.Month - 3 <= DateTime.Now.AddMonths(-3).Month).OrderByDescending(o => o.Date).ToList();
+            }
+
+        }
+    }
+}

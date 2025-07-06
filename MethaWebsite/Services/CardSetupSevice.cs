@@ -29,7 +29,7 @@ namespace MethaWebsite.Services
             return new CreditDebitCard
             {
                 Type = card.Brand,
-                CardNumber = card.Last4,
+                Number = card.Last4,
                 ExpirationMonth = (int)card.ExpMonth,
                 ExpirationYear = (int)card.ExpYear,
                 Fingerprint = card.Fingerprint

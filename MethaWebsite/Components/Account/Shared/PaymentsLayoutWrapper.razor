@@ -1,23 +1,91 @@
 ﻿@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+
+@implements IDisposable
+
+@rendermode InteractiveServer
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light second-top-row-light">
     <div class="container-fluid">
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="ms-5 navbar-nav" >
-                <li class="ms-5 nav-item me-2">
-                    <a class="nav-link" href="/Account/Payments" style="font-size: medium;">@Loc["PaymentMethods"]</a>
-                </li>
-                <li class="ms-5 nav-item me-2">
-                    <a class="nav-link" href="#" style="font-size: medium;">@Loc["Transactions"]</a>
-                </li>
-                <li class="ms-5 nav-item me-2">
-                    <a class="nav-link" href="#" style="font-size: medium;">@Loc["Settings"]</a>
-                </li>
-            </ul>
-        </div>
+        <ul class="ms-5 navbar-nav nav-underline">
+            <li class="ms-5 nav-item me-2">
+                <a class="nav-link @Active["Payments"]" aria-current="@IsActive["Payments"]" href="/Account/Payments" style="font-size: medium;"
+                   @onclick="UpdateNavItems">
+                    @Loc["PaymentMethods"]
+                </a>
+            </li>
+            <li class="ms-5 nav-item me-2">
+                <a class="nav-link @Active["Transactions"]" aria-current="@IsActive["Transactions"]" href="/Account/Payments/Transactions" style="font-size: medium;"
+                   @onclick="UpdateNavItems">
+                    @Loc["Transactions"]
+                </a>
+            </li>
+            <li class="ms-5 nav-item me-2">
+                <a class="nav-link @Active["Settings"]" aria-current="@IsActive["Settings"]" href="#" style="font-size: medium;"
+                   @onclick="UpdateNavItems">
+                    @Loc["Settings"]
+                </a>
+            </li>
+        </ul>
     </div>
 </nav>
 
 @code {
+    [Parameter]
+    public Dictionary<string, bool> IsActive { get; set; } = new();
 
+    [Parameter]
+    public Dictionary<string, string> Active { get; set; } = new();
+
+    string? currentUrl { get; set; }
+
+    protected override void OnInitialized()
+    {
+        IsActive["Payments"] = false;
+        IsActive["Transactions"] = false;
+        IsActive["Settings"] = false;
+
+        Active["Payments"] = "none";
+        Active["Transactions"] = "none";
+        Active["Settings"] = "none";
+
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+        UpdateNavItems();
+    }
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+    private void UpdateNavItems()
+    {
+        foreach (var pair in IsActive)
+        {
+            if (currentUrl.EndsWith(pair.Key))
+            {
+                IsActive[pair.Key] = true;
+            }
+            else
+            {
+                IsActive[pair.Key] = false;
+            }
+        }
+        foreach (var pair in Active)
+        {
+            if (currentUrl.EndsWith(pair.Key))
+            {
+                Active[pair.Key] = "active";
+            }
+            else
+            {
+                Active[pair.Key] = "none";
+            }
+        }
+        StateHasChanged();
+    }
 }

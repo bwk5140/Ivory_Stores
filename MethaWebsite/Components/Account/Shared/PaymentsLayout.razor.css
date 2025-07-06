@@ -1,12 +1,4 @@
-﻿::deep .nav-link.active {
-    background-color: whitesmoke;
-    color: black;
-}
-
-::deep .nav-link {
-    color: black;
-}
-.card {
+﻿.card {
     background-color: white;
     border-color: whitesmoke;
     border-radius: 10px;

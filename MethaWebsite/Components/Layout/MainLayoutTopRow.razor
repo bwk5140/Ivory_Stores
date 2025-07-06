@@ -6,8 +6,9 @@
 @using System.Globalization
 @using PSC.Blazor.Components.Icons
 
-@inject IStringLocalizer<SharedResource> Loc
 @implements IDisposable
+
+@inject IStringLocalizer<SharedResource> Loc
 @inject NavigationManager NavigationManager
 @inject ApplicationUserService ApplicationUserService
 @inject ShoppingCartService ShoppingCartService
@@ -24,7 +25,8 @@
     !NavigationManager.Uri.Contains("AccessDenied") && !NavigationManager.Uri.Contains("Lockout") && 
     !NavigationManager.Uri.Contains("EmailConfirmation") && !NavigationManager.Uri.Contains("Forgot")&& 
     !NavigationManager.Uri.Contains("Checkout") && !NavigationManager.Uri.Contains("OrderComplete")&& 
-    !NavigationManager.Uri.Contains("OrderAbandoned") && !currentUrl!.Contains("checkout"))
+    !NavigationManager.Uri.Contains("OrderAbandoned") && !currentUrl!.Contains("checkout")&& 
+    !currentUrl!.Contains("invoice"))
 {
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark top-row">
         <a class="navbar-brand ms-2" href="/">@Loc["CompanyLogo"]</a>
@@ -40,6 +42,7 @@
                 <InputText class="input-no-focus form-control" @bind-Value="search" typeof="search" placeholder="@Loc["SearchCompany"]"
                            aria-label="Search" @bind-Value:after="Search">
                 </InputText>
+                
                 <button class="btn btn-outline-success" style="background-color: #89c182; border-top-right-radius: 8px;
                                     border-bottom-right-radius: 8px; border-color: #89c182;" type="submit" @onclick=Search>
                     <i class="search_icon"></i>
@@ -131,7 +134,7 @@
                                                     <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["Account"]</a>
                                                 </div>
                                                 <div>
-                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["Orders"]</a>
+                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/Account/Orders">@Loc["Orders"]</a>
                                                 </div>
                                                 <div>
                                                     <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["CustomerService"]</a>
@@ -210,7 +213,7 @@
                                                     <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["Account"]</a>
                                                 </div>
                                                 <div>
-                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["Orders"]</a>
+                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/Account/Orders">@Loc["Orders"]</a>
                                                 </div>
                                                 <div>
                                                     <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["CustomerService"]</a>
@@ -360,8 +363,10 @@
 
     private MethaWebsite.Components.Account.Pages.Lists.EditListPopOver CreateListPopUp;
 
+
     protected override async Task OnInitializedAsync()
     {
+
         selectedCulture = CultureInfo.CurrentCulture;
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
@@ -370,12 +375,11 @@
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
         using var context = await DbFactory.CreateDbContextAsync();
-        ProductLists = context.ProductList.Where(c => c.UserId == ApplicationUser.Id).ToList();
-        defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default");
-        ProductLists.Remove(defaultList);
-
         if (ApplicationUser is not null)
         {
+            ProductLists = context.ProductList.Where(c => c.UserId == ApplicationUser.Id).ToList();
+            defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default");
+            ProductLists.Remove(defaultList);
             ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == ApplicationUser.Id);
 
             if (ShoppingCart is null)
@@ -398,9 +402,10 @@
         NavigationManager.LocationChanged -= OnLocationChanged;
         RefreshService.OnRefreshRequested -= RefreshLayout;
     }
+
     private void Search()
     {
-        NavigationManager.NavigateTo($"searchresults?search={search}");
+        NavigationManager.NavigateTo($"searchresults?search={search}", true);
     }
     private void OnSignInClicked()
     {

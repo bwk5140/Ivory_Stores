@@ -29,9 +29,9 @@
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger" role="alert" />
                     <div class="form form-floating mb-3">
-                        <InputText id="phonenumber" @bind-Value="Mpesa.PhoneNumber" class="form-control" placeholder="" />
+                        <InputText id="phonenumber" @bind-Value="Mpesa.Number" class="form-control" placeholder="" />
                         <label for="phonenumber" class="form-label">@Loc["PhoneNumber"]:</label>
-                        <ValidationMessage For="() => Mpesa.PhoneNumber" class="text-danger" />
+                        <ValidationMessage For="() => Mpesa.Number" class="text-danger" />
                     </div>
                     <div class="form form-floating mb-3">
                         <InputText id="registeredname" @bind-Value="Mpesa.RegisteredName" class="form-control" placeholder=""/>

@@ -321,7 +321,7 @@
   <data name="ShipsFrom" xml:space="preserve">
     <value>Ships from</value>
   </data>
-  <data name="SoldyBy" xml:space="preserve">
+  <data name="SoldBy" xml:space="preserve">
     <value>Sold by</value>
   </data>
   <data name="MoreInfo" xml:space="preserve">
@@ -956,5 +956,113 @@
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="SelectDeliveryAddress" xml:space="preserve">
+    <value>Select a delivery address</value>
+  </data>
+  <data name="DeliveryAddresses" xml:space="preserve">
+    <value>Delivery addresses</value>
+  </data>
+  <data name="DeliverHere" xml:space="preserve">
+    <value>Deliver here</value>
+  </data>
+  <data name="UserLists" xml:space="preserve">
+    <value>User Lists</value>
+  </data>
+  <data name="SignInToUseLists" xml:space="preserve">
+    <value>Please sign in to create, view, edit, and add items to lists</value>
+  </data>
+  <data name="NotCharged" xml:space="preserve">
+    <value>You have not been charged</value>
+  </data>
+  <data name="UnsuccessfulOrder" xml:space="preserve">
+    <value>Your order was unsuccessful.</value>
+  </data>
+  <data name="SuccessfulOrder" xml:space="preserve">
+    <value>Your order was successful.</value>
+  </data>
+  <data name="ThanksForShopping" xml:space="preserve">
+    <value>Thank you for shopping with Ivory Stores! We will notify you once the package has left the warehouse.</value>
+  </data>
+  <data name="NotYetShipped" xml:space="preserve">
+    <value> Not Yet Shipped </value>
+  </data>
+  <data name="CancelledOrders" xml:space="preserve">
+    <value>Cancelled Orders</value>
+  </data>
+  <data name="ordersPlacedIn" xml:space="preserve">
+    <value>orders placed in</value>
+  </data>
+  <data name="3Months" xml:space="preserve">
+    <value>past 3 months</value>
+  </data>
+  <data name="30Days" xml:space="preserve">
+    <value>last 30 days</value>
+  </data>
+  <data name="GetProductSupport" xml:space="preserve">
+    <value>Get product support</value>
+  </data>
+  <data name="WriteReview" xml:space="preserve">
+    <value>Write a product review</value>
+  </data>
+  <data name="ProductProblem" xml:space="preserve">
+    <value>Problem with order</value>
+  </data>
+  <data name="OrderPlaced" xml:space="preserve">
+    <value>ORDER PLACED</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>TOTAL</value>
+  </data>
+  <data name="ShipTo" xml:space="preserve">
+    <value>SHIP TO</value>
+  </data>
+  <data name="Order" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="ViewInvoice" xml:space="preserve">
+    <value>View invoice</value>
+  </data>
+  <data name="ViewOrderDetails" xml:space="preserve">
+    <value>View order details</value>
+  </data>
+  <data name="DeliverTo" xml:space="preserve">
+    <value>DELIVER TO</value>
+  </data>
+  <data name="NoOrders" xml:space="preserve">
+    <value>Looks like you haven't placed an order in</value>
+  </data>
+  <data name="NoOrders30Days" xml:space="preserve">
+    <value>Looks like you haven't placed an order in the last 30 days. </value>
+  </data>
+  <data name="NoOrders3Months" xml:space="preserve">
+    <value>Looks like you haven't placed an order in the last 3 months.</value>
+  </data>
+  <data name="IndexProducts" xml:space="preserve">
+    <value>Index products</value>
+  </data>
+  <data name="OrderDetails" xml:space="preserve">
+    <value>Order Details</value>
+  </data>
+  <data name="Item(s)Subtotal" xml:space="preserve">
+    <value>Item(s) Subtotal</value>
+  </data>
+  <data name="EstimatedTaxCollected" xml:space="preserve">
+    <value>Estimated tax to be collected</value>
+  </data>
+  <data name="OrderSummary" xml:space="preserve">
+    <value>Order Summary</value>
+  </data>
+  <data name="DeliverToSmall" xml:space="preserve">
+    <value>Deliver to</value>
+  </data>
+  <data name="OrderPlacedSmall" xml:space="preserve">
+    <value>Order placed</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>Download</value>
   </data>
 </root>

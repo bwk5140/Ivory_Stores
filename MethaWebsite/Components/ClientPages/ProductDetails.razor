@@ -235,11 +235,13 @@
                             </button>
                         </div>
                         <div class="mt-3 mb-3">
-                            <button style="border-bottom-left-radius: 10px; border-top-left-radius: 10px; border: unset;">
+                            <button style="border-bottom-left-radius: 10px; border-top-left-radius: 10px; border: unset;"
+                                    @onclick="ReduceProductQuantity">
                                 <img src="dash.svg"/>
                             </button>
-                            <strong>@product.Quantity</strong>
-                            <button style="border-bottom-right-radius: 10px; border-top-right-radius: 10px; border: unset;">
+                            <strong>@shoppingCartProduct.Quantity</strong>
+                            <button style="border-bottom-right-radius: 10px; border-top-right-radius: 10px; border: unset;"
+                                    @onclick="IncreaseProductQuantity">
                                 <img src="plus.svg" />
                             </button>
                         </div>
@@ -292,21 +294,48 @@
                             @if (AddToListClicked)
                             {
                                 <AuthorizeView>
-                                    <dd class="col-md-12 mt-3" style="color: #2f4f4f; font-size: small; text-align: center;">
-                                        <InputSelect id="list" @bind-Value="ListAddedTo" @bind-Value:after="OnListSelected" class="form-select-sm"
-                                                     @onselect="OnListSelected" style="width: 200px;">
-                                            <option disabled hidden value="@Loc["AddToList"]">@Loc["AddToList"]</option>
-                                            @if (Lists is not null && Lists.Any())
-                                            {
-                                                @foreach (var list in Lists)
+                                    <Authorized>
+                                        <dd class="col-md-12 mt-3" style="color: #2f4f4f; font-size: small; text-align: center;">
+                                            <InputSelect id="list" @bind-Value="ListAddedTo" @bind-Value:after="OnListSelected" class="form-select-sm"
+                                                         @onselect="OnListSelected" style="width: 200px;">
+                                                <option selected value="" disabled hidden>@Loc["AddToList"]</option>
+                                                <option value="@defaultList.Name" @onclick="OnListSelected">@defaultList.Name</option>
+                                                @if (Lists is not null && Lists.Any())
                                                 {
-                                                    <option value="@list.Name">@list.Name</option>
+                                                    @foreach (var list in Lists)
+                                                    {
+                                                        <option value="@list.Name">@list.Name</option>
+                                                    }
                                                 }
-                                            }
-                                            <option value="@Loc[" CreateList"]">@Loc["CreateList"]</option>
-                                        </InputSelect>
-                                    </dd>
-                                    <MethaWebsite.Components.Account.Pages.ProductListPages.Create @ref=AddListPopUp OnAddToList="OnNewListItemCreated" />
+                                                <option value="@Loc[" CreateList"]">@Loc["CreateList"]</option>
+                                            </InputSelect>
+                                        </dd>
+                                        <MethaWebsite.Components.Account.Pages.ProductListPages.Create @ref=AddListPopUp OnAddToList="OnNewListItemCreated" OnCloseAddToList="UpdateInputSelect" />
+                                    </Authorized>
+                                    <NotAuthorized>
+                                        @{
+                                            var showClass = IsVisible ? "d-block" : "d-none";
+                                        }
+                                        <div class="toast-container @showClass" data-bs-autohide="true" data-bs-delay="5000"
+                                             style="top: 35%; display: block; justify-content: center;">
+                                            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                                                 style="background-color: white;">
+                                                <div class="toast-header">
+                                                    <strong class="me-auto">@Loc["UserLists"]</strong>
+                                                    <button type="button" class="btn-close" aria-label="Close" @onclick=" e=> IsVisible = false"></button>
+                                                </div>
+                                                <div class="toast-body">
+                                                    <p>@Loc["SignInToUseLists"]</p>
+                                                </div>
+                                                <div class="toast-footer me-2 mb-3" style="text-align: right;">
+                                                    <button type="button" class="btn btn-primary" @onclick="e => IsVisible = false" style="background-color: #2f4f4f">
+                                                        @Loc["Ok"]
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="darker-background @showClass"></div>
+                                    </NotAuthorized>
                                 </AuthorizeView>
                             }
                             
@@ -326,6 +355,9 @@
 @code {
     private Product? product;
     public ProductGroup? productGroup;
+
+    [Parameter]
+    public ShoppingCartProduct shoppingCartProduct { get; set; } = new ();
 
     [Parameter]
     public List<ProductImage>? Images { get; set; }
@@ -359,6 +391,12 @@
 
     [Parameter]
     public bool AddToListClicked { get; set; }
+
+    [Parameter]
+    public ProductList? defaultList { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
 
     private delegate bool TryFindSizeGuide(string id, DbContext context);
     private record SizeGuideHandler(TryFindSizeGuide TryFind, Action Action);
@@ -438,16 +476,19 @@
             if (ApplicationUser is not null)
             {
                 Lists = context.ProductList.Where(l => l.UserId == ApplicationUser.Id).ToList();
+                defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default");
+                Lists.Remove(defaultList);
             }
         }
     }
     public void OnAddToListClicked()
     {
         AddToListClicked = true;
+        IsVisible = true;
     }
     private async Task OnListSelected()
     {
-        if (ListAddedTo != "Add to List")
+        if (!string.IsNullOrWhiteSpace(ListAddedTo))
         {
             if (ListAddedTo == "Create a list")
             {
@@ -482,6 +523,7 @@
         if (ApplicationUser is not null)
         {
             Lists = context.ProductList.Where(l => l.UserId == ApplicationUser.Id).OrderBy(l => l.Created).ToList();
+            Lists.Remove(defaultList);
         }
         ListAddedTo = Lists.Last().Name;
         await OnListSelected();
@@ -547,6 +589,8 @@
         using var context = await DbFactory.CreateDbContextAsync();
         var ShoppingCartProduct = new ShoppingCartProduct();
         ShoppingCartProduct.ProductId = product.Id;
+        context.ShoppingCartProduct.Add(ShoppingCartProduct);
+        ShoppingCartProduct.Quantity = shoppingCartProduct.Quantity;
         if (ApplicationUser is not null)
         {
             ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == ApplicationUser.Id);
@@ -558,19 +602,20 @@
                 context.ShoppingCart.Add(ShoppingCart);
                 await context.SaveChangesAsync();
             }
-            
-            context.ShoppingCartProduct.Add(ShoppingCartProduct);
+        }
+        else
+        {
             await context.SaveChangesAsync();
+            ShoppingCart = ShoppingCartService.getShoppingCart();
+        }
+        for (int i = shoppingCartProduct.Quantity; i > 0; i--)
+        {
             ShoppingCart.ProductIds.Add(ShoppingCartProduct.Id);
             ShoppingCart.Subtotal += product.Price;
             context.Attach(ShoppingCart!).State = EntityState.Modified;
             await context.SaveChangesAsync();
         }
-        else
-        {
-            ShoppingCart = ShoppingCartService.getShoppingCart();
-            ShoppingCartService.AddToShoppingCart(ShoppingCartProduct, product);
-        }
+
         NavigationManager.NavigateTo($"/shoppingcart/confirmation?id={product.Id}", forceLoad: true);
     }
     private async Task OnBuyNow()
@@ -578,6 +623,8 @@
         using var context = await DbFactory.CreateDbContextAsync();
         var ShoppingCartProduct = new ShoppingCartProduct();
         ShoppingCartProduct.ProductId = product.Id;
+        ShoppingCartProduct.Quantity = shoppingCartProduct.Quantity;
+        context.ShoppingCartProduct.Add(ShoppingCartProduct);
         if (ApplicationUser is not null)
         {
             ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == ApplicationUser.Id);
@@ -594,8 +641,27 @@
         {
             ShoppingCart = ShoppingCartService.getShoppingCart();
         }
-        context.ShoppingCartProduct.Add(ShoppingCartProduct);
-        await context.SaveChangesAsync();
-        NavigationManager.NavigateTo($"/Checkout?id={ShoppingCartProduct.Id}");
+
+        for (int i = shoppingCartProduct.Quantity; i > 0; i--)
+        {
+            ShoppingCart.ProductIds.Add(ShoppingCartProduct.Id);
+            ShoppingCart.Subtotal += product.Price;
+            context.Attach(ShoppingCart!).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+        }
+        NavigationManager.NavigateTo($"/Checkout?id={shoppingCartProduct.Id}");
+    }
+    private void UpdateInputSelect()
+    {
+        ListAddedTo = "";
+        StateHasChanged();
+    }
+    private void ReduceProductQuantity()
+    {
+        shoppingCartProduct.Quantity -= 1;
+    }
+    private void IncreaseProductQuantity()
+    {
+        shoppingCartProduct.Quantity += 1;
     }
 }

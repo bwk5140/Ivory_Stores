@@ -28,6 +28,8 @@ namespace MethaWebsite.Services
         public string? StandardShippng { get; set; }
         public string? FastShippng { get; set; }
         public Payment? PaymentMethod { get; set; }
+        public string? ShipTo { get; set; }
+        public Data.Address? ShippingAddress { get; set; }
 
         public CheckoutService(IStringLocalizer<CheckoutService> localizer)
         {

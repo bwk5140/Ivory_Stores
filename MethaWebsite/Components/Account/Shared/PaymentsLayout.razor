@@ -2,47 +2,70 @@
 @inherits LayoutComponentBase
 @layout MethaWebsite.Components.Layout.MainLayout
 
+@implements IDisposable
+
 @inject LayoutState LayoutState
+@inject NavigationManager NavigationManager
 @inject StateChangeService StateChangeService
 @inject IStringLocalizer<SharedResource> Loc
 @inject LayoutRefreshService LayoutRefreshService
 
 <PaymentsLayoutWrapper />
 <div class="container-sm mt-5">
-    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="AccountSettings" style="text-decoration: none;">
-                    @Loc["YourAccount"]
-                </a>
-            </li>
-            <li class="breadcrumb-item active" aria-current="page">@Loc["PaymentMethods"]</li>
-        </ol>
-    </nav>
-    @if (HasStateChanged)
+    @if (NavigationManager.Uri.Contains("Payments") && !NavigationManager.Uri.Contains("Transactions"))
     {
-        <div class="card mt-2 mb-2" style="border-color: green; max-width: 1200px;">
+        <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="AccountSettings" style="text-decoration: none;">
+                        @Loc["YourAccount"]
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">@Loc["PaymentMethods"]</li>
+            </ol>
+        </nav>
+        @if (HasStateChanged)
+        {
+            <div class="card mt-2 mb-2" style="border-color: green; max-width: 1200px;">
+                <div class="card-body">
+                    <img src="check-circle-fill.svg" />
+                    @Loc["DefaultPaymentChanged"]
+                </div>
+            </div>
+        }
+        <h3>@Loc["PaymentMethods"]</h3>
+        <div class="card">
             <div class="card-body">
-                <img src="check-circle-fill.svg" />
-                @Loc["DefaultPaymentChanged"]
+                <div class="row">
+                    <div class="col-lg-3">
+                        <CascadingValue Value="HasStateChanged">
+                            <PaymentsNavMenu />
+                        </CascadingValue>
+                    </div>
+                    <div class="col-lg-9">
+                        @Body
+                    </div>
+                </div>
             </div>
         </div>
     }
-    <h3>@Loc["PaymentMethods"]</h3>
-    <div class="card">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-lg-3">
-                    <CascadingValue Value="HasStateChanged">
-                        <PaymentsNavMenu />
-                    </CascadingValue>
-                </div>
-                <div class="col-lg-9">
-                    @Body
-                </div>
-            </div>
+    else
+    {
+        <nav class="ms-2" style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="AccountSettings" style="text-decoration: none;">
+                        @Loc["YourAccount"]
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">@Loc["Transactions"]</li>
+            </ol>
+        </nav>
+        
+        <div class="container-sm">
+            @Body
         </div>
-    </div>
+    }
 </div>
 @code{
     [Parameter]
@@ -56,5 +79,9 @@
     private void LayoutRefresh()
     {
         HasStateChanged = true;
+    }
+    public void Dispose()
+    {
+        LayoutRefreshService.OnRefreshRequested -= LayoutRefresh;
     }
 }

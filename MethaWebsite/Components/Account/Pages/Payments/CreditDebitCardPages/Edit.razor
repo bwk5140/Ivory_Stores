@@ -31,9 +31,9 @@ else
                         <div class="row">
                             <div class="col-lg-6 border-end" style="padding-right: 60px; padding-left: 40px; width: 350px;">
                                 <div class="form form-floating mb-3">
-                                    <InputText id="cardnumber" @bind-Value="CreditDebitCard.CardNumber" class="form-control" placeholder="" hidden />
+                                    <InputText id="cardnumber" @bind-Value="CreditDebitCard.Number" class="form-control" placeholder="" hidden />
                                     <label for="cardnumber" class="form-label" hidden>@Loc["CardNumber"]:</label>
-                                    <ValidationMessage For="() => CreditDebitCard.CardNumber" class="text-danger" />
+                                    <ValidationMessage For="() => CreditDebitCard.Number" class="text-danger" />
                                 </div>
                                 <div class="form form-floating mb-3">
                                     <InputText id="nameoncard" @bind-Value="CreditDebitCard.NameOnCard" class="form-control" placeholder="" />

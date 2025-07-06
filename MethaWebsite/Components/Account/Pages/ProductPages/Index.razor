@@ -7,6 +7,7 @@
 
 @implements IAsyncDisposable
 
+@inject AlgoliaIndexer AlgoliaIndexer
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<SharedResource> Loc
 @inject ILogger<Index> Logger
@@ -122,12 +123,21 @@
         <div class="col-lg">
             <h3 class="header mt-3">@Loc["Products"]</h3>
             <hr />
-            <div style="text-align: right;">
-                <a href="/Account/products/create" type="btn btn-lg" style="background-color: transparent; border-color:transparent;"
-                        data-bs-toggle="tooltip" title=@Loc["AddProduct"]>
-                    <img src="pencil-square.svg" />
-                </a>
+            <div class="row">
+                <div class="col-sm-11" style="text-align: right;">
+                    <button type="submit" class="btn-primary btn-sm" @onclick="SyncProducts"
+                            style="border-color: black; backrgound-color: transparent; border-radius: 25px;">
+                        @Loc["IndexProducts"]
+                    </button>
+                </div>
+                <div class="col-sm-12" style="text-align: right;">
+                    <a href="/Account/products/create" type="btn btn-lg" style="background-color: transparent; border-color:transparent;"
+                       data-bs-toggle="tooltip" title=@Loc["AddProduct"]>
+                        <img src="pencil-square.svg" />
+                    </a>
+                </div>
             </div>
+            
             <table class="" style="table-layout: fixed; width: 90%;">
                 <tbody>
                     @if (Products is not null)
@@ -502,4 +512,9 @@
             NavigationManager.Refresh(true);
         }
     }
+    private async Task SyncProducts()
+    {
+        var IsSuccess = await AlgoliaIndexer.IndexProductsAsync(Products!);
+    }
+
 }

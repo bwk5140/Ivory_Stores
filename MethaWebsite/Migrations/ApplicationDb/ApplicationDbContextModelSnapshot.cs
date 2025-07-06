@@ -17,7 +17,7 @@ namespace MethaWebsite.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -185,9 +185,6 @@ namespace MethaWebsite.Migrations
                     b.Property<string>("BillingAddress")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("CardNumber")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("DefaultPaymentMethod")
                         .HasColumnType("bit");
 
@@ -207,6 +204,10 @@ namespace MethaWebsite.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NameOnCard")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PaymentMethodId")
@@ -240,7 +241,7 @@ namespace MethaWebsite.Migrations
                     b.Property<string>("LogoSource")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PhoneNumber")
+                    b.Property<string>("Number")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -257,6 +258,37 @@ namespace MethaWebsite.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Mpesa");
+                });
+
+            modelBuilder.Entity("MethaWebsite.Data.Order", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentMethodId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("ProductIds")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShippingAdressId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("ShippingCosts")
+                        .HasColumnType("float");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Order");
                 });
 
             modelBuilder.Entity("MethaWebsite.Data.Product", b =>
@@ -644,6 +676,31 @@ namespace MethaWebsite.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TrousersSizeGuide");
+                });
+
+            modelBuilder.Entity("MethaWebsite.Data.Transaction", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OrderId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Vendor")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Transactions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

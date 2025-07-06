@@ -23,7 +23,7 @@
                     <strong>@creditDebitCard.Type</strong>
                 </div>
                 <div style="display: inline-block;">
-                    @Loc["EndingIn"] @creditDebitCard.CardNumber.Substring(creditDebitCard.CardNumber.Length - 4, 4)
+                    @Loc["EndingIn"] @creditDebitCard.Number
                 </div>
                 <div style="display: inline-block; padding-left: 100px;">
                     @creditDebitCard.NameOnCard
@@ -130,7 +130,7 @@
 
     protected override void OnInitialized()
     {
-        placeholder = $"{Loc["EndingIn"]} {creditDebitCard.CardNumber.Substring(creditDebitCard.CardNumber.Length - 4, 4)}";
+        placeholder = $"{Loc["EndingIn"]} {creditDebitCard.Number}";
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -195,7 +195,7 @@
 
     private void OnVerifyCardClicked()
     {
-        if (cardNumber == creditDebitCard.CardNumber)
+        if (cardNumber == creditDebitCard.Number)
         {
             Verified = true;
         }

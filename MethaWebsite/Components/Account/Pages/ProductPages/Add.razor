@@ -8,6 +8,7 @@
 @using Blazored.TextEditor
 
 @inject IJSRuntime JSRuntime
+@inject AlgoliaIndexer AlgoliaIndexer
 @inject IStringLocalizer<SharedResource> Loc
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
@@ -638,6 +639,7 @@
             context.Product.Add(Product);
             await context.SaveChangesAsync();
         }
+        await AlgoliaIndexer.IndexProductsAsync(new[] { Product });
         NavigationManager.NavigateTo("Account/products");
     }
     private void CopyProductMetadata(Product target, Product source)

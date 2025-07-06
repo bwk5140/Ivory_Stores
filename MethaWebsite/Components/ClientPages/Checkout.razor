@@ -1,10 +1,14 @@
 ﻿@page "/Checkout"
 
+@attribute [Authorize]
+
 @using MethaWebsite.Components.Account.Pages.Payments.CreditDebitCardPages
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using System.Text.Json
 
 @implements IAsyncDisposable
 
@@ -43,41 +47,80 @@ else
     <div class="container-xxl mt-5 mb-5">
         <div class="row">
             <div class="col-lg-8">
-                <div class="card">
-                    <div class="card-body">
-                        <table class="table table-borderless">
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <h5>@Loc["DeliveringTo"] @Address.FullName</h5>
-                                    </td>
-                                    <td style="text-align: right;">
-                                        <button class="btn btn-link" type="button" style="border: none; background-color: transparent;
-                                                       padding:0px; text-decoration: none;" @onclick="ShowChangeBillingAddressPopOver">
-                                            @Loc["Change"]
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        @Address.AddressLine1 @Address.AddressLine2, @Address.City @Address.State, @Address.ZipCode, @Address.Country
-                                    </td>
-                                    <td>
-                                        
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <a href="" style="text-decoration: none;">@Loc["AddDeliveryInstructions"]</a>
-                                    </td>
-                                    <td>
-                                        
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                @if (CheckoutService.ShippingAddress is not null)
+                {
+                    @if (!AreAddressesVisible)
+                    {
+                        <div class="card">
+                            <div class="card-body">
+                                <table class="table table-borderless">
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <h5>@Loc["DeliveringTo"] @CheckoutService.ShippingAddress.FullName</h5>
+                                            </td>
+                                            <td style="text-align: right;">
+                                                <button class="btn btn-link" type="button" style="border: none; background-color: transparent;
+                                                                           padding:0px; text-decoration: none;" @onclick="e => AreAddressesVisible = true">
+                                                    @Loc["Change"]
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                @CheckoutService.ShippingAddress.AddressLine1 @CheckoutService.ShippingAddress.AddressLine2,
+                                                @CheckoutService.ShippingAddress.City @CheckoutService.ShippingAddress.State, @CheckoutService.ShippingAddress.ZipCode,
+                                                @CheckoutService.ShippingAddress.Country
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <a href="" style="text-decoration: none;">@Loc["AddDeliveryInstructions"]</a>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        @if (Addresses is not null)
+                        {
+                            <div class="card" style="padding: 20px; overflow-y: scroll; width: fit-content;">
+                                <div class="card-header" style="border: none; background-color: transparent;">
+                                    <h5>@Loc["SelectDeliveryAddress"]</h5>
+                                    <hr />
+                                    <h6>@Loc["DeliveryAddresses"] (@Addresses.Count())</h6>
+                                </div>
+                                <div class="card-body" style="width: fit-content;">
+                                    @foreach (var address in Addresses)
+                                    {
+                                        <InputRadioGroup Name="Address" @bind-Value="CheckoutService.ShipTo">
+                                            <div class="mt-3">
+                                                <div>
+                                                    <InputRadio Name="Address" class="form-check-input me-1" type="radio" Value="address.Id"
+                                                                id="culture" />
+                                                    <strong>@address.FullName, </strong> @address.AddressLine1, @address.AddressLine2,
+                                                    @address.City, @address.State, @address.ZipCode, @address.Country
+                                                </div>
+                                            </div>
+                                        </InputRadioGroup>
+                                    }
+                                    <button type="submit" class="btn btn-primary mt-4" style="background-color: #2f4f4f;
+                                                                                        border-color:transparent; border-radius: 15px;" @onclick="OnSave">
+                                        @Loc["Deliver here"]
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+                
                 @if (CheckoutService.PaymentMethod is null)
                 {
                     <div class="card mt-4">
@@ -128,7 +171,7 @@ else
                                                             @Loc["EndingIn"]
                                                         </div>
                                                         <div style="display: inline-block; width: 30px;">
-                                                            @creditdebitcard.CardNumber.Substring(creditdebitcard.CardNumber.Length - 4, 4)
+                                                            @creditdebitcard.Number
                                                         </div>
                                                     </div>
                                                 </td>
@@ -226,7 +269,7 @@ else
                                                             @Loc["Phone"] @Loc["EndingIn"]
                                                         </div>
                                                         <div style="display: inline-block; width: 30px;">
-                                                            @MpesaPaymentMethod.PhoneNumber.Substring(MpesaPaymentMethod.PhoneNumber.Length - 4, 4)
+                                                            @MpesaPaymentMethod.Number.Substring(MpesaPaymentMethod.Number.Length - 4, 4)
                                                         </div>
                                                     </div>
                                                 </td>
@@ -310,7 +353,7 @@ else
                                     <strong>
                                         @if (CheckoutService.PaymentMethod is CreditDebitCard)
                                         {
-                                            @DefaultCreditDebitCard.CardNumber.Substring(DefaultCreditDebitCard.CardNumber.Length - 4, 4)
+                                            @DefaultCreditDebitCard.Number
                                         }
                                     </strong>
                                 </div>
@@ -827,8 +870,13 @@ else
             }
         </div>
     </div>
-    <MethaWebsite.Components.Account.Pages.Payments.CreditDebitCardPages.Create @ref="AddNewDebitCredit" />
-    <MethaWebsite.Components.Account.Pages.Payments.MpesaPages.Create @ref="AddNewMpesaPaymentMethod" />
+    <CascadingValue Value="DefaultCreditDebitCard">
+        <AddNewCard @ref="AddNewDebitCredit" OnCardAdded="UpdateCards" />
+    </CascadingValue>
+    <CascadingValue Value="DefaultMpesaPaymentMethod">
+        <AddNewMpesaPaymentMethod @ref="AddNewMpesaPaymentMethod" OnMpesaPaymentMethodAdded="UpdateMpesaPaymentMethods" />
+    </CascadingValue>
+    
 }
 
 @code {
@@ -837,12 +885,14 @@ else
     private CreditDebitCard? DefaultCreditDebitCard;
     private Mpesa? DefaultMpesaPaymentMethod;
     private ShoppingCart? ShoppingCart { get; set; }
-
+    private bool AreAddressesVisible { get; set; }
     private bool isProcessing = false;
     private string? Status;
     private double OrderTotal { get; set; }
     private HttpResponseMessage responseMessage { get; set; }
     private string result { get; set; }
+    private Order? Order { get; set; }
+    private Transaction? Transaction{ get; set; }
 
     [Parameter]
     public List<Product>? Products { get; set; } = new List<Product>();
@@ -861,14 +911,16 @@ else
     [Parameter]
     public List<Mpesa>? MpesaPaymentMethods { get; set; } = new List<Mpesa>();
 
+    [Parameter]
+    public List<Address>? Addresses { get; set; }
+
     [SupplyParameterFromQuery]
     public string? Id { get; set; }
 
     private Dictionary<string, bool> radiosChecked = new();
-    private Dictionary<string, bool> ShippingRadiosChecked = new();
     private ChangeBillingAddressPopOver? changeBillingAddressPopOver;
-    private MethaWebsite.Components.Account.Pages.Payments.CreditDebitCardPages.Create? AddNewDebitCredit;
-    private MethaWebsite.Components.Account.Pages.Payments.MpesaPages.Create? AddNewMpesaPaymentMethod;
+    private AddNewCard? AddNewDebitCredit;
+    private AddNewMpesaPaymentMethod? AddNewMpesaPaymentMethod;
 
     protected override async Task OnInitializedAsync()
     {
@@ -880,7 +932,16 @@ else
 
         if (ApplicationUser is not null)
         {
+            Addresses = context.Address.Where(a => a.UserId == ApplicationUser.Id).ToList();
             Address = await context.Address.FirstOrDefaultAsync(a => a.Id == ApplicationUser.DefaultAddressId);
+            if (CheckoutService.ShippingAddress is null)
+            {
+                CheckoutService.ShippingAddress = Address;
+            }
+            if (CheckoutService.ShipTo is null)
+            {
+                CheckoutService.ShipTo = Address.Id;
+            }
             CreditDebitCards = context.CreditDebitCard.Where(c => c.UserId == ApplicationUser.Id).ToList();
             MpesaPaymentMethods = context.Mpesa.Where(c => c.UserId == ApplicationUser.Id).ToList();
             ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == ApplicationUser.Id);
@@ -943,10 +1004,11 @@ else
 
     private async Task HandlePayment()
     {
+        isProcessing = true;
+        using var context = await DbFactory.CreateDbContextAsync();
         var paymentMethodService = new Stripe.PaymentMethodService();
         var paymentMethod = await paymentMethodService.GetAsync(DefaultCreditDebitCard.PaymentMethodId);
         var customerId = paymentMethod.CustomerId;
-        isProcessing = true;
         var chargeRequest = new
         {
             CustomerId = customerId,
@@ -958,40 +1020,69 @@ else
 
         if (responseMessage.IsSuccessStatusCode)
         {
+            Order = new Order();
+            Order.Amount = OrderTotal;
+            Order.PaymentMethodId = CheckoutService.PaymentMethod.Id;
+            Order.Date = DateTime.Now;
+            Order.ShippingAdressId = CheckoutService.ShipTo;
+            Order.ProductIds = new List<string>();
+            Order.UserId = ApplicationUser.Id;
+            Order.ShippingCosts = CheckoutService.Shipping;
+            Transaction = new Transaction();
+            Transaction.OrderId = Order.Id;
+            Transaction.Vendor = Loc["CompanyLogo"];
+            Transaction.Type = "Order";
+            Transaction.UserId = ApplicationUser.Id;
+            Transaction.Date = DateTime.Now;
+            context.Transactions.Add(Transaction);
             var paymentResult = await responseMessage.Content.ReadFromJsonAsync<PaymentResult>();
             if (BuyNowProduct is null)
             {
-                foreach (var ShoppingCartProduct in ShoppingCartProducts)
+                foreach (var ShoppingCartProductId in ShoppingCart.ProductIds)
                 {
-                    await RemoveProduct(ShoppingCartProduct);
-                    ShoppingCart.ProductIds.Remove(ShoppingCartProduct.Id);
+                    var ShoppingCartProduct = await context.ShoppingCartProduct.FirstOrDefaultAsync(sp => sp.Id == ShoppingCartProductId);
+                    Order.ProductIds.Add(ShoppingCartProduct.ProductId);
+                    await RemoveFromCart(ShoppingCartProduct);
                     context.ShoppingCartProduct.Remove(ShoppingCartProduct);
+                    context.Attach(ShoppingCartProduct).State = EntityState.Modified;
+
                 }
-                CheckoutService = new CheckoutService(Localizer);
             }
             else
             {
-                await RemoveProduct(BuyNowProduct);
-                ShoppingCart.ProductIds.Remove(BuyNowProduct.Id);
+                Order.ProductIds.Add(BuyNowProduct.ProductId);
+                await RemoveFromCart(BuyNowProduct);
                 context.ShoppingCartProduct.Remove(BuyNowProduct);
+                context.Attach(BuyNowProduct).State = EntityState.Modified;
             }
             context.Attach(ShoppingCart).State = EntityState.Modified;
+            ShoppingCart.ProductIds.Clear();
+            context.Order.Add(Order);
             await context.SaveChangesAsync();
+            CheckoutService.PaymentMethod = null;
+            CheckoutService.ShipTo = null;
+            StateHasChanged();
+            TriggerLayoutRefresh();
+            isProcessing = false;
             if (BuyNowProduct is null && !ShoppingCart.ProductIds.Any())
-                NavigationManager.NavigateTo("Account/OrderComplete");
+                NavigationManager.NavigateTo("Account/OrderComplete", true);
             else
             {
                 if (BuyNowProduct is not null)
-                    NavigationManager.NavigateTo("Account/OrderComplete");
-                NavigationManager.NavigateTo("Account/OrderComplete");
+                    NavigationManager.NavigateTo("Account/OrderComplete", true);
             }
         }
         else
         {
+            CheckoutService.PaymentMethod = null;
+            CheckoutService.ShipTo = null;
             var errorContent = await responseMessage.Content.ReadAsStringAsync();
-            NavigationManager.NavigateTo("Account/OrderAbandoned");
+            using JsonDocument doc = JsonDocument.Parse(errorContent);
+            var summary = doc.RootElement
+                             .GetProperty("detail");
+            isProcessing = false;
+            NavigationManager.NavigateTo($"Account/OrderAbandoned?error={summary}", true);
         }
-        isProcessing = false;
     }
     public class PaymentResult
     {
@@ -1062,33 +1153,16 @@ else
         {
             ShoppingCartProduct.Quantity--;
 
-            // Remove product ID and update subtotal
+            // Remove product ID
             ShoppingCart.ProductIds?.Remove(ShoppingCartProduct.Id);
+            // Track changes
+            context.Attach(ShoppingCartProduct).State = EntityState.Modified;
         }
         else
         {
             ShoppingCart.ProductIds?.Remove(ShoppingCartProduct.Id);
             context.ShoppingCartProduct.Remove(ShoppingCartProduct);
-            if (BuyNowProduct is null)
-            {
-                if (!ShoppingCart.ProductIds.Any())
-                    {
-                        NavigationManager.NavigateTo("shoppingcart");
-                        CheckoutService = new CheckoutService(Localizer);
-                    }
-            }
-            else
-            {
-                if (BuyNowProduct.Quantity == 1)
-                {
-                    NavigationManager.NavigateTo("shoppingcart");
-                    CheckoutService = new CheckoutService(Localizer);
-                }
-            }
         }
-
-        // Track changes
-        context.Attach(ShoppingCartProduct).State = EntityState.Modified;
 
         if (ApplicationUser is not null)
             context.Attach(ShoppingCart).State = EntityState.Modified;
@@ -1112,6 +1186,37 @@ else
         }
         StateHasChanged();
         TriggerLayoutRefresh();
+        if (BuyNowProduct is null)
+        {
+            if (!ShoppingCart.ProductIds.Any())
+            {
+                NavigationManager.NavigateTo("shoppingcart", true);
+                CheckoutService = new CheckoutService(Localizer);
+            }
+        }
+        else
+        {
+            if (BuyNowProduct.Quantity == 1)
+            {
+                NavigationManager.NavigateTo("shoppingcart", true);
+                CheckoutService = new CheckoutService(Localizer);
+            }
+        }
+    }
+    public async Task RemoveFromCart(ShoppingCartProduct ShoppingCartProduct)
+    {
+        var context = await DbFactory.CreateDbContextAsync();
+
+        if (ShoppingCart is null || ShoppingCartProduct is null)
+            return;
+
+        var product = await context.Product.FirstOrDefaultAsync(p => p.Id == ShoppingCartProduct.ProductId);
+
+        if (ShoppingCart.Subtotal > 0)
+            ShoppingCart.Subtotal -= product.Price * ShoppingCartProduct.Quantity;
+
+        ShoppingCartProduct.Quantity = 0;
+
     }
     public async Task AddToCart(ShoppingCartProduct ShoppingCartProduct)
     {
@@ -1218,5 +1323,42 @@ else
         var address = await context.Address.FirstOrDefaultAsync(a => a.Id == ApplicationUser.DefaultAddressId);
         var distance = await ShippingService.GetDistance(address);
         return distance;
+    }
+    private async Task OnSave()
+    {
+        AreAddressesVisible = false;
+        using var context = await DbFactory.CreateDbContextAsync();
+        Address = await context.Address.FirstOrDefaultAsync(a => a.Id == CheckoutService.ShipTo);
+        CheckoutService.ShippingAddress = Address;
+    }
+    private void UpdateCards()
+    {
+        var creditDebitCards = context.CreditDebitCard.Where(c => c.UserId == ApplicationUser.Id).ToList();
+        foreach (var paymentMethod in creditDebitCards)
+        {
+            if (!CreditDebitCards.Contains(paymentMethod))
+            {
+                CreditDebitCards.Add(paymentMethod);
+                DefaultCreditDebitCard = paymentMethod;
+                radiosChecked[DefaultCreditDebitCard.Id] = true;
+                break;
+            }
+        }
+        StateHasChanged();
+    }
+    private void UpdateMpesaPaymentMethods()
+    {
+        var mpesaPaymentMethods = context.Mpesa.Where(c => c.UserId == ApplicationUser.Id).ToList();
+        foreach (var paymentMethod in mpesaPaymentMethods)
+        {
+            if (!MpesaPaymentMethods.Contains(paymentMethod))
+            {
+                MpesaPaymentMethods.Add(paymentMethod);
+                DefaultMpesaPaymentMethod = paymentMethod;
+                radiosChecked[DefaultMpesaPaymentMethod.Id] = true;
+                break;
+            }
+        }
+        StateHasChanged();
     }
 }

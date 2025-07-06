@@ -1,0 +1,59 @@
+﻿@page "/orders/create"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Order</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Order" OnValidSubmit="AddOrder" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>       
+            <div class="mb-3">
+                <label for="date" class="form-label">Date:</label> 
+                <InputDate id="date" @bind-Value="Order.Date" class="form-control" /> 
+                <ValidationMessage For="() => Order.Date" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="amount" class="form-label">Amount:</label> 
+                <InputNumber id="amount" @bind-Value="Order.Amount" class="form-control" /> 
+                <ValidationMessage For="() => Order.Amount" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="shippingadressid" class="form-label">ShippingAdressId:</label> 
+                <InputText id="shippingadressid" @bind-Value="Order.ShippingAdressId" class="form-control" /> 
+                <ValidationMessage For="() => Order.ShippingAdressId" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="paymentmethodid" class="form-label">PaymentMethodId:</label> 
+                <InputText id="paymentmethodid" @bind-Value="Order.PaymentMethodId" class="form-control" /> 
+                <ValidationMessage For="() => Order.PaymentMethodId" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/orders">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Order Order { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddOrder()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Order.Add(Order);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/orders");
+    }
+}

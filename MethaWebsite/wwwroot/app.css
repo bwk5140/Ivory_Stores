@@ -46,7 +46,7 @@ h1:focus {
 
 .card {
     background-color: white;
-    border-color: black;
+    border-color: lightgray;
     border-radius: 10px;
     border: thin;
     border-style: ridge;
@@ -95,7 +95,9 @@ h1:focus {
     color: black;
     max-height: min-content;
     padding: 0px;
+    font-weight: 400;
 }
+
 .btn:focus {
     border-color: #89c182;
     box-shadow: inset 0 0 0 0.2rem rgba(40, 167, 69, 0.25);

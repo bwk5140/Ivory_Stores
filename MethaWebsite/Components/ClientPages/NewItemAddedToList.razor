@@ -1,5 +1,4 @@
-﻿@page "/productlists/create"
-@using Microsoft.AspNetCore.Authorization
+﻿@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using MethaWebsite.Data
 
@@ -28,7 +27,7 @@
                     <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
                 </div>
                 <div class="toast-body">
-                    <h5>1 @Loc["ItemAddedTo"] <a href="@($"/productlists/details?id={ProductList.Id}")" style="text-decoration: none;">@ListName</a></h5>
+                    <h5>1 @Loc["ItemAddedTo"] <a href="@($"/wishlist/details?id={ProductList.Id}")" style="text-decoration: none;">@ListName</a></h5>
                     <div class="card" style="border: none; max-width: 750px;">
                         <div class="row">
                             <div class="col" style="text-align: center;">
@@ -57,7 +56,7 @@
                                 <div class="card me-2" style="width: 300px;">
                                     <div class="card-body" style="text-align: center;">
                                         <div>
-                                            <a href="@($"/productlists/details?id={ProductList.Id}")" class="mb-3 btn btn-secondary" style="border-bottom-left-radius: 15px; border-top-left-radius: 15px; border-bottom-right-radius: 15px;
+                                            <a href="@($"/wishlist/details?id={ProductList.Id}")" class="mb-3 btn btn-secondary" style="border-bottom-left-radius: 15px; border-top-left-radius: 15px; border-bottom-right-radius: 15px;
                                                             border-top-right-radius: 15px; border: unset; padding: 5px; width: 250px;">
                                                 @Loc["ViewList"]
                                             </a>

@@ -1,7 +1,10 @@
 ﻿@page "/Account/OrderAbandoned"
+@using Microsoft.AspNetCore.Authorization
 
 @inject IStringLocalizer<SharedResource> Loc
 @inject NavigationManager NavigationManager
+
+@attribute [Authorize]
 
 @rendermode InteractiveServer
 
@@ -22,10 +25,15 @@
             <div class="card-body">
                 <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; color: red;">
                     <div class="card-body">
-                        <img src="info-circle.svg" /> Your order was unsuccessful.
+                        <img src="info-circle.svg" /> @Loc["UnsuccessfulOrder"]
                     </div>
                 </div>
-                <p> You have not been charged.</p>
+                <p>@error</p>
+                <div class="card mt-2 mb-2" style="color: blue;">
+                    <div class="card-body">
+                        @Loc["NotCharged"]
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -33,6 +41,8 @@
 
 
 @code {
+    [SupplyParameterFromQuery]
+    public string? error { get; set; }
     public void ManageAccount()
     {
         NavigationManager.NavigateTo("Account/Manage");

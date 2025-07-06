@@ -1,0 +1,50 @@
+﻿@page "/transactions/details"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Transactions</h2>
+    <hr />
+    @if (transactions is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Type</dt>
+            <dd class="col-sm-10">@transactions.Type</dd>
+            <dt class="col-sm-2">Vendor</dt>
+            <dd class="col-sm-10">@transactions.Vendor</dd>
+            <dt class="col-sm-2">OrderId</dt>
+            <dd class="col-sm-10">@transactions.OrderId</dd>
+        </dl>
+        <div>
+            <a href="@($"/transactions/edit?id={transactions.Id}")">Edit</a> |
+            <a href="@($"/transactions")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Transaction? transactions;
+
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        transactions = await context.Transactions.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (transactions is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

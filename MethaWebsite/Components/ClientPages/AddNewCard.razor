@@ -1,0 +1,208 @@
+﻿@using Stripe
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationUserService ApplicationUserService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+@inject HttpClient Https
+
+
+@rendermode InteractiveServer
+
+<PageTitle>Create</PageTitle>
+
+<div class="container-sm" style="display: block; justify-content: center;">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+         style="top: 35%;">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="background-color: white;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["AddCreditOrDebit"]</strong>
+                <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body">
+                <div class="card mt-2 mb-2" style="border-color: blue; max-width: 1200px;">
+                    <div class="card-body">
+                        <img src="info-circle.svg" />
+                        @Loc["CardInfo"]
+                    </div>
+                </div>
+                <EditForm method="post" Model="CreditDebitCard" OnValidSubmit="SaveCard" FormName="create" Enhance>
+                    <ValidationSummary class="text-danger" role="alert" />
+                    <div class="form form-floating mb-3">
+                        <InputText id="Name" @bind-Value="CreditDebitCard.NameOnCard" class="form-control" placeholder="" />
+                        <label for="CreditDebitCard.NameOnCard" class="form-label">@Loc["NameOnCard"]:</label>
+                        <ValidationMessage For="() => CreditDebitCard.NameOnCard" class="text-danger" />
+                    </div>
+                    <div id="card-element" class="mb-3">
+                    </div>
+                    <div class="mt-4" style="text-align: right;">
+                        <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                            border-color:transparent; border-radius: 5px;" disabled="@isSaving">
+                            @(isSaving ? "Saving..." : @Loc["Add"])
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background"></div>
+</div>
+
+@code {
+    private string? errorMessage;
+
+    [SupplyParameterFromForm]
+    private CreditDebitCard CreditDebitCard { get; set; } = new();
+
+    [CascadingParameter]
+    private CreditDebitCard? DefaultCreditDebitCard { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    [Parameter]
+    public List<int>? Months { get; set; } = new List<int>();
+
+    [Parameter]
+    public List<int>? Years { get; set; } = new List<int>();
+
+    private ApplicationUser? applicationUser { get; set; }
+    public Data.Address? Address { get; set; }
+    private bool isSaving = false;
+    private string Status;
+    private bool loading = false;
+    private string paymentMethodId;
+    private string NameOnCard;
+    private Dictionary<string, string>? ImageSource { get; set; } = new();
+    private Dictionary<string, string>? LogoSource { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnCardAdded { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initializeCardElement", "pk_test_51RdfvCR5Q65HyKGxDrFmdKdCtElG1UXSkaUMQy1lqSuoOBIUSYYwrjxd3xJ6gCxoOLMz9E2iiaVkvN84OaB1Zpw500WUtqL6wk");
+        }
+    }
+
+    private async Task SaveCard()
+    {
+        isSaving = true;
+        Status = null;
+        var customerService = new CustomerService();
+        var customer = await customerService.CreateAsync(new CustomerCreateOptions
+        {
+            Email = applicationUser.Email,
+            Name = applicationUser.Name
+        });
+        var customerId = customer.Id;
+        NameOnCard = CreditDebitCard.NameOnCard;
+        var response = await Https.PostAsJsonAsync("/api/stripe/create-setup-intent", new { CustomerId = customerId });
+        var result = await response.Content.ReadFromJsonAsync<SetupIntentResponse>();
+
+        var confirmation = await JS.InvokeAsync<StripeSetupResult>("confirmCardSetup", result.ClientSecret);
+        paymentMethodId = confirmation.setupIntent.payment_method;
+        if (string.IsNullOrWhiteSpace(paymentMethodId))
+        {
+            errorMessage = "No payment method ID returned.";
+            return;
+        }
+
+        var infoRes = await Https.PostAsJsonAsync("/api/stripe/get-card-info", new { PaymentMethodId = paymentMethodId });
+        if (infoRes.IsSuccessStatusCode)
+        {
+            CreditDebitCard = await infoRes.Content.ReadFromJsonAsync<CreditDebitCard>();
+            await AddCreditDebitCard();
+
+        }
+        else
+        {
+            errorMessage = $"Failed to get card info: {infoRes.StatusCode}";
+        }
+
+
+        isSaving = false;
+    }
+
+    public class SetupIntentResponse { public string ClientSecret { get; set; } }
+    public class StripeSetupResult
+    {
+        public SetupIntent setupIntent { get; set; }
+        public StripeError Error { get; set; }
+
+        public class SetupIntent
+        {
+            public string id { get; set; }
+            public string payment_method { get; set; }
+        }
+    }
+    public class StripeError { public string Message { get; set; } }
+    public class SetupIntentResult { public string PaymentMethod { get; set; } }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Months!.Add(CreditDebitCard.ExpirationMonth);
+        for (int i = CreditDebitCard.ExpirationMonth + 1; i <= 12; i++)
+        {
+            Months!.Add(i);
+        }
+        Years!.Add(CreditDebitCard.ExpirationYear);
+        for (int i = CreditDebitCard.ExpirationYear + 1; i <= CreditDebitCard.ExpirationYear + 20; i++)
+        {
+            Years.Add(i);
+        }
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        ImageSource["visa"] = "generic_card_visa.svg";
+        ImageSource["mastercard"] = "generic_card_mastercard.svg";
+        ImageSource["amex"] = "generic_card_amex.svg";
+        ImageSource["discover"] = "generic_card_discover.svg";
+        ImageSource["unionpay"] = "generic_card_mastercard.svg";
+        ImageSource["jcb"] = "generic_card_visa.svg";
+
+        LogoSource["visa"] = "visa.svg";
+        LogoSource["mastercard"] = "mastercard.svg";
+        LogoSource["amex"] = "amex.svg";
+        LogoSource["discover"] = "discover.svg";
+        LogoSource["unionpay"] = "unionpay.svg";
+        LogoSource["jcb"] = "jcb.svg";
+    }
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddCreditDebitCard()
+    {
+        using var context = DbFactory.CreateDbContext();
+        CreditDebitCard.NameOnCard = NameOnCard;
+        CreditDebitCard.Id = Guid.NewGuid().ToString();
+        CreditDebitCard.BillingAddress = applicationUser.DefaultAddressId;
+        CreditDebitCard.UserId = applicationUser.Id;
+        CreditDebitCard.ImageSource = ImageSource[CreditDebitCard.Type];
+        CreditDebitCard.LogoSource = LogoSource[CreditDebitCard.Type];
+        CreditDebitCard.PaymentMethodId = paymentMethodId;
+        context.CreditDebitCard.Add(CreditDebitCard);
+        await context.SaveChangesAsync();
+        DefaultCreditDebitCard = CreditDebitCard;
+        await OnCardAdded.InvokeAsync();
+        Close();
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

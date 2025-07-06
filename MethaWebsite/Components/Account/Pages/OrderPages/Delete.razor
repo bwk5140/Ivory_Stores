@@ -1,0 +1,67 @@
+﻿@page "/orders/delete"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Delete</PageTitle>
+
+<h1>Delete</h1>
+
+<p>Are you sure you want to delete this?</p>
+<div>
+    <h2>Order</h2>
+    <hr />
+    @if (order is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Date</dt>
+            <dd class="col-sm-10">@order.Date</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Amount</dt>
+            <dd class="col-sm-10">@order.Amount</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">ShippingAdressID</dt>
+            <dd class="col-sm-10">@order.ShippingAdressId</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">PaymentMethodId</dt>
+            <dd class="col-sm-10">@order.PaymentMethodId</dd>
+        </dl>
+        <EditForm method="post" Model="order" OnValidSubmit="DeleteOrder" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(order is null)">Delete</button> |
+            <a href="/orders">Back to List</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private Order? order;
+
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        order = await context.Order.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (order is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    private async Task DeleteOrder()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Order.Remove(order!);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/orders");
+    }
+}

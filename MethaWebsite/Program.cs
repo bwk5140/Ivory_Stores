@@ -3,12 +3,16 @@ using MethaWebsite.Components;
 using MethaWebsite.Components.Account;
 using MethaWebsite.Data;
 using MethaWebsite.Data.Contexts;
+using MethaWebsite.Data.Interfaces;
 using MethaWebsite.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using OpenAI;
+using OpenAI.Embeddings;
+using Pinecone;
 using Stripe;
 using System;
 using System.Globalization;
@@ -37,7 +41,21 @@ builder.Services.AddScoped<RatingFilterService>();
 builder.Services.AddScoped<LayoutRefreshService>();
 builder.Services.AddScoped<ShippingService>();
 builder.Services.AddScoped<LayoutState>();
+builder.Services.AddScoped<AlgoliaIndexer>();
+builder.Services.AddScoped<AlgoliaService>();
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:44338/") });
+
+//builder.Services.AddHostedService<VectorSyncService>();
+//builder.Services.AddSingleton<EmbeddingClient>(_ =>
+//    new EmbeddingClient("text-embedding-3-small", 
+//        "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"));
+
+//builder.Services.AddSingleton<IndexClient>(_ =>
+//{
+//    var pinecone = new PineconeClient("pcsk_3WubFx_A1hENxHpBc6V2ZUJq1mQss6VMuMp2j16bNWEGAbPuHCj2zdRXRhXb3QEqtQb8zw");
+//    return pinecone.Index("products");
+//});
+
 
 builder.Services.AddAuthentication(options =>
     {
@@ -62,7 +80,15 @@ builder.Services.AddSingleton<ApplicationUserService>();
 builder.Services.AddSingleton<ShoppingCartService>();
 builder.Services.AddSingleton<StateChangeService>();
 builder.Services.AddSingleton<CardSetupSevice>();
+builder.Services.AddSingleton<EmbeddingService>();
 builder.Services.AddSingleton<MethaWebsite.Services.CheckoutService>();
+//builder.Services.AddSingleton<IVectorStore>(sp =>
+//{
+//    var apiKey = builder.Configuration["Pinecone:ApiKey"];
+//    var client = new PineconeClient(apiKey);
+//    return new PineconeVectorStore(client, "products");
+//});
+
 builder.Services.AddSingleton(provider =>
 {
     Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
@@ -148,15 +174,21 @@ app.MapPost("/api/stripe/charge-saved-card", async ([Microsoft.AspNetCore.Mvc.Fr
         ReturnUrl = "https://Account/OrderComplete"
     };
 
-    var paymentIntent = await paymentIntentService.CreateAsync(options);
-
-    return Results.Ok(new
+    try
     {
-        Status = paymentIntent.Status,
-        Id = paymentIntent.Id,
-        Amount = paymentIntent.Amount,
-        Currency = paymentIntent.Currency
-    });
+        var paymentIntent = await paymentIntentService.CreateAsync(options);
+        return Results.Ok(new
+        {
+            Status = paymentIntent.Status,
+            Id = paymentIntent.Id,
+            Amount = paymentIntent.Amount,
+            Currency = paymentIntent.Currency
+        });
+    }
+    catch (StripeException ex)
+    {
+        return Results.Problem(detail:ex.Message);
+    }
 });
 
 

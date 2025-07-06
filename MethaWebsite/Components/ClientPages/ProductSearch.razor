@@ -2,10 +2,15 @@
 
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using Pinecone
+@using System.Net.Http.Json
 
 @implements IAsyncDisposable
 
+@inject HttpClient Http
+@inject AlgoliaService AlgoliaService
 @inject RatingFilterService RatingFilterService
+@inject EmbeddingService embeddingService
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<SharedResource> Loc
 @inject ILogger<ProductSearch> Logger
@@ -384,43 +389,60 @@
 
             }
             List<Product> newProds = new List<Product>();
-            foreach (var prod in products)
+            // var response = await Http.PostAsJsonAsync("/semantic-search", search);
+
+            // if (response.IsSuccessStatusCode)
+            // {
+            //     var result = await response.Content.ReadFromJsonAsync<List<Product>>();
+            //     // use result
+            // }
+            // else
+            // {
+            //     var error = await response.Content.ReadAsStringAsync();
+            //     Console.WriteLine($"Error: {error}");
+            // }
+
+            newProds = await AlgoliaService.SearchProductsAsync(search);
+            // foreach (var prod in products)
+            // {
+            //     // var payload = new Dictionary<string, string>();
+            //     // payload[search] = prod.Name;
+            //     var category_ = await context.Category.FirstOrDefaultAsync(c => c.Id == prod.CategoryId);
+            //     bool found = false;
+            //     while (category_ is not null)
+            //     {
+            //         if (category_.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
+            //         {
+            //             newProds.Add(prod);
+            //             found = true;
+            //             break;
+            //         }
+            //         category_ = await context.Category.FirstOrDefaultAsync(c => c.Id == category_.ParentID);
+            //     }
+            //     if (!found)
+            //     {
+            //         if (prod.Brand.Contains(search, StringComparison.OrdinalIgnoreCase))
+            //         {
+            //             newProds.Add(prod);
+            //         }
+            //         else if (prod.Lifestyle.Contains(search, StringComparison.OrdinalIgnoreCase))
+            //         {
+            //             newProds.Add(prod);
+            //         }
+            //         else if (prod.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
+            //         {
+            //             newProds.Add(prod);
+            //         }
+            //         else if (prod.Description.Contains(search, StringComparison.OrdinalIgnoreCase))
+            //         {
+            //             newProds.Add(prod);
+            //         }
+            //     } 
+            // }
+            foreach (var product in newProds)
             {
-                // var payload = new Dictionary<string, string>();
-                // payload[search] = prod.Name;
-                var category_ = await context.Category.FirstOrDefaultAsync(c => c.Id == prod.CategoryId);
-                bool found = false;
-                while (category_ is not null)
-                {
-                    if (category_.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    {
-                        newProds.Add(prod);
-                        found = true;
-                        break;
-                    }
-                    category_ = await context.Category.FirstOrDefaultAsync(c => c.Id == category_.ParentID);
-                }
-                if (!found)
-                {
-                    if (prod.Brand.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    {
-                        newProds.Add(prod);
-                    }
-                    else if (prod.Lifestyle.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    {
-                        newProds.Add(prod);
-                    }
-                    else if (prod.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    {
-                        newProds.Add(prod);
-                    }
-                    else if (prod.Description.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    {
-                        newProds.Add(prod);
-                    }
-                } 
+                Products.Add(context.Product.FirstOrDefault(p => p.Name == product.Name));
             }
-            Products = newProds;
         }
 
         if (Products?.Any() != true) return;

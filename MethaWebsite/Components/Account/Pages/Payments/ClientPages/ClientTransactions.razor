@@ -1,0 +1,86 @@
+﻿@page "/Account/Payments/Transactions"
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+
+<h3>@Loc["Transactions"]</h3>
+<div class="card">
+    <div class="card-header">
+        @Loc["Completed"]
+    </div>
+    <div class="card-body" style="padding: 0px;">
+        @if (Transactions is not null)
+        {
+            var context = DbFactory.CreateDbContext();
+            foreach (var transaction in Transactions)
+            {
+                if (ApplicationUser is not null)
+                {
+                    var order = context.Order.FirstOrDefault(o => o.Id == transaction.OrderId);
+                    if (order is not null)
+                    {
+                        var paymentMethod = GetPaymentMethod(order.PaymentMethodId);
+                        <div style="background-color: ghostwhite; width: 100%;">
+                            <p class="ms-3 mb-2">
+                                @transaction.Date.ToString("MMMM") @transaction.Date.Day, @transaction.Date.Year
+                            </p>
+                        </div>
+                        <div class="row ms-1 me-3">
+                            <div class="col mt-3">
+                                <div>
+                                    <strong>@paymentMethod.Type ****@paymentMethod.Number</strong>
+                                </div>
+                                <div>
+                                    <a href="@($"Account/Order/details?id={@order.Id}")" style="text-decoration: none;">
+                                        @transaction.Type: @order.Id
+                                    </a>
+                                </div>
+                                <div>
+                                    <p>
+                                        @transaction.Vendor
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col mt-3" style="text-align: right">
+                                <strong>@order.Amount.ToString("C2")</strong>
+                            </div>
+                        </div>
+                    }
+                }
+
+            }
+        }
+    </div>
+</div>
+@code {
+
+    private ApplicationUser? ApplicationUser { get; set; }
+
+    [Parameter]
+    public List<Transaction>? Transactions { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        Transactions = context.Transactions.Where(t => t.UserId == ApplicationUser.Id).OrderByDescending(t => t.Date).ToList();
+    }
+    private Payment GetPaymentMethod(string Id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var credit_debit_card = context.CreditDebitCard.FirstOrDefault(c => c.Id == Id);
+        if (credit_debit_card is not null)
+            return credit_debit_card;
+        else
+        {
+            var mpesa_payment = context.Mpesa.FirstOrDefault(m => m.Id == Id);
+            return mpesa_payment;
+        }
+    }
+}

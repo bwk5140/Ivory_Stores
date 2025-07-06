@@ -59,7 +59,7 @@
                                         <text x="28" y="40"
                                               font-size="10" fill="floralwhite">••••</text>
                                         <text x="52" y="40"
-                                              font-size="10" fill="white">@credit_debit_card.CardNumber.Substring(credit_debit_card.CardNumber.Length - 4, 4)</text>
+                                              font-size="10" fill="white">@credit_debit_card.Number</text>
                                         <text x="28" y="63"
                                               font-size="10" fill="white">@credit_debit_card.NameOnCard</text>
                                         <image href="@credit_debit_card.LogoSource" x="103" y="53" width="30" height="15" />
@@ -79,7 +79,7 @@
                                     ••••
                                 </div>
                                 <div style="display: inline-block">
-                                    @credit_debit_card.CardNumber.Substring(credit_debit_card.CardNumber.Length - 4, 4)
+                                    @credit_debit_card.Number
                                 </div>
                                 <div class="text-danger">
                                     @if ((credit_debit_card.ExpirationMonth < CurrentMonth && credit_debit_card.ExpirationYear < CurrentYear) || credit_debit_card.ExpirationYear < CurrentYear)
@@ -119,7 +119,7 @@
                                         <text x="48" y="55"
                                               font-size="10" fill="white">••••</text>
                                         <text x="70" y="55"
-                                              font-size="10" fill="white">@MpesaPaymentMethod.PhoneNumber.Substring(MpesaPaymentMethod.PhoneNumber.Length - 4, 4)</text>
+                                              font-size="10" fill="white">@MpesaPaymentMethod.Number.Substring(MpesaPaymentMethod.Number.Length - 4, 4)</text>
                                         <text x="38" y="63"
                                               font-size="10" fill="white">@MpesaPaymentMethod.RegisteredName</text>
                                     </svg>
@@ -138,7 +138,7 @@
                                     ••••
                                 </div>
                                 <div style="display: inline-block;">
-                                    @MpesaPaymentMethod.PhoneNumber.Substring(MpesaPaymentMethod.PhoneNumber.Length - 4, 4)
+                                    @MpesaPaymentMethod.Number.Substring(MpesaPaymentMethod.Number.Length - 4, 4)
                                 </div>
                             </div>
                         </div>
@@ -182,29 +182,34 @@
         CurrentYear = DateTime.Now.Year;
         var default_card = CreditDebitCards.FirstOrDefault(c => c.DefaultPaymentMethod == true);
         var default_mpesa = MpesaPaymentMethods.FirstOrDefault(c => c.DefaultPaymentMethod == true);
-        foreach (var card in CreditDebitCards)
+        if (CreditDebitCards is not null)
         {
-            if (default_card is not null && card == default_card)
+            foreach (var card in CreditDebitCards)
             {
-                DefaultPayment[card.Id] = Loc["Default"];
-            }
-            else
-            {
-                DefaultPayment[card.Id] = "";
+                if (default_card is not null && card == default_card)
+                {
+                    DefaultPayment[card.Id] = Loc["Default"];
+                }
+                else
+                {
+                    DefaultPayment[card.Id] = "";
+                }
             }
         }
-        foreach (var mpesaMethod in MpesaPaymentMethods)
+        if (MpesaPaymentMethods is not null)
         {
-            if (default_card is not null && mpesaMethod == default_mpesa)
+            foreach (var mpesaMethod in MpesaPaymentMethods)
             {
-                DefaultPayment[mpesaMethod.Id] = Loc["Default"];
-            }
-            else
-            {
-                DefaultPayment[mpesaMethod.Id] = "";
+                if (default_mpesa is not null && mpesaMethod == default_mpesa)
+                {
+                    DefaultPayment[mpesaMethod.Id] = Loc["Default"];
+                }
+                else
+                {
+                    DefaultPayment[mpesaMethod.Id] = "";
+                }
             }
         }
-        StateHasChanged();
         RefreshView();
     }
     public void RefreshView()
