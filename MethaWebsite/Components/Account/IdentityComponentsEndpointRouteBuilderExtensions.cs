@@ -1,14 +1,16 @@
-using System.Security.Claims;
-using System.Text.Json;
 using MethaWebsite.Components.Account.Pages;
 using MethaWebsite.Components.Account.Pages.Manage;
 using MethaWebsite.Data;
+using MethaWebsite.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Routing
 {
@@ -41,11 +43,12 @@ namespace Microsoft.AspNetCore.Routing
             });
 
             accountGroup.MapPost("/Logout", async (
-                ClaimsPrincipal user,
+                ClaimsPrincipal user, ApplicationUserService userService,
                 [FromServices] SignInManager<ApplicationUser> signInManager,
                 [FromForm] string returnUrl) =>
             {
                 await signInManager.SignOutAsync();
+                userService.SignOut();
                 return TypedResults.LocalRedirect($"~/{returnUrl}");
             });
 

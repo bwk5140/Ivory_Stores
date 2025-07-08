@@ -10,16 +10,19 @@
 
 <h3>@Loc["Transactions"]</h3>
 <div class="card">
-    <div class="card-header">
-        @Loc["Completed"]
-    </div>
-    <div class="card-body" style="padding: 0px;">
-        @if (Transactions is not null)
-        {
-            var context = DbFactory.CreateDbContext();
-            foreach (var transaction in Transactions)
+    @if (Transactions is not null && Transactions.Any())
+    {
+        <div class="card-header">
+            @Loc["Completed"]
+        </div>
+        <div class="card-body" style="padding: 0px;">
+
+            @{
+                var context = DbFactory.CreateDbContext();
+            }
+            @foreach (var transaction in Transactions)
             {
-                if (ApplicationUser is not null)
+                @if (ApplicationUser is not null)
                 {
                     var order = context.Order.FirstOrDefault(o => o.Id == transaction.OrderId);
                     if (order is not null)
@@ -54,8 +57,14 @@
                 }
 
             }
-        }
-    </div>
+        </div>
+    }
+    else
+    {
+        <div class="mt-5 mb-5" style="text-align: center;">
+            <p>@Loc["NoTransactions"]</p>
+        </div>
+    }
 </div>
 @code {
 
@@ -67,8 +76,8 @@
     protected override async Task OnInitializedAsync()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
         Transactions = context.Transactions.Where(t => t.UserId == ApplicationUser.Id).OrderByDescending(t => t.Date).ToList();
     }
     private Payment GetPaymentMethod(string Id)

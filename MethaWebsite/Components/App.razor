@@ -29,8 +29,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="pdfInterop.js"></script>
-
-    @* <script>
+    <script>
         let fileHandle;
         let count = 0;
         async function fileOpen(_file) {
@@ -51,7 +50,24 @@
                 return;
             });
         };
-    </script> *@
+    </script>
+    <script>
+        const img = document.getElementById('scrollImage');
+        const stop = document.getElementById('stopPoint');
+
+        window.addEventListener('scroll', () => {
+          const stopTop = stop.getBoundingClientRect().top;
+          const imgHeight = img.offsetHeight;
+
+          if (stopTop <= imgHeight) {
+            img.style.position = 'absolute';
+            img.style.top = `${stop.offsetTop - imgHeight}px`;
+          } else {
+            img.style.position = 'sticky';
+            img.style.top = '0px';
+          }
+        });
+    </script>
 </body>
 
 </html>

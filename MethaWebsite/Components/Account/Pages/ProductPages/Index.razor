@@ -1,4 +1,5 @@
 ﻿@page "/Account/products"
+@using HtmlAgilityPack
 @using MethaWebsite.Services
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
@@ -12,6 +13,7 @@
 @inject IStringLocalizer<SharedResource> Loc
 @inject ILogger<Index> Logger
 @inject FilterStateService FilterState
+@inject LocalEmbeddingService EmbeddingService
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 
 @rendermode InteractiveServer
@@ -123,14 +125,12 @@
         <div class="col-lg">
             <h3 class="header mt-3">@Loc["Products"]</h3>
             <hr />
-            <div class="row">
-                <div class="col-sm-11" style="text-align: right;">
-                    <button type="submit" class="btn-primary btn-sm" @onclick="SyncProducts"
+            <div class="row" style="text-align: right;">
+                <div class="col me-2" style="display: inline-block;">
+                    <button type="submit" class="btn-primary btn-sm me-2" @onclick="GenerateEmbeddings"
                             style="border-color: black; backrgound-color: transparent; border-radius: 25px;">
-                        @Loc["IndexProducts"]
+                        @Loc["GenerateEmbeddings"]
                     </button>
-                </div>
-                <div class="col-sm-12" style="text-align: right;">
                     <a href="/Account/products/create" type="btn btn-lg" style="background-color: transparent; border-color:transparent;"
                        data-bs-toggle="tooltip" title=@Loc["AddProduct"]>
                         <img src="pencil-square.svg" />
@@ -492,7 +492,7 @@
         {
             activePage[index.ToString()] = !activePage[index.ToString()];
             activePageClass[index.ToString()] = activePage[index.ToString()] ? "active" : "none";
-            
+
             if (currentPage > index)
             {
                 if (prodLow - prodCount * (currentPage - index) >= 0)
@@ -515,6 +515,33 @@
     private async Task SyncProducts()
     {
         var IsSuccess = await AlgoliaIndexer.IndexProductsAsync(Products!);
+    }
+    private async Task GenerateEmbeddings()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        foreach (var product in Products)
+        {
+            var category = context.Category.FirstOrDefault(c => c.Id == product.CategoryId);
+            string Category = "";
+            while (category is not null)
+            {
+                Category += " " + category.Name;
+                category = await context.Category.FirstOrDefaultAsync(c => c.Id == category.ParentID);
+            }
+            var description = HtmlToPlainText(product.Description);
+            
+            var fullText = $"{product.Name} {Category} {description} {product.Brand} {product.Color}";
+            var productEmbedding = await EmbeddingService.GetEmbeddingAsync(fullText);
+            product.Embedding = productEmbedding;
+            context.Product.Attach(product).State = EntityState.Modified;
+        }
+        await context.SaveChangesAsync();
+    }
+    public static string HtmlToPlainText(string html)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+        return doc.DocumentNode.InnerText;
     }
 
 }

@@ -68,7 +68,7 @@
                             </div>
                             <div class="col-sm-2">
                                 <InputSelect id="category" @bind-Value="CurrentProductColor" class="form-select-sm">
-                                    <option disabled hidden value="null">@Loc["Select"]</option>
+                                    <option selected disabled value="null">@Loc["Select"]</option>
                                     @foreach (var colorGroup in ProductGroup.ProductColorGroups)
                                     {
                                         <option value="@colorGroup.Color">@colorGroup.Color</option>

@@ -72,8 +72,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
     }
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddMpesa()

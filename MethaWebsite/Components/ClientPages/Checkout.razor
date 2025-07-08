@@ -38,6 +38,8 @@
         <h4>@Loc["Checkout"]</h4>
     </div>
 </nav>
+
+
 @if (Address is null || CreditDebitCards is null || MpesaPaymentMethods is null)
 {
     <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
@@ -45,6 +47,22 @@
 else
 {
     <div class="container-xxl mt-5 mb-5">
+        @if (ShippingAddressProblem)
+        {
+            <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; color: red; border-left: 3px solid red;">
+                <div class="card-body">
+                    <img src="info-circle.svg" /> @Loc["ProblemWithShippingAddress"]
+                </div>
+            </div>
+        }
+        @if (PaymentMethodProblem)
+        {
+            <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; color: red; border-left: 3px solid red;">
+                <div class="card-body">
+                    <img src="info-circle.svg" /> @Loc["ProblemWithPaymentMethod"]
+                </div>
+            </div>
+        }
         <div class="row">
             <div class="col-lg-8">
                 @if (CheckoutService.ShippingAddress is not null)
@@ -893,6 +911,7 @@ else
     private string result { get; set; }
     private Order? Order { get; set; }
     private Transaction? Transaction{ get; set; }
+    private bool ShippingAddressProblem = false;
 
     [Parameter]
     public List<Product>? Products { get; set; } = new List<Product>();
@@ -921,24 +940,30 @@ else
     private ChangeBillingAddressPopOver? changeBillingAddressPopOver;
     private AddNewCard? AddNewDebitCredit;
     private AddNewMpesaPaymentMethod? AddNewMpesaPaymentMethod;
+    private bool PaymentMethodProblem { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
+        if (CheckoutService.ShippingDistance != 0.0)
+        {
+            ShippingAddressProblem = true;
+        }
         LayoutState.SetBackground("bg-checkout");
         context = DbFactory.CreateDbContext();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
         BuyNowProduct = await context.ShoppingCartProduct.FirstOrDefaultAsync(p => p.Id == Id);
 
         if (ApplicationUser is not null)
         {
             Addresses = context.Address.Where(a => a.UserId == ApplicationUser.Id).ToList();
             Address = await context.Address.FirstOrDefaultAsync(a => a.Id == ApplicationUser.DefaultAddressId);
-            if (CheckoutService.ShippingAddress is null)
+
+            if (CheckoutService.ShippingAddress is null && Address is not null)
             {
                 CheckoutService.ShippingAddress = Address;
             }
-            if (CheckoutService.ShipTo is null)
+            if (CheckoutService.ShipTo is null && Address is not null)
             {
                 CheckoutService.ShipTo = Address.Id;
             }
@@ -1004,84 +1029,87 @@ else
 
     private async Task HandlePayment()
     {
-        isProcessing = true;
-        using var context = await DbFactory.CreateDbContextAsync();
-        var paymentMethodService = new Stripe.PaymentMethodService();
-        var paymentMethod = await paymentMethodService.GetAsync(DefaultCreditDebitCard.PaymentMethodId);
-        var customerId = paymentMethod.CustomerId;
-        var chargeRequest = new
+        if (!ShippingAddressProblem)
         {
-            CustomerId = customerId,
-            PaymentMethodId = paymentMethod.Id,
-            Amount = OrderTotal
-        };
-
-        responseMessage = await Http.PostAsJsonAsync("/api/stripe/charge-saved-card", chargeRequest);
-
-        if (responseMessage.IsSuccessStatusCode)
-        {
-            Order = new Order();
-            Order.Amount = OrderTotal;
-            Order.PaymentMethodId = CheckoutService.PaymentMethod.Id;
-            Order.Date = DateTime.Now;
-            Order.ShippingAdressId = CheckoutService.ShipTo;
-            Order.ProductIds = new List<string>();
-            Order.UserId = ApplicationUser.Id;
-            Order.ShippingCosts = CheckoutService.Shipping;
-            Transaction = new Transaction();
-            Transaction.OrderId = Order.Id;
-            Transaction.Vendor = Loc["CompanyLogo"];
-            Transaction.Type = "Order";
-            Transaction.UserId = ApplicationUser.Id;
-            Transaction.Date = DateTime.Now;
-            context.Transactions.Add(Transaction);
-            var paymentResult = await responseMessage.Content.ReadFromJsonAsync<PaymentResult>();
-            if (BuyNowProduct is null)
+            isProcessing = true;
+            using var context = await DbFactory.CreateDbContextAsync();
+            var paymentMethodService = new Stripe.PaymentMethodService();
+            var paymentMethod = await paymentMethodService.GetAsync(DefaultCreditDebitCard.PaymentMethodId);
+            var customerId = paymentMethod.CustomerId;
+            var chargeRequest = new
             {
-                foreach (var ShoppingCartProductId in ShoppingCart.ProductIds)
-                {
-                    var ShoppingCartProduct = await context.ShoppingCartProduct.FirstOrDefaultAsync(sp => sp.Id == ShoppingCartProductId);
-                    Order.ProductIds.Add(ShoppingCartProduct.ProductId);
-                    await RemoveFromCart(ShoppingCartProduct);
-                    context.ShoppingCartProduct.Remove(ShoppingCartProduct);
-                    context.Attach(ShoppingCartProduct).State = EntityState.Modified;
+                CustomerId = customerId,
+                PaymentMethodId = paymentMethod.Id,
+                Amount = OrderTotal
+            };
 
+            responseMessage = await Http.PostAsJsonAsync("/api/stripe/charge-saved-card", chargeRequest);
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                Order = new Order();
+                Order.Amount = OrderTotal;
+                Order.PaymentMethodId = CheckoutService.PaymentMethod.Id;
+                Order.Date = DateTime.Now;
+                Order.ShippingAdressId = CheckoutService.ShipTo;
+                Order.ProductIds = new List<string>();
+                Order.UserId = ApplicationUser.Id;
+                Order.ShippingCosts = CheckoutService.Shipping;
+                Transaction = new Transaction();
+                Transaction.OrderId = Order.Id;
+                Transaction.Vendor = Loc["CompanyLogo"];
+                Transaction.Type = "Order";
+                Transaction.UserId = ApplicationUser.Id;
+                Transaction.Date = DateTime.Now;
+                context.Transactions.Add(Transaction);
+                var paymentResult = await responseMessage.Content.ReadFromJsonAsync<PaymentResult>();
+                if (BuyNowProduct is null)
+                {
+                    foreach (var ShoppingCartProductId in ShoppingCart.ProductIds)
+                    {
+                        var ShoppingCartProduct = await context.ShoppingCartProduct.FirstOrDefaultAsync(sp => sp.Id == ShoppingCartProductId);
+                        Order.ProductIds.Add(ShoppingCartProduct.ProductId);
+                        await RemoveFromCart(ShoppingCartProduct);
+                        context.ShoppingCartProduct.Remove(ShoppingCartProduct);
+                        context.Attach(ShoppingCartProduct).State = EntityState.Modified;
+
+                    }
+                }
+                else
+                {
+                    Order.ProductIds.Add(BuyNowProduct.ProductId);
+                    await RemoveFromCart(BuyNowProduct);
+                    context.ShoppingCartProduct.Remove(BuyNowProduct);
+                    context.Attach(BuyNowProduct).State = EntityState.Modified;
+                }
+                context.Attach(ShoppingCart).State = EntityState.Modified;
+                ShoppingCart.ProductIds.Clear();
+                context.Order.Add(Order);
+                await context.SaveChangesAsync();
+                CheckoutService.PaymentMethod = null;
+                CheckoutService.ShipTo = null;
+                StateHasChanged();
+                TriggerLayoutRefresh();
+                isProcessing = false;
+                if (BuyNowProduct is null && !ShoppingCart.ProductIds.Any())
+                    NavigationManager.NavigateTo("Account/OrderComplete", true);
+                else
+                {
+                    if (BuyNowProduct is not null)
+                        NavigationManager.NavigateTo("Account/OrderComplete", true);
                 }
             }
             else
             {
-                Order.ProductIds.Add(BuyNowProduct.ProductId);
-                await RemoveFromCart(BuyNowProduct);
-                context.ShoppingCartProduct.Remove(BuyNowProduct);
-                context.Attach(BuyNowProduct).State = EntityState.Modified;
+                CheckoutService.PaymentMethod = null;
+                CheckoutService.ShipTo = null;
+                var errorContent = await responseMessage.Content.ReadAsStringAsync();
+                using JsonDocument doc = JsonDocument.Parse(errorContent);
+                var summary = doc.RootElement
+                                 .GetProperty("detail");
+                isProcessing = false;
+                NavigationManager.NavigateTo($"Account/OrderAbandoned?error={summary}", true);
             }
-            context.Attach(ShoppingCart).State = EntityState.Modified;
-            ShoppingCart.ProductIds.Clear();
-            context.Order.Add(Order);
-            await context.SaveChangesAsync();
-            CheckoutService.PaymentMethod = null;
-            CheckoutService.ShipTo = null;
-            StateHasChanged();
-            TriggerLayoutRefresh();
-            isProcessing = false;
-            if (BuyNowProduct is null && !ShoppingCart.ProductIds.Any())
-                NavigationManager.NavigateTo("Account/OrderComplete", true);
-            else
-            {
-                if (BuyNowProduct is not null)
-                    NavigationManager.NavigateTo("Account/OrderComplete", true);
-            }
-        }
-        else
-        {
-            CheckoutService.PaymentMethod = null;
-            CheckoutService.ShipTo = null;
-            var errorContent = await responseMessage.Content.ReadAsStringAsync();
-            using JsonDocument doc = JsonDocument.Parse(errorContent);
-            var summary = doc.RootElement
-                             .GetProperty("detail");
-            isProcessing = false;
-            NavigationManager.NavigateTo($"Account/OrderAbandoned?error={summary}", true);
         }
     }
     public class PaymentResult
@@ -1300,15 +1328,27 @@ else
     }
     private async Task SetPaymentMethod()
     {
-        if (radiosChecked[DefaultCreditDebitCard.Id])
+        if (DefaultCreditDebitCard is not null)
         {
-            CheckoutService.PaymentMethod = DefaultCreditDebitCard;
+            if (radiosChecked[DefaultCreditDebitCard.Id])
+            {
+                CheckoutService.PaymentMethod = DefaultCreditDebitCard;
+            }
+            PaymentMethodProblem = false;
+        }
+        else if (DefaultMpesaPaymentMethod is not null)
+        {
+            if (radiosChecked[DefaultMpesaPaymentMethod.Id])
+            {
+                CheckoutService.PaymentMethod = DefaultMpesaPaymentMethod;
+            }
+            PaymentMethodProblem = false;
         }
         else
         {
-            CheckoutService.PaymentMethod = DefaultMpesaPaymentMethod;
+            PaymentMethodProblem = true;
+            return;
         }
-
         if (CheckoutService.ShippingDistance <= 0)
         {
             CheckoutService.ShippingDistance = await GetShippingDistance();
@@ -1320,8 +1360,7 @@ else
     }
     private async Task<double> GetShippingDistance()
     {
-        var address = await context.Address.FirstOrDefaultAsync(a => a.Id == ApplicationUser.DefaultAddressId);
-        var distance = await ShippingService.GetDistance(address);
+        var distance = await ShippingService.GetDistance(Address);
         return distance;
     }
     private async Task OnSave()
@@ -1330,6 +1369,18 @@ else
         using var context = await DbFactory.CreateDbContextAsync();
         Address = await context.Address.FirstOrDefaultAsync(a => a.Id == CheckoutService.ShipTo);
         CheckoutService.ShippingAddress = Address;
+        CheckoutService.ShippingDistance = await GetShippingDistance();
+        if (CheckoutService.ShippingDistance != 0.0)
+        {
+            CheckoutService.FastShipping = CheckoutService.CalculateShippingCosts(Loc["Fast"]);
+            CheckoutService.Shipping = CheckoutService.CalculateShippingCosts(CheckoutService.ShippingType);
+            CheckoutService.StandardShipping = CheckoutService.CalculateShippingCosts(Loc["Standard"]);
+            ShippingAddressProblem = false;
+        }
+        else
+        {
+            ShippingAddressProblem = true;
+        }
     }
     private void UpdateCards()
     {

@@ -124,7 +124,7 @@
     <value>Email</value>
   </data>
   <data name="EmailOrUsername" xml:space="preserve">
-    <value>Email or Username</value>
+    <value>Enter email or username to continue</value>
   </data>
   <data name="Login" xml:space="preserve">
     <value>Sign in</value>
@@ -613,7 +613,7 @@
     <value>Your Orders</value>
   </data>
   <data name="YourOrderInfo" xml:space="preserve">
-    <value>Track and order, download an invoice, or buy again</value>
+    <value>Track an order, download invoice, or buy again</value>
   </data>
   <data name="AccountSecurity" xml:space="preserve">
     <value>Account Security</value>
@@ -787,7 +787,7 @@
     <value>Edit failed</value>
   </data>
   <data name="EditFailedInfo" xml:space="preserve">
-    <value>This address is used as your default residential address for digital purchases</value>
+    <value>This address is used as your default residential address for all purchases. Please select a different default address first.</value>
   </data>
   <data name="EndingIn" xml:space="preserve">
     <value>ending in</value>
@@ -1064,5 +1064,113 @@
   </data>
   <data name="Download" xml:space="preserve">
     <value>Download</value>
+  </data>
+  <data name="NoResults" xml:space="preserve">
+    <value>Looks like your search did not return any results.</value>
+  </data>
+  <data name="ProblemWithShippingAddress" xml:space="preserve">
+    <value>There was a problem with the shipping address. We currently do not support intercontinental shipping. Please check address format for any issues. Names should not appear in address line 1 for instance.</value>
+  </data>
+  <data name="AllHaveShipped" xml:space="preserve">
+    <value>Looking for an order? All of your orders have shipped</value>
+  </data>
+  <data name="AddShippingAddress" xml:space="preserve">
+    <value>Please add a delivery address to continue.</value>
+  </data>
+  <data name="AddNewShippingAddress" xml:space="preserve">
+    <value>Add new shipping address</value>
+  </data>
+  <data name="ProblemWithPaymentMethod" xml:space="preserve">
+    <value>There was a problem with the payment method. Please add a debit or credit card, or add a new Mpesa payment account.</value>
+  </data>
+  <data name="NoListsCreated" xml:space="preserve">
+    <value>Create a new list to start saving product items.</value>
+  </data>
+  <data name="NoTransactions" xml:space="preserve">
+    <value>Transactions from purchased items will appear here.</value>
+  </data>
+  <data name="CheckEmailPasswordReset" xml:space="preserve">
+    <value>Please check your email to reset your password.</value>
+  </data>
+  <data name="ForgotPasswordConfirmation" xml:space="preserve">
+    <value>Forgot password confirmation</value>
+  </data>
+  <data name="NoOrdersMade" xml:space="preserve">
+    <value>Purchase orders will appear here before they are shipped.</value>
+  </data>
+  <data name="NoCancelledOrders" xml:space="preserve">
+    <value>We aren't finding any cancelled orders</value>
+  </data>
+  <data name="SuccessfulAuthentication" xml:space="preserve">
+    <value>You've successfully authenticated with</value>
+  </data>
+  <data name="PleaseEnterEmailToCompleteSignIn" xml:space="preserve">
+    <value>Please enter an email address for this site below and click the Sign up button to finish</value>
+  </data>
+  <data name="RegisterConfirmation" xml:space="preserve">
+    <value>Register Confirmation</value>
+  </data>
+  <data name="LinkYourAccount" xml:space="preserve">
+    <value>Link your account with</value>
+  </data>
+  <data name="LoginWith" xml:space="preserve">
+    <value>Sign in with</value>
+  </data>
+  <data name="LoginUsing" xml:space="preserve">
+    <value>Sign in using</value>
+  </data>
+  <data name="RegisterWith" xml:space="preserve">
+    <value>Sign up with</value>
+  </data>
+  <data name="RegisterUsing" xml:space="preserve">
+    <value>Sign up using</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="NewToIvoryStores" xml:space="preserve">
+    <value>Looks like you are new to Ivory Stores.</value>
+  </data>
+  <data name="LetsCreateAnAccount" xml:space="preserve">
+    <value>Let's create an account with that email</value>
+  </data>
+  <data name="ContinueRegistration" xml:space="preserve">
+    <value>Continue registration</value>
+  </data>
+  <data name="AddSubject" xml:space="preserve">
+    <value>Add a subject</value>
+  </data>
+  <data name="MostImportant" xml:space="preserve">
+    <value>What's most important to know</value>
+  </data>
+  <data name="AddReview" xml:space="preserve">
+    <value>Add written review</value>
+  </data>
+  <data name="AddPhotoOrVideo" xml:space="preserve">
+    <value>Add a photo or video</value>
+  </data>
+  <data name="OverallRating" xml:space="preserve">
+    <value>Overall rating</value>
+  </data>
+  <data name="CreateReview" xml:space="preserve">
+    <value>Create Review</value>
+  </data>
+  <data name="Submit" xml:space="preserve">
+    <value>Submit</value>
+  </data>
+  <data name="LikesDislikes" xml:space="preserve">
+    <value>What did you like or dislike? Was this product a gift?</value>
+  </data>
+  <data name="ShoppersFind" xml:space="preserve">
+    <value>Shoppers find images helpful than just text alone. Hold down the shift key to select multiple images.</value>
+  </data>
+  <data name="SimilarItem" xml:space="preserve">
+    <value>Similar item</value>
+  </data>
+  <data name="GenerateEmbeddings" xml:space="preserve">
+    <value>Generate embeddings</value>
+  </data>
+  <data name="SimilarItems" xml:space="preserve">
+    <value>Products related to this item</value>
   </data>
 </root>

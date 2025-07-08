@@ -1,0 +1,42 @@
+﻿@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using MethaWebsite.Data
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityRedirectManager RedirectManager
+<div class="container-sm">
+    @if (externalLogins.Length > 0)
+    {
+        <form class="form-horizontal" action="Account/PerformExternalLogin" method="post">
+            <div>
+                <AntiforgeryToken />
+                <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
+                <p>
+                    @foreach (var provider in externalLogins)
+                    {
+                        var imgSrc = provider.DisplayName + ".svg";
+                        <button type="submit" class="w-100 btn btn-lg btn-primary mb-3" c name="provider" value="@provider.Name" title="@Loc["RegisterUsing"] @provider.DisplayName"
+                                style="background-color: transparent; border-color: #2f4f4f; color: black;">
+                            <img src="@imgSrc" height="30" width="30" /> @Loc["RegisterWith"] @provider.DisplayName
+                        </button>
+                    }
+                </p>
+            </div>
+        </form>
+    }
+</div>
+
+
+@code {
+    private AuthenticationScheme[] externalLogins = [];
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        externalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToArray();
+        ReturnUrl = "";
+    }
+}

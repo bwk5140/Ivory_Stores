@@ -74,8 +74,8 @@ else
     protected override async Task OnInitializedAsync()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
         Addresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();
         foreach (var address in Addresses)
         {
@@ -97,8 +97,8 @@ else
     private async Task LoadMpesaDetails(string Id)
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
         Addresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();
         foreach (var address in Addresses)
         {

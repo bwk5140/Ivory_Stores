@@ -176,8 +176,8 @@ else
         using var context = DbFactory.CreateDbContext();
         Countries = context.Country.OrderBy(c => c.Name).ToList();
         Address ??= await context.Address.FirstOrDefaultAsync(m => m.Id == Id);
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
 
         if (Address is null)
         {
@@ -216,7 +216,7 @@ else
                 throw;
             }
         }
-        NavigationManager.NavigateTo("AddressSettings");
+        NavigationManager.NavigateTo("/Addresses");
     }
 
     private bool AddressExists(string id)

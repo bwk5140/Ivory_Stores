@@ -30,11 +30,29 @@
                 <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger" role="alert" />
-                    <div class="form form-floating mb-3">
-                        <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="" />
-                        <label for="Input.Email">@Loc["Email"]</label>
-                        <ValidationMessage For="() => Input.Email" class="text-danger" />
-                    </div>
+                    @if (Email is not null)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-sm-9" style="text-align: left;">
+                                <strong>@Email</strong>
+                            </div>
+                            <div class="col-sm-3" style="text-align: right;">
+                                <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Login", new Dictionary<string, object?>
+                                   { ["ReturnUrl"] = ReturnUrl, ["Id"] = EmailEncryptor.EncryptEmail(Email) }))" style="text-decoration: none;">
+                                    @Loc["Change"]
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form form-floating mb-3">
+                            <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="email" aria-required="true" placeholder="" />
+                            <label for="Input.Email">@Loc["Email"]</label>
+                            <ValidationMessage For="() => Input.Email" class="text-danger" />
+                        </div>
+                    }
+                    
                     <div class="form form-floating mb-3">
                         <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="" />
                         <label for="Input.Password">@Loc["Password"]</label>
@@ -45,16 +63,17 @@
                         <label for="Input.ConfirmPassword">@Loc["ConfirmPassword"]</label>
                         <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
                     </div>
-                    <button style="border: unset; background-color: #2f4f4f; color: white;" class="w-100 btn btn-lg btn-primary mb-3">@Loc["UserRegistration"]</button>
+                    <button style="background-color: #2f4f4f; color: white;" class="w-100 btn btn-lg btn-primary mb-3">@Loc["UserRegistration"]</button>
                 </EditForm>
             </div>
-            @*         <div class="col-lg-4 col-lg-offset-2">
             <section>
-                <h3>Sign Up with other providers.</h3>
-                <hr />
-                <ExternalLoginPicker />
+                <div style="display: flex; align-items: center; text-align: center; color: gray;">
+                    <hr style="flex: 1;" />
+                    <span style="padding: 0 1em;">or</span>
+                    <hr style="flex: 1;" />
+                </div>
+                <ExternalRegisterPicker />
             </section>
-        </div> *@
         </div>
     </div>
 </div>
@@ -68,17 +87,30 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
+    [Parameter]
+    public string? Email { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Id { get; set; }
+
     private bool SignUpClicked { get; set; } = false;
 
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(Id) && string.IsNullOrWhiteSpace(Input.Email))
+        {
+            Email = EmailEncryptor.DecryptEmail(Id);
+            Input.Email = Email;
+        }
+    }
+
     public async Task RegisterUser(EditContext editContext)
     {
-
         var user = CreateUser();
-
-        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
+        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
         var result = await UserManager.CreateAsync(user, Input.Password);
 
@@ -103,6 +135,7 @@
                 "Account/RegisterConfirmation",
                 new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
         }
+        
         await SignInManager.SignInAsync(user, isPersistent: false);
         RedirectManager.RedirectTo(ReturnUrl);
     }
@@ -131,6 +164,7 @@
 
     private sealed class InputModel
     {
+
         [Required]
         [EmailAddress]
         [Display(Name = "Email")]

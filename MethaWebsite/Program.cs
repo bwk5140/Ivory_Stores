@@ -1,20 +1,18 @@
-﻿using Google.Apis.Auth.AspNetCore3;
-using MethaWebsite.Components;
+﻿using MethaWebsite.Components;
 using MethaWebsite.Components.Account;
 using MethaWebsite.Data;
 using MethaWebsite.Data.Contexts;
-using MethaWebsite.Data.Interfaces;
 using MethaWebsite.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
-using OpenAI;
-using OpenAI.Embeddings;
-using Pinecone;
+using Microsoft.Extensions.Options;
 using Stripe;
-using System;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,6 +24,7 @@ builder.Services.AddQuickGridEntityFrameworkAdapter();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddRazorPages();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -43,19 +42,10 @@ builder.Services.AddScoped<ShippingService>();
 builder.Services.AddScoped<LayoutState>();
 builder.Services.AddScoped<AlgoliaIndexer>();
 builder.Services.AddScoped<AlgoliaService>();
+builder.Services.AddScoped<SearchEngineService>();
+builder.Services.AddScoped<LocalEmbeddingService>();
+builder.Services.AddScoped<HuggingFaceEmbeddingService>();
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:44338/") });
-
-//builder.Services.AddHostedService<VectorSyncService>();
-//builder.Services.AddSingleton<EmbeddingClient>(_ =>
-//    new EmbeddingClient("text-embedding-3-small", 
-//        "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"));
-
-//builder.Services.AddSingleton<IndexClient>(_ =>
-//{
-//    var pinecone = new PineconeClient("pcsk_3WubFx_A1hENxHpBc6V2ZUJq1mQss6VMuMp2j16bNWEGAbPuHCj2zdRXRhXb3QEqtQb8zw");
-//    return pinecone.Index("products");
-//});
-
 
 builder.Services.AddAuthentication(options =>
     {
@@ -76,18 +66,12 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddSingleton<FilterStateService>();
-builder.Services.AddSingleton<ApplicationUserService>();
 builder.Services.AddSingleton<ShoppingCartService>();
 builder.Services.AddSingleton<StateChangeService>();
 builder.Services.AddSingleton<CardSetupSevice>();
-builder.Services.AddSingleton<EmbeddingService>();
+builder.Services.AddSingleton<ApplicationUserService>();
+builder.Services.AddSingleton<EmailEncryptor>();
 builder.Services.AddSingleton<MethaWebsite.Services.CheckoutService>();
-//builder.Services.AddSingleton<IVectorStore>(sp =>
-//{
-//    var apiKey = builder.Configuration["Pinecone:ApiKey"];
-//    var client = new PineconeClient(apiKey);
-//    return new PineconeVectorStore(client, "products");
-//});
 
 builder.Services.AddSingleton(provider =>
 {
@@ -102,22 +86,31 @@ builder.Services.AddControllers();
 
 StripeConfiguration.ApiKey = builder.Configuration.GetValue<string>("StripeAPIKey");
 
-//builder.Services.AddAuthentication()
-//   .AddGoogle(options =>
-//   {
-//       IConfigurationSection googleAuthNSection =
-//       config.GetSection("Authentication:Google");
-//       options.ClientId = googleAuthNSection["ClientId"];
-//       options.ClientSecret = googleAuthNSection["ClientSecret"];
-//   })
-//   .AddMicrosoftAccount(microsoftOptions =>
-//   {
-//       microsoftOptions.ClientId = config["Authentication:Microsoft:ClientId"];
-//       microsoftOptions.ClientSecret = config["Authentication:Microsoft:ClientSecret"];
-//   });
+builder.Services.AddAuthentication()
+   .AddCookie()
+   .AddGoogle(options =>
+   {
+       IConfigurationSection googleAuthNSection =
+       builder.Configuration.GetSection("Authentication:Google");
+       options.ClientId = googleAuthNSection["ClientId"];
+       options.ClientSecret = googleAuthNSection["ClientSecret"];
+       options.SignInScheme = IdentityConstants.ExternalScheme;
+       options.AdditionalAuthorizationParameters.Add("prompt", "select_account");
+   })
+    .AddMicrosoftAccount(microsoftOptions =>
+    {
+        IConfigurationSection microsoftAuthNSection =
+        builder.Configuration.GetSection("Authentication:Microsoft");
+        microsoftOptions.ClientId = microsoftAuthNSection["ClientId"];
+        microsoftOptions.ClientSecret = microsoftAuthNSection["ClientSecret"];
+        microsoftOptions.CallbackPath = "/signin-oidc";
+    });
+
 
 
 var app = builder.Build();
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -132,7 +125,7 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
     app.UseMigrationsEndPoint();
-    app.UseHttpsRedirection();
+    //app.UseHttpsRedirection();
 }
 
 app.MapPost("/api/stripe/create-setup-intent", async (
@@ -151,6 +144,7 @@ app.MapPost("/api/stripe/get-card-info", async (
 });
 
 app.UseAntiforgery();
+app.UseHttpsRedirection();
 
 var supportedCultures = new[] { "en-KE", "en-US", "en-GB", "es-US", "es-ES", "fr-FR", "fr-CA", "ar-SA", "zh-Hant", "de-DE", "ja-JP", "it-IT", "sw-KE" };
 var localizationOptions = new RequestLocalizationOptions
@@ -202,6 +196,7 @@ app.MapControllers();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+app.MapRazorPages();
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();

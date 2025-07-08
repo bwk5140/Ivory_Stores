@@ -26,8 +26,8 @@
                     </div>
                     <div class="col-sm-2">
                         <InputSelect id="category" @bind-Value="CurrentProductSizeColor" class="form-select-sm">
-                            <option disabled hidden value="@Loc["Select"]">@Loc["Select"]</option>
-                            <option value="@Loc["All"]">@Loc["All"]</option>
+                            <option selected disabled value="">@Loc["Select"]</option>
+                            <option value="All">@Loc["All"]</option>
                             @foreach (var product in MultiColoredProducts!)
                             {
                                 <option value="@product.Color">@product.Color</option>

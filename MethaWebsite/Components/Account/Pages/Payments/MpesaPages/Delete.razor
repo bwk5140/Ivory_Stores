@@ -6,11 +6,7 @@
 
 <PageTitle>Delete</PageTitle>
 
-@if (mpesa is null)
-{
-    <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
-}
-else
+@if (mpesa is not null)
 {
     <div class="container-sm" style="display: block; justify-content: center;">
         @{

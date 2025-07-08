@@ -5,10 +5,12 @@
 @using System.Globalization
 @using MethaWebsite.Components.Account.Pages
 @using Blazored.TextEditor
+@using HtmlAgilityPack
 
 @inject IJSRuntime JSRuntime
 @inject ILogger<Edit> Logger
 @inject IStringLocalizer<SharedResource> Loc
+@inject LocalEmbeddingService EmbeddingService
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 
@@ -46,7 +48,7 @@ else
                         @Loc["Description"]
                     </label>
                     <div class="form form-floating mb-3">
-                        <BlazoredTextEditor @ref="QuillHtml" Placeholder=@Loc["Description"]>
+                            <BlazoredTextEditor @ref="QuillHtml" Placeholder=@Loc["Description"] EditorCssStyle="height: 150px; overflow: auto;">
                             <ToolbarContent>
                                 <select class="ql-header" data-bs-toggle="tooltip" title=@Loc["Heading"]>
                                     <option selected=""></option>
@@ -444,7 +446,7 @@ else
                         <div class="input-no-focus form form-floating mb-3" style="display: flex; justify-content: space-between;">
                             <InputSelect id="category" @bind-Value="Product.Lifestyle" class="form-select-sm ms-1"
                                          style="border-color: lightgray;">
-                                <option disabled hidden value="null" style="color: gray;">@Loc["SelectLifestyle"]</option>
+                                <option disabled hidden value="" style="color: gray;">@Loc["SelectLifestyle"]</option>
                                 @foreach (var choice in LifestyleChoices)
                                 {
                                     <option value="@choice" style="color: black;">@choice</option>
@@ -452,7 +454,7 @@ else
                             </InputSelect>
                             <InputSelect id="category" @bind-Value="Product.Gender" class="form-select-sm ms-1"
                                          style="border-color: lightgray;">
-                                <option disabled hidden value="null" style="color: gray;">@Loc["SelectGender"]</option>
+                                <option disabled hidden value="" style="color: gray;">@Loc["SelectGender"]</option>
                                 @foreach (var choice in GenderChoices)
                                 {
                                     <option value="@choice" style="color: black;">@choice</option>
@@ -831,6 +833,7 @@ else
 
                             context.Attach(product!).State = EntityState.Modified;
                         }
+                        await GenerateEmbedding(product);
                     }
                     if (!color_groups.Contains(productColorGroup))
                     {
@@ -866,6 +869,27 @@ else
             }
         }
         NavigationManager.NavigateTo("Account/products");
+    }
+    private async Task GenerateEmbedding(Product product)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var category = context.Category.FirstOrDefault(c => c.Id == product.CategoryId);
+        string Category = "";
+        while (category is not null)
+        {
+            Category += " " + category.Name;
+            category = await context.Category.FirstOrDefaultAsync(c => c.Id == category.ParentID);
+        }
+        var description = HtmlToPlainText(product.Description);
+        var fullText = $"{product.Name} {Category} {description} {product.Brand} {product.Color}";
+        var productEmbedding = await EmbeddingService.GetEmbeddingAsync(fullText);
+        product.Embedding = productEmbedding;
+    }
+    public static string HtmlToPlainText(string html)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+        return doc.DocumentNode.InnerText;
     }
     private void OnCancelClicked()
     {
@@ -1288,7 +1312,7 @@ else
                 ProductColorGroups = new List<ProductColorGroup>()
             };
 
-            var colors = selectColorPopover.CurrentProductSizeColor.Equals(Loc["All"])
+            var colors = selectColorPopover.CurrentProductSizeColor.Equals("All")
                 ? MultiColoredProducts.Select(p => p.Color)
                 : new[] { selectColorPopover.CurrentProductSizeColor };
 

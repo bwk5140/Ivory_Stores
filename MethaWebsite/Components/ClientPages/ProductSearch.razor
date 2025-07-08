@@ -8,12 +8,12 @@
 @implements IAsyncDisposable
 
 @inject HttpClient Http
-@inject AlgoliaService AlgoliaService
 @inject RatingFilterService RatingFilterService
-@inject EmbeddingService embeddingService
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<SharedResource> Loc
 @inject ILogger<ProductSearch> Logger
+@inject ApplicationUserService ApplicationUserService
+@inject SearchEngineService SearchEngineService
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 
 @rendermode InteractiveServer
@@ -21,7 +21,6 @@
 <PageTitle>Results</PageTitle>
 
 <div class="container-fluid ms-5 mt-5" style="max-width: fit-content;">
-
     <div class="row">
         <div class="col-sm-2">
             <hr />
@@ -124,185 +123,212 @@
             <hr />
             <table class="" style="table-layout: fixed; width: 90%;">
                 <tbody>
-                    @if (Products is not null && Products.Count > 0)
+                    @if (Products is null)
                     {
-                        <tr class="table-container" style="height:max-content;">
-                            @foreach (var product in Products)
-                            {
-                                <td>
-                                    <div class="card mb-3 me-3" style="width: fit-content; max-width: 350px; height: 700px;
-                                            overflow: hidden;">
-                                        <div class="card-body" style="height: 450px;">
-                                            <div style="height: 400px;">
-                                                <a href="@($"product/details?id={product.Id}")" class="btn">
-                                                    @if (product.Images is not null && product.Images.Count > 0)
-                                                    {
-                                                        <img src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(product.Images.First().Image)))"
-                                                             alt=@Loc["ProductImage"] style="width:300px; height:385px; object-fit:contain;" />
-                                                    }
-                                                </a>
-                                            </div>
-                                            @if (productColorGroups is not null && productColorGroups.Count() > 0)
-                                            {
-                                                <div class="btn-group" id="colors" style="height: 15px; display: flex; flex-wrap: nowrap; padding-top: 15px;">
-                                                    @{
-                                                        using var Context = DbFactory.CreateDbContext();
-                                                        var colorGroups = productColorGroups.Where(p => p.Name == product.Name).ToList();
-                                                    }
-                                                    @foreach (var color_group in colorGroups)
-                                                    {
-                                                        var prod = Context.Product.FirstOrDefault(p => p.ProductColorGroupID == color_group.Id && p.Color == color_group.Color);
-                                                        if (colorGroups.IndexOf(color_group) < 6)
+                        <tr class="card" style="z-index: 1400;  max-width: 70px;"><td><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></td></tr>
+                    }
+                    else
+                    {
+                        @if (Products.Any())
+                        {
+                            <tr class="table-container" style="height:max-content;">
+                                @foreach (var product in Products.Select((p, i) => new { Product = p, Position = i + 1 }))
+                                {
+                                    <td>
+                                        <div class="card mb-3 me-3" style="width: fit-content; max-width: 350px; height: 700px;
+                                                        overflow: hidden;">
+                                            <div class="card-body" style="height: 450px;">
+                                                <div style="height: 400px;">
+                                                    <a href="@($"product/details?id={product.Product.Id}")" class="btn" @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
+                                                        @if (product.Product.Images is not null && product.Product.Images.Count > 0)
                                                         {
-                                                            var product_group = productGroups.FirstOrDefault(p => p.Name == product.Name);
-                                                            if (color_group.ProductGroupID == product_group.Id)
+                                                            <img src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(product.Product.Images.First().Image)))"
+                                                                 alt=@Loc["ProductImage"] style="width:300px; height:385px; object-fit:contain;" />
+                                                        }
+                                                    </a>
+                                                </div>
+                                                @if (productColorGroups is not null && productColorGroups.Count() > 0)
+                                                {
+                                                    <div class="btn-group" id="colors" style="height: 15px; display: flex; flex-wrap: nowrap; padding-top: 15px;">
+                                                        @{
+                                                            using var Context = DbFactory.CreateDbContext();
+                                                            var colorGroups = productColorGroups.Where(p => p.Name == product.Product.Name).ToList();
+                                                        }
+                                                        @if (colorGroups is not null)
+                                                        {
+                                                            @foreach (var color_group in colorGroups)
                                                             {
-                                                                if (color_group.Color == product.Color)
+                                                                var prod = Context.Product.FirstOrDefault(p => p.ProductColorGroupID == color_group.Id && p.Color == color_group.Color);
+                                                                if (colorGroups.IndexOf(color_group) < 6)
                                                                 {
-                                                                    <a href="@($"product/details?id={prod.Id}")" class="me-1 mb-2" style="border: none;
-                                                                                                        background-color: transparent;">
-                                                                        <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg"
-                                                                             class="bi bi-circle-fill" viewBox="0 0 16 16">
-                                                                            <circle cx="8" cy="8" r="8" fill="#2f4f4f" />
-                                                                            <circle cx="8" cy="8" r="7.5" fill="white" />
-                                                                            <circle cx="8" cy="8" r="6" fill="@color_group.Color" />
-                                                                        </svg>
-                                                                    </a>
+                                                                    var product_group = productGroups.FirstOrDefault(p => p.Name == product.Product.Name);
+                                                                    if (color_group.ProductGroupID == product_group.Id)
+                                                                    {
+                                                                        if (color_group.Color == product.Product.Color)
+                                                                        {
+                                                                            <a href="@($"product/details?id={prod.Id}")" class="me-1 mb-2" style="border: none;background-color: transparent;"
+                                                                               @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
+                                                                                <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg"
+                                                                                     class="bi bi-circle-fill" viewBox="0 0 16 16">
+                                                                                    <circle cx="8" cy="8" r="8" fill="#2f4f4f" />
+                                                                                    <circle cx="8" cy="8" r="7.5" fill="white" />
+                                                                                    <circle cx="8" cy="8" r="6" fill="@color_group.Color" />
+                                                                                </svg>
+                                                                            </a>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <a href="@($"product/details?id={prod.Id}")" class="me-1 mb-2" style="border: none;background-color: transparent;"
+                                                                               @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
+                                                                                <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg"
+                                                                                     class="bi bi-circle-fill" viewBox="0 0 16 16">
+                                                                                    <circle cx="8" cy="8" r="8" fill="gray" />
+                                                                                    <circle cx="8" cy="8" r="7.5" fill="@color_group.Color" />
+                                                                                </svg>
+                                                                            </a>
+                                                                        }
+                                                                    }
                                                                 }
-                                                                else
-                                                                {
-                                                                    <a href="@($"product/details?id={prod.Id}")" class="me-1 mb-2" style="border: none;
-                                                                                                    background-color: transparent;">
-                                                                        <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg"
-                                                                             class="bi bi-circle-fill" viewBox="0 0 16 16">
-                                                                            <circle cx="8" cy="8" r="8" fill="gray" />
-                                                                            <circle cx="8" cy="8" r="7.5" fill="@color_group.Color" />
-                                                                        </svg>
-                                                                    </a>
-                                                                }
+                                                            }
+                                                            var prodct = context.Product.FirstOrDefault(p => p.ProductColorGroupID == colorGroups.First().Id
+                                                            && p.Color == colorGroups.First().Color);
+                                                            var remaining_items = colorGroups.Count() - 6;
+                                                            @if (remaining_items > 0)
+                                                            {
+                                                                <a href="@($"product/details?id={prodct.Id}")" style="text-decoration: none;"
+                                                                   @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
+                                                                    +@remaining_items
+                                                                </a>
                                                             }
                                                         }
-                                                    }
-                                                    @{
-                                                        var prodct = context.Product.FirstOrDefault(p => p.ProductColorGroupID == colorGroups.First().Id
-                                                        && p.Color == colorGroups.First().Color);
-                                                        var remaining_items = colorGroups.Count() - 6;
-                                                    }
-                                                    @if (remaining_items > 0)
-                                                    {
-                                                        <a href="@($"product/details?id={prodct.Id}")" style="text-decoration: none;">
-                                                            +@remaining_items
-                                                        </a>
-                                                    }
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div class="card-footer" style="background-color: transparent; border: none; height: 200px; padding-top: 0px;">
+                                                <div>
+                                                    <strong>@product.Product.Brand</strong>
                                                 </div>
-                                            }
-                                        </div>
-                                        <div class="card-footer" style="background-color: transparent; border: none; height: 200px; padding-top: 0px;">
-                                            <div>
-                                                <strong>@product.Brand</strong>
-                                            </div>
-                                            <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-                                                                                    text-overflow: ellipsis; ">
-                                                <a href="@($"product/details?id={product.Id}")" style="text-decoration: none; color: black;">
-                                                    @product.Name
-                                                </a>
-                                            </div>
-                                            <div style="display: inline-block;">
-                                                @if (product.Rating > 0)
-                                                {
-                                                    <strong class="me-1">@product.Rating</strong>
-                                                }
-                                                @if (product.Rating == 0)
-                                                {
-                                                    @for (int i = 0; i < 5; i++)
+                                                <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+                                                                                                text-overflow: ellipsis; ">
+                                                    <a href="@($"product/details?id={product.Product.Id}")" style="text-decoration: none; color: black;"
+                                                       @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
+                                                        @product.Product.Name
+                                                    </a>
+                                                </div>
+                                                <div style="display: inline-block;">
+                                                    @if (product.Product.Rating > 0)
                                                     {
-                                                        <img src="star.svg" />
+                                                        <strong class="me-1">@product.Product.Rating</strong>
                                                     }
-                                                    <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
-                                                                                            color: dodgerblue;">
-                                                        (0)
-                                                    </button>
-                                                }
-                                                else
-                                                {
-                                                    @for (int i = 0; i < product.Rating; i++)
+                                                    @if (product.Product.Rating == 0)
                                                     {
-                                                        <img src="star-fill.svg" />
-                                                    }
-                                                    var rating_difference = 5 - product.Rating;
-                                                    @if (rating_difference > 0)
-                                                    {
-                                                        if (rating_difference > 1)
+                                                        @for (int i = 0; i < 5; i++)
                                                         {
-                                                            @for (int i = 0; i < (5 - product.Rating); i++)
+                                                            <img src="star.svg" />
+                                                        }
+                                                        <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
+                                                                                                            color: dodgerblue;">
+                                                            (0)
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        @for (int i = 0; i < product.Product.Rating; i++)
+                                                        {
+                                                            <img src="star-fill.svg" />
+                                                        }
+                                                        var rating_difference = 5 - product.Product.Rating;
+                                                        @if (rating_difference > 0)
+                                                        {
+                                                            if (rating_difference > 1)
                                                             {
-                                                                <img src="star.svg" />
+                                                                @for (int i = 0; i < (5 - product.Product.Rating); i++)
+                                                                {
+                                                                    <img src="star.svg" />
+                                                                }
+                                                                if (rating_difference.GetType() != typeof(int))
+                                                                {
+                                                                    <img src="star-half.svg" />
+                                                                }
                                                             }
-                                                            if (rating_difference.GetType() != typeof(int))
+                                                            else
                                                             {
                                                                 <img src="star-half.svg" />
                                                             }
                                                         }
-                                                        else
-                                                        {
-                                                            <img src="star-half.svg" />
+                                                        <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
+                                                                                                            color: dodgerblue;">
+                                                            (@product.Product.Rating)
+                                                        </button>
+                                                    }
+                                                </div>
+                                                <div class="mt-3">
+                                                    <div style="display: inline-block;">
+                                                        @{
+                                                            string price = product.Product.Price.ToString();
+                                                            string price_w_curr = product.Product.Price.ToString("C0");
+                                                            char leading_char = price[0];
+                                                            int index = price_w_curr.IndexOf(leading_char);
                                                         }
-                                                    }
-                                                    <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
-                                                                                            color: dodgerblue;">
-                                                        (@product.Rating)
-                                                    </button>
-                                                }
-                                            </div>
-                                            <div class="mt-3">
-                                                <div style="display: inline-block;">
-                                                    @{
-                                                        string price = product.Price.ToString();
-                                                        string price_w_curr = product.Price.ToString("C0");
-                                                        char leading_char = price[0];
-                                                        int index = price_w_curr.IndexOf(leading_char);
-                                                    }
-                                                    <a href="@($"product/details?id={product.Id}")" style="text-decoration: none; color: black;">
-                                                        <strong style="font-size: small; vertical-align: text-top;">@product.Price.ToString("C0").Substring(0, index)</strong>
-                                                        <strong style="font-size: x-large;">@product.Price.ToString("C0").Substring(index)</strong>
-                                                    </a>
+                                                        <a href="@($"product/details?id={product.Product.Id}")" style="text-decoration: none; color: black;"
+                                                           @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
+                                                            <strong style="font-size: small; vertical-align: text-top;">@product.Product.Price.ToString("C0").Substring(0, index)</strong>
+                                                            <strong style="font-size: x-large;">@product.Product.Price.ToString("C0").Substring(index)</strong>
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                        else
+                        {
+                            if (!IsLoading)
+                            {
+                                <tr><td style="text-align: center;"><p class="mt-5">@Loc["NoResults"]</p></td></tr>
                             }
-                        </tr>
+                            else
+                            {
+                                <tr class="card text-center" style="z-index: 1400;  max-width: 70px;"><td><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></td></tr>
+                            }
+                        }
                     }
                 </tbody>
             </table>
-            <nav aria-label="..." style="display: flex; justify-content: center;">
-                <ul class="pagination">
-                    <li class="page-item activePageClass[0.ToString()]">
-                        <a style="width: 90px; cursor:pointer;" @onclick="@(() => UpdatePaginationItems(currentPage - 1))" class="page-link">
-                            Previous
-                        </a>
-                    </li>
-                    <li class="page-item activePageClass[1.ToString()]">
-                        <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(1))">1</a>
-                    </li>
-                    <li class="page-item activePageClass[2.ToString()]">
-                        <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(2))" aria-current="page">2</a>
-                    </li>
-                    <li class="page-item activePageClass[3.ToString()]">
-                        <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(3))">3</a>
-                    </li>
-                    <li class="page-item activePageClass[4.ToString()]">
-                        <a style="width: 90px; cursor:pointer;" class="page-link" @onclick="@(() => UpdatePaginationItems(currentPage + 1))">Next</a>
-                    </li>
-                </ul>
-            </nav>
+            @if (Products is not null && Products.Any())
+            {
+                <nav aria-label="..." style="display: flex; justify-content: center;">
+                    <ul class="pagination">
+                        <li class="page-item activePageClass[0.ToString()]">
+                            <a style="width: 90px; cursor:pointer;" @onclick="@(() => UpdatePaginationItems(currentPage - 1))" class="page-link">
+                                Previous
+                            </a>
+                        </li>
+                        <li class="page-item activePageClass[1.ToString()]">
+                            <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(1))">1</a>
+                        </li>
+                        <li class="page-item activePageClass[2.ToString()]">
+                            <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(2))" aria-current="page">2</a>
+                        </li>
+                        <li class="page-item activePageClass[3.ToString()]">
+                            <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(3))">3</a>
+                        </li>
+                        <li class="page-item activePageClass[4.ToString()]">
+                            <a style="width: 90px; cursor:pointer;" class="page-link" @onclick="@(() => UpdatePaginationItems(currentPage + 1))">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
         </div>
     </div>
 </div>
 
 @code {
     private string response;
+    private bool IsLoading { get; set; } = false;
+
 
     private ApplicationDbContext context = default!;
 
@@ -362,8 +388,11 @@
     [Parameter]
     public double High { get; set; } = 3991;
 
+    private string? QueryId { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
+        IsLoading = true;
         context = await DbFactory.CreateDbContextAsync();
         TrueMax = High;
 
@@ -389,63 +418,22 @@
 
             }
             List<Product> newProds = new List<Product>();
-            // var response = await Http.PostAsJsonAsync("/semantic-search", search);
 
-            // if (response.IsSuccessStatusCode)
-            // {
-            //     var result = await response.Content.ReadFromJsonAsync<List<Product>>();
-            //     // use result
-            // }
-            // else
-            // {
-            //     var error = await response.Content.ReadAsStringAsync();
-            //     Console.WriteLine($"Error: {error}");
-            // }
+            newProds = await SearchEngineService.SearchAsync(search, context.Product.ToList());
+            if (newProds.Count() <= 0)
+                newProds = SearchEngineService.SearchWithScoring(search, context.Product.ToList());
 
-            newProds = await AlgoliaService.SearchProductsAsync(search);
-            // foreach (var prod in products)
-            // {
-            //     // var payload = new Dictionary<string, string>();
-            //     // payload[search] = prod.Name;
-            //     var category_ = await context.Category.FirstOrDefaultAsync(c => c.Id == prod.CategoryId);
-            //     bool found = false;
-            //     while (category_ is not null)
-            //     {
-            //         if (category_.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
-            //         {
-            //             newProds.Add(prod);
-            //             found = true;
-            //             break;
-            //         }
-            //         category_ = await context.Category.FirstOrDefaultAsync(c => c.Id == category_.ParentID);
-            //     }
-            //     if (!found)
-            //     {
-            //         if (prod.Brand.Contains(search, StringComparison.OrdinalIgnoreCase))
-            //         {
-            //             newProds.Add(prod);
-            //         }
-            //         else if (prod.Lifestyle.Contains(search, StringComparison.OrdinalIgnoreCase))
-            //         {
-            //             newProds.Add(prod);
-            //         }
-            //         else if (prod.Name.Contains(search, StringComparison.OrdinalIgnoreCase))
-            //         {
-            //             newProds.Add(prod);
-            //         }
-            //         else if (prod.Description.Contains(search, StringComparison.OrdinalIgnoreCase))
-            //         {
-            //             newProds.Add(prod);
-            //         }
-            //     } 
-            // }
             foreach (var product in newProds)
             {
                 Products.Add(context.Product.FirstOrDefault(p => p.Name == product.Name));
             }
         }
 
-        if (Products?.Any() != true) return;
+        if (Products?.Any() != true)
+        {
+            IsLoading = false;
+            return;
+        }
 
         if (currentPage == 0)
         {
@@ -523,6 +511,7 @@
             activePage[i.ToString()] = false;
             activePageClass[i.ToString()] = activePage[i.ToString()] ? "active" : "none";
         }
+        IsLoading = false;
     }
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
@@ -560,7 +549,6 @@
                 prod.Images = context.ProductImage.Where(m => m.ProductColorGroupId == prod.ProductColorGroupID).OrderBy(i => i.Created).ToList();
             }
         }
-
     }
     protected override void OnAfterRender(bool firstRender)
     {
@@ -570,6 +558,130 @@
             StateHasChanged();
         }
     }
+    // protected override async Task OnParametersSetAsync()
+    // {
+    //     IsLoading = true;
+    //     context = await DbFactory.CreateDbContextAsync();
+    //     TrueMax = High;
+
+    //     if (!string.IsNullOrWhiteSpace(search))
+    //     {
+    //         var products = context.Product.ToList();
+    //         try
+    //         {
+    //             products = context.Product.ToList().GetRange(prodLow, prodCount);
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             Logger.LogInformation(ex.Message);
+    //             products = context.Product.ToList();
+    //             try
+    //             {
+    //                 products = products.GetRange(prodLow, products.Count() - prodLow);
+    //             }
+    //             catch (Exception ex2)
+    //             {
+    //                 Logger.LogInformation(ex2.Message);
+    //             }
+
+    //         }
+    //         List<Product> newProds = new List<Product>();
+
+    //         newProds = await SearchEngineService.SearchAsync(search, context.Product.ToList());
+    //         if (newProds.Count() <= 0)
+    //             newProds = SearchEngineService.SearchWithScoring(search, context.Product.ToList());
+    //         Products.Clear();
+    //         foreach (var product in newProds)
+    //         {
+    //             Products.Add(context.Product.FirstOrDefault(p => p.Name == product.Name));
+    //         }
+    //     }
+
+    //     if (Products?.Any() != true)
+    //     {
+    //         IsLoading = false;
+    //         return;
+    //     }
+
+    //     if (currentPage == 0)
+    //     {
+    //         currentPage = 1;
+    //     }
+
+    //     // Load images and collect product groups
+    //     productGroups = Products
+    //         .Select(p =>
+    //         {
+    //             p.Images = context.ProductImage
+    //                 .Where(img => img.ProductColorGroupId == p.ProductColorGroupID)
+    //                 .OrderBy(img => img.Created)
+    //                 .ToList();
+
+    //             return context.ProductGroup.FirstOrDefault(pg => pg.Name == p.Name);
+    //         })
+    //         .Where(pg => pg != null)
+    //         .Distinct()
+    //         .ToList();
+
+    //     // Load product color groups
+    //     productColorGroups = productGroups
+    //         .SelectMany(pg => context.ProductColorGroup.Where(pcg => pcg.ProductGroupID == pg.Id))
+    //         .Distinct()
+    //         .ToList();
+
+    //     // Load products from color groups
+    //     Products = productColorGroups
+    //         .Select(pcg => context.Product.FirstOrDefault(p => p.ProductColorGroupID == pcg.Id))
+    //         .Where(p => p != null)
+    //         .ToList();
+
+    //     Products = Products
+    //         .GroupBy(p => p.Name)
+    //         .Select(g => g.First())
+    //         .ToList();
+
+    //     // Populate brand, lifestyle, and gender filters
+    //     foreach (var product in Products)
+    //     {
+    //         if (!Brands.Contains(product.Brand))
+    //         {
+    //             Brands.Add(product.Brand);
+    //             SelectedBrands[product.Brand] = false;
+    //         }
+    //         if (!Lifestyle.Contains(product.Lifestyle))
+    //         {
+    //             Lifestyle.Add(product.Lifestyle);
+    //             SelectedLifestyle[product.Lifestyle] = false;
+    //         }
+    //         if (!Genders.Contains(product.Gender))
+    //         {
+    //             Genders.Add(product.Gender);
+    //             SelectedGenders[product.Gender] = false;
+    //         }
+    //         if (product.Images is null)
+    //         {
+    //             product.Images = context.ProductImage.Where(m => m.ProductColorGroupId == product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
+    //         }
+    //     }
+    //     // Initialize rating filters
+    //     Rating = Enumerable.Range(0, 5)
+    //         .Select(_ => new Rating { Selected = false })
+    //         .ToList();
+
+    //     var prods = context.Product.ToList();
+    //     var count = prods.Count();
+    //     int page_count = count / prodCount;
+    //     if (count % prodCount > 0)
+    //     {
+    //         page_count += 1;
+    //     }
+    //     for (int i = 1; i <= page_count; i++)
+    //     {
+    //         activePage[i.ToString()] = false;
+    //         activePageClass[i.ToString()] = activePage[i.ToString()] ? "active" : "none";
+    //     }
+    //     IsLoading = false;
+    // }
     public void UpdateGender(string gender)
     {
         var selectedGenders = Genders
@@ -645,6 +757,11 @@
         }
         StateHasChanged();
     }
+    private async Task TrackClick(string productId, int position)
+    {
+       
+    }
+
     public async Task UpdateLifeStyleProducts()
     {
         using var Context = await DbFactory.CreateDbContextAsync();
@@ -719,6 +836,7 @@
             NavigationManager.Refresh(true);
         }
     }
+
     // private async Task SendData(Dictionary<string, string> info)
     // {
     //     var payload = new { input = info };

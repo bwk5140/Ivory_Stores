@@ -3,6 +3,7 @@
 @using Microsoft.EntityFrameworkCore
 @using System.Globalization
 
+@inject SearchEngineService SearchEngineService
 @inject ApplicationUserService ApplicationUserService
 @inject ShoppingCartService ShoppingCartService
 @inject AuthenticationStateProvider AuthStateProvider
@@ -10,6 +11,7 @@
 @inject IStringLocalizer<SharedResource> Loc
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 @rendermode InteractiveServer
 
@@ -46,26 +48,29 @@
             </ol>
         </nav>
         <div class="row">
-            <div class="col-sm-1" style="max-width: 80px; max-height: 600px;">
-                @if (Images is not null)
-                {
-                    @foreach (var Image in Images)
+            <div class="image-container col-sm-1" style="max-width: 80px;">
+                <div id="scrollImage">
+                    @if (Images is not null)
                     {
-                        <div class="row">
-                            <button class="btn" @onclick="@(() => OnCurrentImageClicked(Image))">
-                                <div class="card" style="padding: 0px;">
-                                    <div class="card-body" style="padding: 0px;">
-                                        <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(Image.Image!)))"
-                                             alt=@Loc["ProductImage"] style="width:30px; height:50px;object-fit:fill;" />
+                        @foreach (var Image in Images)
+                        {
+                            <div class="row">
+                                <button class="btn" @onclick="@(() => OnCurrentImageClicked(Image))">
+                                    <div class="card" style="padding: 0px;">
+                                        <div class="card-body" style="padding: 0px;">
+                                            <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(Image.Image!)))"
+                                                 alt=@Loc["ProductImage"] style="width:30px; height:50px;object-fit:fill;" />
+                                        </div>
                                     </div>
-                                </div>
 
-                            </button>
-                        </div>
+                                </button>
+                            </div>
+                        }
                     }
-                }
+                </div>
+                
             </div>
-            <div class="col-lg" style="max-height: 600px;">
+            <div class="image-container col-lg">
                 @if (CurrentImage is not null)
                 {
                     <CascadingValue Value="Images">
@@ -75,12 +80,13 @@
                             </CascadingValue>
                         </CascadingValue>
                     </CascadingValue>
-                    <button class="btn" @onclick="@(() => OnDetailsClicked(CurrentImage))" @onblur="Close">
+                    <button id="scrollImage" class="btn" @onclick="@(() => OnDetailsClicked(CurrentImage))" @onblur="Close">
                         <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
-                             alt=@Loc["ProductImage"] style="width:100%; height:600px;; object-fit:contain;" />
+                             alt=@Loc["ProductImage"] style="width:100%; height:600px; object-fit:contain;" />
                     </button>
                 }
             </div>
+            
             <div class="col-md">
                 <div>
                     <a href="@($"searchresults?search={product.Brand}")" class="btn btn-link" style="text-decoration: none; padding: 0px;">
@@ -151,7 +157,7 @@
                 
                 <div class="mt-2 mb-2">
                     <label for="product.Size" class="form-label" style="color: gray;">@Loc["Size"]:</label>
-                    <InputSelect id="category" @bind-Value="CurrentSize" class="form-select-sm">
+                    <InputSelect id="category" @bind-Value="product.Size" class="form-select-sm">
                         @foreach (var filtr in Sizes)
                         {
                             <option value="@filtr">@filtr</option>
@@ -212,8 +218,21 @@
                 </div>
                 <div class="mt-3">
                     <h5>@Loc["MoreInfo"]</h5>
-                    @((MarkupString)product.Description)
-                    
+                    @{
+                        DisplayText = IsExpanded ? product.Description : product.Description.Substring(0, MaxLength) + "...";
+                    }
+                    <div style="font-size: medium; font-family:'Times New Roman', Times, serif;">
+                        @((MarkupString)DisplayText)
+                        @if (CanExpand)
+                        {
+                            <button class="ms-3 dropdown-toggle @(IsExpanded ? "rotate-180" : "rotate-0")" 
+                                style="padding: 0px; background-color: transparent; border: none" @onclick="Toggle">
+                            </button>
+                            <a @onclick="Toggle" style="cursor:pointer; color:dodgerblue; text-decoration: none;">
+                                @(IsExpanded ? "See Less" : "See More")
+                            </a>
+                        }
+                    </div>
                 </div>
                 <div class="mt-3">
                     <button class="btn" style="border: unset; outline:none; background-color: transparent;
@@ -223,6 +242,82 @@
                     </button>
                     <hr />
                 </div>
+                @if (SimilarProduct is not null)
+                {
+                    using var context = DbFactory.CreateDbContext();
+                    var SimilarProdImages = context.ProductImage.Where(p => p.ProductColorGroupId == SimilarProduct.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+                    var SimilarProdCurrentImage = SimilarProdImages[0];
+                    <div class="mt-3">
+                        <div class="card mb-3" style="border: none; padding: 0px;">
+                            <div class="card-header" style="border: none; background-color: transparent;">
+                                <h5>@Loc["SimilarItem"]</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-sm-3" style="background-color: transparent; padding: 0px;">
+                                        <a href="@($"product/details?id={SimilarProduct.Id}")" class="btn">
+                                            <img src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(SimilarProdCurrentImage.Image!)))"
+                                                 alt=@Loc["ProductImage"] style="width:100px; height:100px; object-fit:contain; vertical-align: central;" />
+                                        </a>
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <a href="@($"product/details?id={SimilarProduct.Id}")" style="padding: 0px; text-decoration:none;">
+                                            @SimilarProduct.Name
+                                        </a>
+                                        <div>
+                                            @if (SimilarProduct.Rating > 0)
+                                            {
+                                                <strong class="me-1">@SimilarProduct.Rating</strong>
+                                            }
+                                            @if (SimilarProduct.Rating == 0)
+                                            {
+                                                @for (int i = 0; i < 5; i++)
+                                                {
+                                                    <img src="star.svg" />
+                                                }
+                                                <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
+                                                                                        color: dodgerblue;">
+                                                    (0)
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                @for (int i = 0; i < SimilarProduct.Rating; i++)
+                                                {
+                                                    <img src="star-fill.svg" />
+                                                }
+                                                var rating_difference = 5 - SimilarProduct.Rating;
+                                                @if (rating_difference > 0)
+                                                {
+                                                    if (rating_difference > 1)
+                                                    {
+                                                        @for (int i = 0; i < (5 - SimilarProduct.Rating); i++)
+                                                        {
+                                                            <img src="star.svg" />
+                                                        }
+                                                        if (rating_difference.GetType() != typeof(int))
+                                                        {
+                                                            <img src="star-half.svg" />
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <img src="star-half.svg" />
+                                                    }
+                                                }
+                                                <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
+                                                                                        color: dodgerblue;">
+                                                    (@SimilarProduct.Rating)
+                                                </button>
+                                            }
+                                        </div>
+                                        <p style="font-size: smaller;"><strong>@SimilarProduct.Price.ToString("C2")</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
             <div class="col-sm" style="max-width: fit-content;">
                 <div class="card">
@@ -344,6 +439,104 @@
                 </div>
             </div>
         </div>
+        <div class="row">
+            <hr id="stopPoint" />
+            <h5>@Loc["SimilarItems"]</h5>
+            <div id="carouselExampleFade" class="carousel slide carousel-fade">
+                <div class="carousel-inner">
+                    <table>
+                        <tbody>
+                            <tr>
+                                @if (SimilarProducts is not null && SimilarProducts.Any()){
+                                    foreach (var similarProd in SimilarProducts)
+                                    {
+                                        using var context = DbFactory.CreateDbContext();
+                                        similarProd.Images = context.ProductImage.Where(p => p.ProductColorGroupId == similarProd.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+                                        var prodImage = similarProd.Images[0];
+                                        <td style="padding: 20px;">
+                                            <div class="card mb-3" style="border: none; padding: 0px; width: 150px;">
+                                                <div class="card-body">
+                                                    <div class="row" style="background-color: transparent; padding: 0px;">
+                                                        <a href="@($"product/details?id={similarProd.Id}")" class="btn">
+                                                            <img src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(prodImage.Image!)))"
+                                                                 alt=@Loc["ProductImage"] style="width:150px; height:150px; object-fit:contain; vertical-align: central;" />
+                                                        </a>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="ms-3" style="display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+                                                                                                            text-overflow: ellipsis; ">
+                                                            <a href="@($"product/details?id={similarProd.Id}")" style="padding: 0px; text-decoration:none;">
+                                                                @similarProd.Name
+                                                            </a>
+                                                        </div>
+                                                        
+                                                        <div class="ms-3">
+                                                            @if (similarProd.Rating > 0)
+                                                            {
+                                                                <strong class="me-1">@similarProd.Rating</strong>
+                                                            }
+                                                            @if (similarProd.Rating == 0)
+                                                            {
+                                                                @for (int i = 0; i < 5; i++)
+                                                                {
+                                                                    <img src="star.svg" />
+                                                                }
+                                                                <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;color: dodgerblue;">
+                                                                    (0)
+                                                                </button>
+                                                            }
+                                                            else
+                                                            {
+                                                                @for (int i = 0; i < similarProd.Rating; i++)
+                                                                {
+                                                                    <img src="star-fill.svg" />
+                                                                }
+                                                                var rating_difference = 5 - similarProd.Rating;
+                                                                @if (rating_difference > 0)
+                                                                {
+                                                                    if (rating_difference > 1)
+                                                                    {
+                                                                        @for (int i = 0; i < (5 - similarProd.Rating); i++)
+                                                                        {
+                                                                            <img src="star.svg" />
+                                                                        }
+                                                                        if (rating_difference.GetType() != typeof(int))
+                                                                        {
+                                                                            <img src="star-half.svg" />
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <img src="star-half.svg" />
+                                                                    }
+                                                                }
+                                                                <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
+                                                                                                                                                                    color: dodgerblue;">
+                                                                    (@similarProd.Rating)
+                                                                </button>
+                                                            }
+                                                        </div>
+                                                        <p class="ms-3" style="font-size: smaller;"><strong>@similarProd.Price.ToString("C2")</strong></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    }
+                                }
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleFade" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleFade" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
     }
 </div>
 <CascadingValue Value="product">
@@ -354,7 +547,17 @@
 
 @code {
     private Product? product;
+    private Product? SimilarProduct;
     public ProductGroup? productGroup;
+
+    [Parameter] public int MaxLength { get; set; } = 500;
+
+    private bool IsExpanded { get; set; } = false;
+    private bool CanExpand;
+
+    private string DisplayText;
+
+    private void Toggle() => IsExpanded = !IsExpanded;
 
     [Parameter]
     public ShoppingCartProduct shoppingCartProduct { get; set; } = new ();
@@ -420,8 +623,8 @@
     {
         using var context = await DbFactory.CreateDbContextAsync();
         product = await context.Product.FirstOrDefaultAsync(m => m.Id == Id);
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        CanExpand = product.Description.Length > MaxLength;
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
 
         if (product is null)
         {
@@ -478,6 +681,55 @@
                 Lists = context.ProductList.Where(l => l.UserId == ApplicationUser.Id).ToList();
                 defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default");
                 Lists.Remove(defaultList);
+            }
+            var Products = context.Product.ToList();
+            foreach (var _product in products)
+            {
+                Products.Remove(_product);
+            }
+            // Load images and collect product groups
+            var productGroups = Products
+                .Select(p =>
+                {
+                    p.Images = context.ProductImage
+                        .Where(img => img.ProductColorGroupId == p.ProductColorGroupID)
+                        .OrderBy(img => img.Created)
+                        .ToList();
+
+                    return context.ProductGroup.FirstOrDefault(pg => pg.Name == p.Name);
+                })
+                .Where(pg => pg != null)
+                .Distinct()
+                .ToList();
+
+            // Load product color groups
+            var productColorGroups = productGroups
+                .SelectMany(pg => context.ProductColorGroup.Where(pcg => pcg.ProductGroupID == pg.Id))
+                .Distinct()
+                .ToList();
+
+            // Load products from color groups
+            Products = productColorGroups
+                .Select(pcg => context.Product.FirstOrDefault(p => p.ProductColorGroupID == pcg.Id))
+                .Where(p => p != null)
+                .ToList();
+
+            Products = Products
+                .GroupBy(p => p.Name)
+                .Select(g => g.First())
+                .ToList();
+            SimilarProducts = SearchEngineService.RecommendSimilar(product, Products);
+            if (SimilarProducts is not null && SimilarProducts.Any())
+                SimilarProduct = SimilarProducts.First();
+            else
+            {
+                Products = productColorGroups
+                .Select(pcg => context.Product.FirstOrDefault(p => p.ProductColorGroupID == pcg.Id))
+                .Where(p => p != null)
+                .ToList();
+                SimilarProducts = SearchEngineService.RecommendSimilar(product, Products);
+                if (SimilarProducts is not null && SimilarProducts.Any())
+                    SimilarProduct = SimilarProducts.First();
             }
         }
     }
@@ -591,6 +843,7 @@
         ShoppingCartProduct.ProductId = product.Id;
         context.ShoppingCartProduct.Add(ShoppingCartProduct);
         ShoppingCartProduct.Quantity = shoppingCartProduct.Quantity;
+        context.Attach(product).State = EntityState.Modified;
         if (ApplicationUser is not null)
         {
             ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == ApplicationUser.Id);
@@ -605,17 +858,20 @@
         }
         else
         {
-            await context.SaveChangesAsync();
             ShoppingCart = ShoppingCartService.getShoppingCart();
+            if (!context.ShoppingCart.Contains(ShoppingCart))
+            {
+                context.ShoppingCart.Add(ShoppingCart);
+                await context.SaveChangesAsync();
+            }
         }
         for (int i = shoppingCartProduct.Quantity; i > 0; i--)
         {
             ShoppingCart.ProductIds.Add(ShoppingCartProduct.Id);
             ShoppingCart.Subtotal += product.Price;
-            context.Attach(ShoppingCart!).State = EntityState.Modified;
-            await context.SaveChangesAsync();
         }
-
+        context.Attach(ShoppingCart!).State = EntityState.Modified;
+        await context.SaveChangesAsync();
         NavigationManager.NavigateTo($"/shoppingcart/confirmation?id={product.Id}", forceLoad: true);
     }
     private async Task OnBuyNow()
@@ -625,6 +881,7 @@
         ShoppingCartProduct.ProductId = product.Id;
         ShoppingCartProduct.Quantity = shoppingCartProduct.Quantity;
         context.ShoppingCartProduct.Add(ShoppingCartProduct);
+        context.Attach(product).State = EntityState.Modified;
         if (ApplicationUser is not null)
         {
             ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == ApplicationUser.Id);
@@ -640,15 +897,20 @@
         else
         {
             ShoppingCart = ShoppingCartService.getShoppingCart();
+            if (!context.ShoppingCart.Contains(ShoppingCart))
+            {
+                context.ShoppingCart.Add(ShoppingCart);
+                await context.SaveChangesAsync();
+            }
         }
 
         for (int i = shoppingCartProduct.Quantity; i > 0; i--)
         {
             ShoppingCart.ProductIds.Add(ShoppingCartProduct.Id);
             ShoppingCart.Subtotal += product.Price;
-            context.Attach(ShoppingCart!).State = EntityState.Modified;
-            await context.SaveChangesAsync();
         }
+        context.Attach(ShoppingCart!).State = EntityState.Modified;
+        await context.SaveChangesAsync();
         NavigationManager.NavigateTo($"/Checkout?id={shoppingCartProduct.Id}");
     }
     private void UpdateInputSelect()
@@ -663,5 +925,9 @@
     private void IncreaseProductQuantity()
     {
         shoppingCartProduct.Quantity += 1;
+    }
+    private void OnNavButtonClicked(string crumb)
+    {
+        NavigationManager.NavigateTo($"searchresults?filter=All&search={crumb}");
     }
 }

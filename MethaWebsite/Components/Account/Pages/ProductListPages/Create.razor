@@ -85,8 +85,8 @@
         {
             CreateIssue = false;
             ProductList.Private = true;
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+            
+            ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
             ProductList.UserId = ApplicationUser.Id;
             context.ProductList.Add(ProductList);
             await context.SaveChangesAsync();

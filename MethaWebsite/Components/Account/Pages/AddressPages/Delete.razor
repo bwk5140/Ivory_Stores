@@ -87,7 +87,7 @@
         using var context = DbFactory.CreateDbContext();
         context.Address.Remove(address!);
         await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/AddressSettings");
+        NavigationManager.NavigateTo("/Addresses");
     }
     public void Show()
     {

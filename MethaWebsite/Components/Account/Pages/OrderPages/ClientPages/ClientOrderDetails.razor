@@ -1,4 +1,7 @@
 ﻿@page "/Account/Order/details"
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
 
 @inject IStringLocalizer<SharedResource> Loc
 @inject ApplicationUserService ApplicationUserService
@@ -207,9 +210,9 @@
                                             </button>
                                         </div>
                                         <div>
-                                            <button class="btn btn-primary mt-1 me-2" style="background-color: transparent;border-color:black; border-radius: 25px; color: black; width: 200px;">
+                                            <a href="@($"productreviews/create?id={product.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: transparent;border-color:black; border-radius: 25px; color: black; width: 200px;">
                                                 @Loc["WriteReview"]
-                                            </button>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -249,8 +252,8 @@
     protected override async Task OnInitializedAsync()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
         order = await context.Order.FirstOrDefaultAsync(o => o.Id == Id);
     }
     private Payment GetPaymentMethod(string Id)

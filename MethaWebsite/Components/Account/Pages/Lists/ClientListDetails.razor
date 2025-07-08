@@ -3,6 +3,9 @@
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject IStringLocalizer<SharedResource> Loc
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationUserService ApplicationUserService
 
 @rendermode InteractiveServer
 
@@ -32,7 +35,7 @@
                         </div>
                         <div class="col-sm-9">
                             <a href="@($"product/details?id={product.Id}")" style="padding: 0px; text-decoration:none;">
-                                <p>@product.Name</p>
+                                @product.Name
                             </a>
                             <p>
                                 @Loc["by"] @product.Brand
@@ -117,10 +120,10 @@
             </div>
         }
     }
+    <CascadingValue Value="List">
+        <MethaWebsite.Components.Account.Pages.Lists.EditListPopOver @ref=EditListPopUp />
+    </CascadingValue>
 }
-<CascadingValue Value="List">
-    <MethaWebsite.Components.Account.Pages.Lists.EditListPopOver @ref=EditListPopUp />
-</CascadingValue>
 
 @code {
     [Parameter]
@@ -135,12 +138,15 @@
     [SupplyParameterFromQuery]
     public string? Id { get; set; }
 
+    private ApplicationUser? applicationUser { get; set; }
     private MethaWebsite.Components.Account.Pages.Lists.EditListPopOver EditListPopUp;
 
     protected override async Task OnInitializedAsync()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        List = await context.ProductList.FirstOrDefaultAsync(l => l.Id == Id);
+        
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
+        List = await context.ProductList.FirstOrDefaultAsync(l => l.Id == Id && l.UserId == applicationUser.Id);
         if (List is not null && List.ProductIds is not null)
         {
             Products = await context.Product.Where(p => List.ProductIds.Contains(p.Id)).Distinct()
@@ -150,7 +156,7 @@
     protected override async Task OnParametersSetAsync()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        List = await context.ProductList.FirstOrDefaultAsync(l => l.Id == Id);
+        List = await context.ProductList.FirstOrDefaultAsync(l => l.Id == Id && l.UserId == applicationUser.Id);
         if (List is not null && List.ProductIds is not null)
         {
             Products = await context.Product.Where(p => List.ProductIds.Contains(p.Id)).Distinct()

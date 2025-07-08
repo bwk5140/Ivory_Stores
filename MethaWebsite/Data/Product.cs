@@ -27,6 +27,8 @@ namespace MethaWebsite.Data
         public int Stock { get; set; }
         public int Quantity { get; set; } = 1;
         public double Rating { get; set; }
+        public float[]? Embedding { get; set; }
+        public double RatingTotal { get; set; }
         [Required]
         public string? Color { get; set; }
         [Required]
@@ -40,6 +42,6 @@ namespace MethaWebsite.Data
         [Required]
         public string? WashInstructions { get; set; }
         public List<ProductImage>? Images { get; set; }
-        public List<ProductRating>? UserRatings { get; set; }
+        public List<string>? ProductReviewIds { get; set; }
     }
 }

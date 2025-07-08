@@ -1,0 +1,41 @@
+﻿@page "/productreviews"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@implements IAsyncDisposable
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="productreviews/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.ProductReview">
+    <PropertyColumn Property="productreview => productreview.Subject" />
+    <PropertyColumn Property="productreview => productreview.Created" />
+    <PropertyColumn Property="productreview => productreview.Description" />
+    <PropertyColumn Property="productreview => productreview.ProductId" />
+    <PropertyColumn Property="productreview => productreview.UserId" />
+    <PropertyColumn Property="productreview => productreview.ImageIds" />
+
+    <TemplateColumn Context="productreview">
+        <a href="@($"productreviews/edit?id={productreview.Id}")">Edit</a> |
+        <a href="@($"productreviews/details?id={productreview.Id}")">Details</a> |
+        <a href="@($"productreviews/delete?id={productreview.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

@@ -11,12 +11,27 @@
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject IStringLocalizer<SharedResource> Loc
 
+@rendermode InteractiveServer
+
 @if (product is null)
 {
     <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
 }
 else
 {
+    <div class="container-sm mt-5">
+        @if (ShippingAddressProblem)
+        {
+            <div class="card mt-2 mb-1" style="border-color: red; max-width: 1200px; color: red; border-left: 3px solid red;">
+                <div class="card-body" style="display: inline-block;">
+                    <img src="info-circle.svg" /> @Loc["AddShippingAddress"]
+                    <a class="mt-3" href="Addresses" style="text-decoration: none;">
+                        @Loc["AddNewShippingAddress"]
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
     <div class="row mt-5">
         <div class="col" style="text-align: center;">
             <div class="card" style="height: 200px;">
@@ -58,10 +73,10 @@ else
                         <h5 style="font-weight: 450;">@ShoppingCart.Subtotal.ToString("C2")</h5>
                     </div>
                     <div>
-                        <a href="/Checkout" class="mb-3 btn btn-primary" style="border-bottom-left-radius: 25px; border-top-left-radius: 25px; border-bottom-right-radius: 25px;
+                        <button @onclick="GoToCart" class="mb-3 btn btn-primary" style="border-bottom-left-radius: 25px; border-top-left-radius: 25px; border-bottom-right-radius: 25px;
                                     border-top-right-radius: 25px; border: unset; background-color: #2f4f4f; color: white; padding: 5px; width: 250px;">
                             @Loc["ProceedToCheckout"] (@ShoppingCart.ProductIds.Count() @Loc["Items"])
-                        </a>
+                        </button>
                     </div>
                     <div>
                         <a href="/shoppingcart" class="mb-3 btn btn-secondary" style="border-bottom-left-radius: 15px; border-top-left-radius: 15px; border-bottom-right-radius: 15px;
@@ -77,6 +92,8 @@ else
 
 @code {
     private ApplicationDbContext context = default!;
+    private bool ShippingAddressProblem { get; set; } = false;
+    private Address? DefaultAddress { get; set; }
 
     [Parameter]
     public Product? product { get; set; }
@@ -94,11 +111,12 @@ else
         LayoutState.SetBackground("bg-add-to-cart-confirmation");
         context = await DbFactory.CreateDbContextAsync();
         product = await context.Product.FirstOrDefaultAsync(m => m.Id == Id);;
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
 
         if (ApplicationUser is not null)
         {
+            DefaultAddress = await context.Address.FirstOrDefaultAsync(a => a.Id == ApplicationUser.DefaultAddressId);
             ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == ApplicationUser.Id);
             if (ShoppingCart is null)
             {
@@ -124,6 +142,18 @@ else
                     Products.Add(product);
                 }
             }
+        }
+    }
+    public void GoToCart()
+    {
+        if (DefaultAddress is not null)
+        {
+            ShippingAddressProblem = false;
+            NavigationManager.NavigateTo("/Checkout");
+        }
+        else
+        {
+            ShippingAddressProblem = true;
         }
     }
 }

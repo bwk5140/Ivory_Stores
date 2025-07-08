@@ -32,6 +32,7 @@ namespace MethaWebsite.Services
                         name = p.Name,
                         description = p.Description,
                         price = p.Price,
+                        color = p.Color,
                         category = applicationDbContext.Category.FirstOrDefault(c => c.Id == p.CategoryId)
         }
                 })
@@ -39,6 +40,26 @@ namespace MethaWebsite.Services
 
             var response = await _client.PostAsJsonAsync(
                 $"https://{appId}.algolia.net/1/indexes/products/batch", payload);
+
+            return response.IsSuccessStatusCode;
+        }
+        public async Task<bool> IndexCategoriesAsync(IEnumerable<Category> categories)
+        {
+            var payload = new
+            {
+                requests = categories.Select(c => new
+                {
+                    action = "addObject",
+                    body = new
+                    {
+                        objectID = c.Id,
+                        name = c.Name
+        }
+                })
+            };
+
+            var response = await _client.PostAsJsonAsync(
+                $"https://{appId}.algolia.net/1/indexes/categories/batch", payload);
 
             return response.IsSuccessStatusCode;
         }

@@ -119,8 +119,8 @@
     {
         using var context = await DbFactory.CreateDbContextAsync();
         Countries = context.Country.OrderBy(c => c.Name).ToList();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
         Address.UserId = applicationUser.Id;
     }
 

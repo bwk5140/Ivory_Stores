@@ -155,8 +155,8 @@
         {
             Years.Add(i);
         }
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
         ImageSource["visa"] = "generic_card_visa.svg";
         ImageSource["mastercard"] = "generic_card_mastercard.svg";
         ImageSource["amex"] = "generic_card_amex.svg";

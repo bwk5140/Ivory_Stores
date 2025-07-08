@@ -86,10 +86,10 @@
     protected override async Task OnInitializedAsync()
     {
         context = await DbFactory.CreateDbContextAsync();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
         ProductLists = context.ProductList.Where(c => c.UserId == applicationUser.Id).ToList();
-        defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default");
+        defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default" && l.UserId == applicationUser.Id);
         ProductLists.Remove(defaultList);
     }
 }

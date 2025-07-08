@@ -1,14 +1,14 @@
 ﻿namespace MethaWebsite.Data
 {
-    public class ProductRating
+    public class ProductReview
     {
         public string? Id { get; set; } = Guid.NewGuid().ToString();
         public string? Subject { get; set; }
-        public int Rating { get; set; }
-        public DateTime? Created { get; set; }
+        public DateTime? Created { get; set; } = DateTime.Now;
         public string? Description { get; set; }
         public string? ProductId { get; set; }
         public string? UserId { get; set; }
-        public List<ProductImage>? Images { get; set; }
+        public List<string>? ImageIds { get; set; }
+        public List<string> RatingIds { get; set; }
     }
 }

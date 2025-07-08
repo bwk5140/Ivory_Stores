@@ -3,6 +3,9 @@
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject IStringLocalizer<SharedResource> Loc
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationUserService ApplicationUserService
 
 @rendermode InteractiveServer
 
@@ -31,7 +34,7 @@
                     </div>
                     <div class="col-sm-9">
                         <a href="@($"product/details?id={product.Id}")" style="padding: 0px; text-decoration:none;">
-                            <p>@product.Name</p>
+                            @product.Name
                         </a>
                         <p>
                             @Loc["by"] @product.Brand
@@ -119,7 +122,16 @@
         <MethaWebsite.Components.Account.Pages.Lists.EditListPopOver @ref=EditListPopUp />
     </CascadingValue>
 }
-<MethaWebsite.Components.Account.Pages.ProductListPages.Create @ref=CreateListPopUp />
+else
+{
+    <div class="ms-5 mb-5 mt-5">
+        <p class="ms-5">@Loc["NoListsCreated"]</p>
+    </div>
+}
+<div style="display: block; justify-content:center;">
+    <MethaWebsite.Components.Account.Pages.ProductListPages.Create @ref=CreateListPopUp OnAddToList="Update" OnCloseAddToList="Update" />
+</div>
+
 
 @code {
     [Parameter]
@@ -137,13 +149,16 @@
     [SupplyParameterFromQuery]
     public bool Create { get; set; } = false;
 
+    private ApplicationUser? applicationUser { get; set; }
     private MethaWebsite.Components.Account.Pages.Lists.EditListPopOver? EditListPopUp;
     private MethaWebsite.Components.Account.Pages.ProductListPages.Create? CreateListPopUp;
 
     protected override async Task OnInitializedAsync()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        List = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default");
+        
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
+        List = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default" && l.UserId == applicationUser.Id);
         if (List is not null && List.ProductIds is not null)
         {
             Products = await context.Product.Where(p => List.ProductIds.Contains(p.Id)).Distinct()
@@ -163,7 +178,7 @@
     protected override async Task OnParametersSetAsync()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        List = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default");
+        List = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default" && l.UserId == applicationUser.Id);
         if (List is not null && List.ProductIds is not null)
         {
             Products = await context.Product.Where(p => List.ProductIds.Contains(p.Id)).Distinct()
@@ -178,6 +193,10 @@
     {
         if (CreateListPopUp is not null)
             CreateListPopUp.Show();
+    }
+    private void Update()
+    {
+        NavigationManager.NavigateTo("/wishlist/details/default", true);
     }
 }
 

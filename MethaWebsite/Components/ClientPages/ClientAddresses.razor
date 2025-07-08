@@ -1,4 +1,4 @@
-﻿@page "/AddressSettings"
+﻿@page "/Addresses"
 
 @attribute [Authorize]
 
@@ -32,7 +32,7 @@
     </nav>
     @if (StateChangeService.HasStateChanged())
     {
-        <div class="card mt-2 mb-2" style="border-color: green; max-width: 1200px;">
+        <div class="card mt-2 mb-2" style="border-color: green; max-width: 1200px; border-left: 3px solid green;">
             <div class="card-body">
                 <img src="check-circle-fill.svg" />
                 @Loc["DefaultAddressChanged"]
@@ -62,7 +62,7 @@
                 </div>
             </button>
         </div>
-        @if (Addresses.Any())
+        @if (Addresses is not null && Addresses.Any())
         {
             @foreach (var address in Addresses)
             {
@@ -341,7 +341,6 @@
                 </div>
             }
         }
-        
     </div>
 </div>
 <MethaWebsite.Components.Account.Pages.AddressPages.Create @ref=AddNewAddressPopUp OnAddressAdded="UpdateAddresses"/>
@@ -376,19 +375,27 @@
     protected override async Task OnInitializedAsync()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
         Addresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();
         var defaultAddress = Addresses.FirstOrDefault(a => a.DefaultAddress == true);
-        (Addresses[0], Addresses[Addresses.IndexOf(defaultAddress)]) = (Addresses[Addresses.IndexOf(defaultAddress)], Addresses[0]);
-        Countries = context.Country.OrderBy(c => c.Name).ToList();
-        foreach (var address in Addresses)
+        if (Addresses.Any() && defaultAddress is not null)
         {
-            VisibleEditComponents1[address.Id] = false;
-            VisibleEditComponents2[address.Id] = false;
-            VisibleDeleteComponents1[address.Id] = false;
-            VisibleDeleteComponents2[address.Id] = false;
+            (Addresses[0], Addresses[Addresses.IndexOf(defaultAddress)]) = (Addresses[Addresses.IndexOf(defaultAddress)], Addresses[0]);
         }
+        if (Addresses.Any())
+        {
+            foreach (var address in Addresses)
+            {
+                VisibleEditComponents1[address.Id] = false;
+                VisibleEditComponents2[address.Id] = false;
+                VisibleDeleteComponents1[address.Id] = false;
+                VisibleDeleteComponents2[address.Id] = false;
+            }
+        }
+
+        Countries = context.Country.OrderBy(c => c.Name).ToList();
+
         NavigationManager.LocationChanged += OnLocationChanged;
     }
     public void CreateNewAddress()
@@ -456,24 +463,13 @@
     private async Task UpdateAddress(Address address)
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        if (applicationUser is not null && address!.DefaultAddress)
-        {
-            applicationUser.DefaultAddressId = address!.Id;
-            context.Attach(applicationUser).State = EntityState.Modified;
-            var currentDefault = await context.Address.FirstOrDefaultAsync(a => a.DefaultAddress == true);
-            currentDefault.DefaultAddress = false;
-            context.Attach(currentDefault!).State = EntityState.Modified;
-            Addresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();
-            StateHasChanged();
 
-        }
         context.Attach(address!).State = EntityState.Modified;
 
         try
         {
             await context.SaveChangesAsync();
-            StateHasChanged();
-            CloseEdit(address);
+            await OnSetDefault(address);
         }
         catch (DbUpdateConcurrencyException)
         {

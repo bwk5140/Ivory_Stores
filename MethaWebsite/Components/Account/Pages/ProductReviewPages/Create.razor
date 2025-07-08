@@ -1,0 +1,323 @@
+﻿@page "/productreviews/create"
+@using Blazored.TextEditor
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+
+@inject ApplicationUserService ApplicationUserService
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+@inject RatingFilterService RatingFilterService
+
+@rendermode InteractiveServer
+
+<PageTitle>Create</PageTitle>
+
+<div class="container-sm mt-5" style="display:block; justify-content: center;">
+    @if (product is not null)
+    {
+        using var context = DbFactory.CreateDbContext();
+        product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+        var CurrentImage = product.Images[0];
+
+        <div class="card" style="border: none;">
+            <div class="card-header" style="border: none; background-color: transparent;">
+                <h4>@Loc["CreateReview"]</h4>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <a href="@($"product/details?id={product.Id}")" class="btn">
+                                    <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                         alt=@Loc["ProductImage"] style="width:100px; height:100px; object-fit:contain; vertical-align: central;" />
+                                </a>
+                            </td>
+                            <td>
+                                <a class="ms-5" href="@($"product/details?id={product.Id}")" style="padding: 0px; text-decoration:none; color: black;">
+                                    <p>@product.Name</p>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <hr />
+            </div>
+            <div class="card-body">
+                <EditForm method="post" Model="ProductReview" OnValidSubmit="AddProductReview" FormName="create" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" role="alert" />
+                    <div class="mb-3">
+                        <div>
+                            <label for="subject" class="form-label"><strong>@Loc["OverallRating"]</strong></label>
+                        </div>
+                        @if (Ratings is not null)
+                        {
+                            foreach (var rating in Ratings)
+                            {
+                                @if (!rating.Selected)
+                                {
+                                    <img src="star.svg" style="cursor: pointer;" width="40" height="40" @onclick="@(() => OnRatingStarClicked(rating))" />
+                                }
+                                else
+                                {
+                                    <img src="star-fill.svg" style="cursor: pointer;" width="40" height="40" @onclick="@(() => OnRatingStarClicked(rating))" />
+                                }
+
+                            }
+                        }
+                        <hr style="width: 100%;" />
+                    </div>
+                    <div class="mt-2 mb-3">
+                        <label for="subject" class="form-label"><strong>@Loc["AddSubject"]</strong></label>
+                        <InputText id="subject" @bind-Value="ProductReview.Subject" class="form-control" placeholder="@Loc["MostImportant"]" />
+                        <ValidationMessage For="() => ProductReview.Subject" class="text-danger" />
+                        <hr />
+                    </div>
+                    <div class="row mb-3 mt-3">
+                        <label for="subject" class="form-label"><strong>@Loc["AddPhotoOrVideo"]</strong></label>
+                        <label for="subjectinfo" class="form-label">@Loc["ShoppersFind"]</label>
+                        <div class="col-sm-2 mt-3" style="padding: 0px;">
+                            <button type="button" style="border: none; background-color: transparent;" @onclick="OpenFileDialog">
+                                <div class="card" style="max-width: 150px; width: 150px; height: 150px;
+                                    border:dashed; border-color: lightgray;">
+                                    <div class="card-body">
+                                        <div class="col">
+                                            <div class="row">
+                                                <div style="position: absolute;">
+                                                    <i class="plus_icon" style="fill:lightgray;" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                            <InputFile id="inputFile" hidden OnChange="UploadProductReviewImages" multiple />
+                        </div>
+                        <div class="col-sm-10">
+                            @if (ProductImages is not null && ProductImages.Count > 0)
+                            {
+                                <div class="card" style="overflow-x: scroll; border: none;">
+                                    <div class="card-body">
+                                        <table>
+                                            <tbody>
+                                                <tr>
+                                                    @foreach (var image in ProductImages)
+                                                    {
+                                                        <td>
+                                                            <div class="card" style="border-color: lightgray;">
+                                                                <div class="card-body">
+                                                                    <div style="text-align: right;">
+                                                                        <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                                                                                aria-label="Close" @onclick="@(() => Delete(image))">
+                                                                        </button>
+                                                                    </div>
+                                                                    <img src="@image.Name"
+                                                                         alt=@Loc["ProductImage"] style="width:100px; height:100px; object-fit:contain;" />
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    }
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <hr class="mt-4" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label"><strong>@Loc["AddReview"]</strong></label>
+                        <BlazoredTextEditor @ref="QuillHtml" Placeholder=@Loc["LikesDislikes"] EditorCssStyle="height: 150px; overflow: auto;">
+                            <ToolbarContent>
+                                <select class="ql-header" data-bs-toggle="tooltip" title=@Loc["Heading"]>
+                                    <option selected=""></option>
+                                    <option value="1"></option>
+                                    <option value="2"></option>
+                                    <option value="3"></option>
+                                    <option value="4"></option>
+                                    <option value="5"></option>
+                                </select>
+                                <span class="ql-formats">
+                                    <button class="ql-bold" data-bs-toggle="tooltip" title=@Loc["Bold"]></button>
+                                    <button class="ql-italic" data-bs-toggle="tooltip" title=@Loc["Italic"]></button>
+                                    <button class="ql-underline" data-bs-toggle="tooltip" title=@Loc["Underline"]></button>
+                                    <button class="ql-strike" data-bs-toggle="tooltip" title=@Loc["Strike"]></button>
+                                </span>
+                            <span class="ql-formats">
+                                <select class="ql-color" data-bs-toggle="tooltip" title=@Loc["Color"]></select>
+                                <select class="ql-background" data-bs-toggle="tooltip" title=@Loc["Background"]></select>
+                            </span>
+                            <span class="ql-formats">
+                                <button class="ql-list" value="ordered" data-bs-toggle="tooltip" title=@Loc["NumberedList"]></button>
+                                <button class="ql-list unordered" value="bullet" data-bs-toggle="tooltip" title=@Loc["BulletedList"]></button>
+                            </span>
+                            <span class="ql-formats">
+                                <button class="ql-link" data-bs-toggle="tooltip" title=@Loc["AddLink"]></button>
+                                <button class="ql-image" data-bs-toggle="tooltip" title=@Loc["AddAnImage"]></button>
+                            </span>
+                            </ToolbarContent>
+                            <EditorContent>
+                                @((MarkupString)ProductReview.Description)
+                            </EditorContent>
+                        </BlazoredTextEditor>
+                        <ValidationMessage For="() => ProductReview.Description" class="text-danger" />
+                    </div>
+                    <div style="text-align: right;">
+                        <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                                border-color:transparent; border-radius: 5px;">
+                            @Loc["Submit"]
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
+    }
+</div>
+
+
+@code {
+    [SupplyParameterFromForm]
+    private ProductReview ProductReview { get; set; } = new();
+
+    [Parameter]
+    public ProductImage ProductImage { get; set; } = new();
+
+    private List<ProductImage> ProductImages { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    public string? Id { get; set; }
+
+    [Parameter]
+    public Product? product { get; set; }
+
+    private List<byte[]>? bytes = new List<byte[]>();
+
+    private IBrowserFile? inputFile;
+
+    private List<Rating>? Ratings { get; set; } = new();
+
+    private ApplicationUser? ApplicationUser;
+    BlazoredTextEditor? QuillHtml;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Initialize rating filters
+        Ratings = Enumerable.Range(0, 5)
+            .Select(_ => new Rating { Selected = false })
+            .ToList();
+        ProductReview.RatingIds = new List<string>();
+        for (int i = 0; i < Ratings.Count(); i++)
+        {
+            ProductReview.RatingIds.Add(Ratings[i].Id);
+        }
+        ApplicationUser = await ApplicationUserService.GetApplicationUser();
+        using var context = await DbFactory.CreateDbContextAsync();
+        product = await context.Product.FirstOrDefaultAsync(p => p.Id == Id);
+    }
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddProductReview()
+    {
+        ProductReview.ProductId = product.Id;
+        ProductReview.UserId = ApplicationUser.Id;
+        ProductReview.Description = await QuillHtml.GetHTML();
+        if (product.ProductReviewIds is null)
+        {
+            product.ProductReviewIds = new List<string>();
+        }
+        product.ProductReviewIds.Add(ProductReview.Id);
+        int rating = 0;
+        foreach (var _rating in Ratings)
+        {
+            if (_rating.Selected)
+            {
+                rating++;
+            }
+        }
+        product.RatingTotal += rating;
+        product.Rating = product.RatingTotal / product.ProductReviewIds.Count();
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.ProductReview.Add(ProductReview);
+        context.Attach(product).State = EntityState.Modified;
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/productreviews");
+    }
+    public async Task OnRatingStarClicked(Rating rating)
+    {
+        using var Context = await DbFactory.CreateDbContextAsync();
+        int index = Ratings.IndexOf(rating);
+
+        // Apply rating filter using the service
+        var service = new RatingFilterService();
+        Ratings = service.FilterByRating(Ratings, index);
+
+        for (int i = 0; i < Ratings.Count(); i++)
+        {
+            ProductReview.RatingIds[i] = Ratings[i].Id;
+        }
+        StateHasChanged();
+    }
+    private async Task OpenFileDialog()
+    {
+        await JS.InvokeVoidAsync("fileOpen", inputFile);
+    }
+    private async Task UploadProductReviewImages(InputFileChangeEventArgs args)
+    {
+        var files = args.GetMultipleFiles().ToList();
+        foreach (var file in files)
+        {
+            inputFile = file;
+
+            var imageTmp = await inputFile.RequestImageFileAsync("jpg", 1000, 1000);
+
+            var ImageSource = await UploadMedia(imageTmp);
+            ImageSource = string.Format("data:image/jpg;base64,{0}", ImageSource);
+            foreach (var imageBytes in bytes)
+            {
+                var ProdImage = new ProductImage();
+                ProdImage.Name = ImageSource;
+                ProdImage.Image = imageBytes;
+                ProductImages.Add(ProdImage);
+
+                if (ProductReview.ImageIds is null)
+                {
+                    ProductReview.ImageIds = new List<string>();
+                }
+                ProductReview!.ImageIds!.Add(ProductImage.Id);
+            }
+            bytes.Clear();
+            StateHasChanged();
+        }
+
+    }
+    public async Task<string> UploadMedia(IBrowserFile file)
+    {
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+        await using var fs = new FileStream(path, FileMode.Create);
+
+        await file.OpenReadStream(file.Size).CopyToAsync(fs);
+
+        bytes.Add(new byte[file.Size]);
+
+        fs.Position = 0;
+
+        await fs.ReadAsync(bytes.Last());
+
+        fs.Close();
+
+        File.Delete(path);
+
+        return Convert.ToBase64String(bytes.Last());
+    }
+    private void Delete(ProductImage image)
+    {
+        ProductReview!.ImageIds!.Remove(image.Id);
+        ProductImages.Remove(image);
+    }
+}

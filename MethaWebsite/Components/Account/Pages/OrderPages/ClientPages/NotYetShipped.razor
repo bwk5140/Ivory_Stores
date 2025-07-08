@@ -1,0 +1,242 @@
+﻿@page "/Account/Orders/NotYetShipped"
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+<div class="container-sm mt-5 mb-5" style="display: block; justify-content: center;">
+    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="AccountSettings" style="text-decoration: none;">
+                    @Loc["YourAccount"]
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">@Loc["YourOrders"]</li>
+        </ol>
+    </nav>
+    <h3>@Loc["YourOrders"]</h3>
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <ul class="navbar-nav nav-underline mb-3">
+                <li class="nav-item">
+                    <a class="nav-link" href="/Account/Orders">@Loc["Orders"]</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/Account/Orders/NotYetShipped">@Loc["NotYetShipped"]</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/Account/Orders/Cancelled">@Loc["CancelledOrders"]</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+
+    @if (ShippedOrders is not null)
+    {
+        using var context = DbFactory.CreateDbContext();
+        if (ShippedOrders.Any())
+        {
+            foreach (var order in ShippedOrders)
+            {
+                if (ApplicationUser is not null)
+                {
+                    if (order is not null && order.ProductIds is not null)
+                    {
+                        Products = context.Product.Where(p => order.ProductIds.Contains(p.Id)).Distinct()
+                        .ToList();
+                        @if (Products is not null)
+                        {
+                            <div class="card mb-3" style="max-width: 1000px; padding: 0px;">
+                                <div class="card-header">
+                                    <div class="row">
+                                        <div class="col-sm-2">
+                                            <div>
+                                                @Loc["OrderPlaced"]
+                                            </div>
+                                            <div>
+                                                @order.Date.ToString("MMMM") @order.Date.Day, @order.Date.Year
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div>
+                                                @Loc["Total"]
+                                            </div>
+                                            <div>
+                                                @order.Amount.ToString("C2")
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div>
+                                                @Loc["DeliverTo"]
+                                            </div>
+                                            <div class="dropdown">
+                                                @{
+                                                    ShippedAddress = context.Address.FirstOrDefault(a => a.Id == order.ShippingAdressId);
+                                                }
+                                                <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                                        style="background-color:transparent; color: black; padding: 0px;"
+                                                        @onclick="e => this.show[order.Id] = !this.show[order.Id]">
+                                                    @ShippedAddress.FullName
+                                                </button>
+                                                <ul class="dropdown-menu @(show[order.Id] ? "show" : "")" @onmouseleave="e => this.show[order.Id] = !this.show[order.Id]">
+                                                    <li class="list-group-item dropdown-item ms-2 me-2 mb-1" style="background-color: transparent;">
+                                                        <div class="col ms-3 mt-3">
+                                                            <div>
+                                                                <strong>@ShippedAddress.FullName</strong>
+                                                            </div>
+                                                            <div style="color: gray;">
+                                                                @ShippedAddress.AddressLine1
+                                                            </div>
+                                                            <div style="color: gray;">
+                                                                @ShippedAddress.AddressLine2
+                                                            </div>
+                                                            <div style="color: gray;">
+                                                                @ShippedAddress.Country
+                                                            </div>
+                                                            <div style="color: gray;">
+                                                                @Loc["PhoneNumber"] : @ShippedAddress.PhoneNumber
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <div>
+                                                @Loc["Order"]: @order.Id
+                                            </div>
+                                            <div>
+                                                <a class="ms-5 me-3" href="@($"Account/Order/details?id={@order.Id}")" style="text-decoration: none;">
+                                                    @Loc["ViewOrderDetails"]
+                                                </a>
+                                                |
+                                                <a class="ms-3" href="@($"Account/Order/invoice?id={@order.Id}")" style="text-decoration: none;">
+                                                    @Loc["ViewInvoice"]
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    @foreach (var product in Products)
+                                    {
+                                        product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+                                        var CurrentImage = product.Images[0];
+
+                                        <div class="row mt-3">
+                                            <div class="col-sm-2" style="padding: 0px;">
+                                                <a href="@($"product/details?id={product.Id}")" class="btn">
+                                                    <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                                         alt=@Loc["ProductImage"] style="width:100px; height:100px; object-fit:contain; vertical-align: central;" />
+                                                </a>
+                                            </div>
+                                            <div class="col-sm-7">
+                                                <a href="@($"product/details?id={product.Id}")" style="padding: 0px; text-decoration:none;">
+                                                    <p>@product.Name</p>
+                                                </a>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <div>
+                                                    <button class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f;
+                                                                                         border-color:transparent; border-radius: 25px; width: 200px;">
+                                                        @Loc["GetProductSupport"]
+                                                    </button>
+                                                </div>
+                                                <div>
+                                                    <button class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f;
+                                                                                                                              border-color:transparent; border-radius: 25px; width: 200px;">
+                                                        @Loc["ProductProblem"]
+                                                    </button>
+                                                </div>
+                                                <div>
+                                                    <button class="btn btn-primary mt-1 me-2" style="background-color: transparent;
+                                                                                                                      border-color:black; border-radius: 25px; color: black; width: 200px;">
+                                                        @Loc["WriteReview"]
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                        }
+                    }
+                }
+
+            }
+        }
+        else
+        {
+            if (Orders is not null && Orders.Any())
+            {
+                <div class="mt-5" style="text-align: center;">
+                    <p>@Loc["AllHaveShipped"]</p>
+                </div>
+            }
+            else
+            {
+                <div class="mt-5" style="text-align: center;">
+                    <p>@Loc["NoOrdersMade"]</p>
+                </div>
+            }
+        }
+    }
+
+</div>
+@code {
+
+    private ApplicationUser? ApplicationUser { get; set; }
+    private Dictionary<string, bool> show = new();
+
+    [Parameter]
+    public List<Product>? Products { get; set; }
+
+    [Parameter]
+    public List<Order>? Orders { get; set; }
+
+    [Parameter]
+    public List<Order>? ShippedOrders { get; set; } = new List<Order>();
+
+    [Parameter]
+    public Address ShippedAddress { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
+        ShippedOrders = context.Order.Where(o => o.UserId == ApplicationUser.Id && o.HasShipped == false).OrderByDescending(o => o.Date).ToList();
+        Orders = context.Order.Where(o => o.UserId == ApplicationUser.Id).OrderByDescending(o => o.Date).ToList();
+
+        foreach (var order in Orders)
+        {
+            show[order.Id] = false;
+        }
+    }
+    private Payment GetPaymentMethod(string Id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var credit_debit_card = context.CreditDebitCard.FirstOrDefault(c => c.Id == Id);
+        if (credit_debit_card is not null)
+            return credit_debit_card;
+        else
+        {
+            var mpesa_payment = context.Mpesa.FirstOrDefault(m => m.Id == Id);
+            return mpesa_payment;
+        }
+    }
+}

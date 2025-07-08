@@ -1,0 +1,54 @@
+﻿@page "/productreviews/details"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>ProductReview</h2>
+    <hr />
+    @if (productreview is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Subject</dt>
+            <dd class="col-sm-10">@productreview.Subject</dd>
+            <dt class="col-sm-2">Created</dt>
+            <dd class="col-sm-10">@productreview.Created</dd>
+            <dt class="col-sm-2">Description</dt>
+            <dd class="col-sm-10">@productreview.Description</dd>
+            <dt class="col-sm-2">ProductId</dt>
+            <dd class="col-sm-10">@productreview.ProductId</dd>
+            <dt class="col-sm-2">UserId</dt>
+            <dd class="col-sm-10">@productreview.UserId</dd>
+        </dl>
+        <div>
+            <a href="@($"/productreviews/edit?id={productreview.Id}")">Edit</a> |
+            <a href="@($"/productreviews")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private ProductReview? productreview;
+
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        productreview = await context.ProductReview.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (productreview is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

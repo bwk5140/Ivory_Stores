@@ -23,7 +23,7 @@
                 <strong>@Loc["OrderAbandoned"]</strong>
             </div>
             <div class="card-body">
-                <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; color: red;">
+                <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; color: red; border-left: 3px solid red;">
                     <div class="card-body">
                         <img src="info-circle.svg" /> @Loc["UnsuccessfulOrder"]
                     </div>
@@ -49,6 +49,6 @@
     }
     public void ManageAddresses()
     {
-        NavigationManager.NavigateTo("AddressSettings");
+        NavigationManager.NavigateTo("Addresses");
     }
 }

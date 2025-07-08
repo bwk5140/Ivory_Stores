@@ -23,7 +23,7 @@
                 <strong>@Loc["OrderConfirmation"]</strong>
             </div>
             <div class="card-body">
-                <div class="card mt-2 mb-2" style="border-color: green; max-width: 1200px;">
+                <div class="card mt-2 mb-2" style="border-color: green; max-width: 1200px; border-left: 3px solid green;">
                     <div class="card-body">
                         <img src="check-circle-fill.svg" /> @Loc["SuccessfulOrder"]
                     </div>
@@ -42,6 +42,6 @@
     }
     public void ManageAddresses()
     {
-        NavigationManager.NavigateTo("AddressSettings");
+        NavigationManager.NavigateTo("Addresses");
     }
 }

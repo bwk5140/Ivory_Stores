@@ -1,0 +1,109 @@
+﻿@page "/productreviews/edit"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>ProductReview</h2>
+<hr />
+@if (ProductReview is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="ProductReview" OnValidSubmit="UpdateProductReview" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="ProductReview.Id" value="@ProductReview.Id" />
+                <div class="mb-3">
+                    <label for="subject" class="form-label">Subject:</label>
+                    <InputText id="subject" @bind-Value="ProductReview.Subject" class="form-control" />
+                    <ValidationMessage For="() => ProductReview.Subject" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="created" class="form-label">Created:</label>
+                    <InputDate id="created" @bind-Value="ProductReview.Created" class="form-control" />
+                    <ValidationMessage For="() => ProductReview.Created" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputText id="description" @bind-Value="ProductReview.Description" class="form-control" />
+                    <ValidationMessage For="() => ProductReview.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="productid" class="form-label">ProductId:</label>
+                    <InputText id="productid" @bind-Value="ProductReview.ProductId" class="form-control" />
+                    <ValidationMessage For="() => ProductReview.ProductId" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="userid" class="form-label">UserId:</label>
+                    <InputText id="userid" @bind-Value="ProductReview.UserId" class="form-control" />
+                    <ValidationMessage For="() => ProductReview.UserId" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/productreviews">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private ProductReview? ProductReview { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        ProductReview ??= await context.ProductReview.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (ProductReview is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateProductReview()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(ProductReview!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ProductReviewExists(ProductReview!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/productreviews");
+    }
+
+    private bool ProductReviewExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.ProductReview.Any(e => e.Id == id);
+    }
+}

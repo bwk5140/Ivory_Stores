@@ -1,4 +1,5 @@
 ﻿@page "/Account/products/create"
+@using HtmlAgilityPack
 @using MethaWebsite.Data.Contexts
 @using MethaWebsite.Data.SizeGuides
 @using Microsoft.EntityFrameworkCore
@@ -12,6 +13,7 @@
 @inject IStringLocalizer<SharedResource> Loc
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject LocalEmbeddingService EmbeddingService
 
 @rendermode InteractiveServer
 
@@ -39,7 +41,7 @@
                         @Loc["Description"]
                     </label>
                     <div class="form form-floating mb-3">
-                        <BlazoredTextEditor @ref="QuillHtml" Placeholder=@Loc["Description"]>
+                        <BlazoredTextEditor @ref="QuillHtml" Placeholder=@Loc["Description"] EditorCssStyle="height: 150px; overflow: auto;">
                             <ToolbarContent>
                                 <select class="ql-header" data-bs-toggle="tooltip" title=@Loc["Heading"]>
                                     <option selected=""></option>
@@ -403,7 +405,7 @@
                     <div class="input-no-focus form form-floating mb-3" style="display: flex; justify-content: space-between;">
                             <InputSelect id="category" @bind-Value="Product.Lifestyle" class="form-select-sm ms-1"
                                 style="border-color: lightgray;">
-                                <option disabled hidden value="null" style="color: gray;">@Loc["SelectLifestyle"]</option>
+                                <option selected disabled value="" style="color: gray;">@Loc["SelectLifestyle"]</option>
                                 @foreach (var choice in LifestyleChoices)
                                 {
                                     <option value="@choice" style="color: black;">@choice</option>
@@ -411,7 +413,7 @@
                             </InputSelect>
                             <InputSelect id="category" @bind-Value="Product.Gender" class="form-select-sm ms-1"
                                 style="border-color: lightgray;">
-                                <option disabled hidden value="null" style="color: gray;">@Loc["SelectGender"]</option>
+                                <option selected disabled value="" style="color: gray;">@Loc["SelectGender"]</option>
                                 @foreach (var choice in GenderChoices)
                                 {
                                     <option value="@choice" style="color: black;">@choice</option>
@@ -600,7 +602,21 @@
         GenderChoices.Add(Loc["Babies"]);
         GenderChoices.Add(Loc["Unisex"]);
     }
-
+    private async Task GenerateEmbedding(Product product)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var category = context.Category.FirstOrDefault(c => c.Id == product.CategoryId);
+        string Category = "";
+        while (category is not null)
+        {
+            Category += " " + category.Name;
+            category = await context.Category.FirstOrDefaultAsync(c => c.Id == category.ParentID);
+        }
+        var description = HtmlToPlainText(product.Description);
+        var fullText = $"{product.Name} {Category} {description} {product.Brand} {product.Color}";
+        var productEmbedding = await EmbeddingService.GetEmbeddingAsync(fullText);
+        product.Embedding = productEmbedding;
+    }
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddProduct()
     {
@@ -616,6 +632,7 @@
                         //product.ShippingId = contex
                         CopyProductMetadata(product, Product);
                         context.Product.Add(product);
+                        await GenerateEmbedding(product);
                     }
                     productColorGroup.ProductGroupID = productGroup.Id;
                     productColorGroup.Name = productColorGroup.Products.First().Name;
@@ -639,8 +656,14 @@
             context.Product.Add(Product);
             await context.SaveChangesAsync();
         }
-        await AlgoliaIndexer.IndexProductsAsync(new[] { Product });
+        //await AlgoliaIndexer.IndexProductsAsync(new[] { Product });
         NavigationManager.NavigateTo("Account/products");
+    }
+    public static string HtmlToPlainText(string html)
+    {
+        var doc = new HtmlDocument();
+        doc.LoadHtml(html);
+        return doc.DocumentNode.InnerText;
     }
     private void CopyProductMetadata(Product target, Product source)
     {
@@ -1042,7 +1065,7 @@
                 ProductColorGroups = new List<ProductColorGroup>()
             };
 
-            var colors = selectColorPopover.CurrentProductSizeColor.Equals(Loc["All"])
+            var colors = selectColorPopover.CurrentProductSizeColor.Equals("All")
                 ? MultiColoredProducts.Select(p => p.Color)
                 : new[] { selectColorPopover.CurrentProductSizeColor };
 

@@ -124,10 +124,10 @@
     <value>Correo electrónico</value>
   </data>
   <data name="EmailOrUsername" xml:space="preserve">
-    <value>Correo o usuario</value>
+    <value>Ingrese su correo electrónico o nombre de usuario para continuar</value>
   </data>
   <data name="Login" xml:space="preserve">
-    <value>Registrarse</value>
+    <value>Iniciar sesión</value>
   </data>
   <data name="or" xml:space="preserve">
     <value>o</value>
@@ -787,7 +787,7 @@
     <value>Fallo en la edición</value>
   </data>
   <data name="EditFailedInfo" xml:space="preserve">
-    <value>Esta dirección se utiliza como tu dirección residencial para compras digitales</value>
+    <value>Esta dirección se utiliza como tu dirección residencial para compras digitales. Seleccione primero una dirección predeterminada diferente.</value>
   </data>
   <data name="EndingIn" xml:space="preserve">
     <value>que termina en</value>
@@ -1064,5 +1064,113 @@
   </data>
   <data name="Download" xml:space="preserve">
     <value>Descargar</value>
+  </data>
+  <data name="NoResults" xml:space="preserve">
+    <value>Parece que tu búsqueda no ha devuelto ningún resultado.</value>
+  </data>
+  <data name="ProblemWithShippingAddress" xml:space="preserve">
+    <value>Hubo un problema con la dirección de envío. Actualmente no ofrecemos envíos intercontinentales. Por favor, revise el formato de la dirección para ver si hay algún problema. Por ejemplo, los nombres no deben aparecer en la primera línea de dirección.</value>
+  </data>
+  <data name="AllHaveShipped" xml:space="preserve">
+    <value>Buscas un pedido? Se han enviado todos los pedidos</value>
+  </data>
+  <data name="AddShippingAddress" xml:space="preserve">
+    <value>Agregue una dirección de entrega para continuar.</value>
+  </data>
+  <data name="AddNewShippingAddress" xml:space="preserve">
+    <value>Agregar nueva dirección de envío</value>
+  </data>
+  <data name="ProblemWithPaymentMethod" xml:space="preserve">
+    <value>Hubo un problema con el método de pago. Añade una tarjeta de débito o crédito, o crea una nueva cuenta de pago de Mpesa.</value>
+  </data>
+  <data name="NoListsCreated" xml:space="preserve">
+    <value>Crea una nueva lista para comenzar a guardar artículos de productos.</value>
+  </data>
+  <data name="NoTransactions" xml:space="preserve">
+    <value>Las transacciones de los artículos comprados aparecerán aquí.</value>
+  </data>
+  <data name="CheckEmailPasswordReset" xml:space="preserve">
+    <value>Por favor revise su correo electrónico para restablecer su contraseña.</value>
+  </data>
+  <data name="ForgotPasswordConfirmation" xml:space="preserve">
+    <value>Olvidé la confirmación de contraseña</value>
+  </data>
+  <data name="NoOrdersMade" xml:space="preserve">
+    <value>Las órdenes de compra aparecerán aquí antes de ser enviadas.</value>
+  </data>
+  <data name="NoCancelledOrders" xml:space="preserve">
+    <value>No hemos encontrado ningún pedido cancelado.</value>
+  </data>
+  <data name="SuccessfulAuthentication" xml:space="preserve">
+    <value>Se ha autenticado correctamente con</value>
+  </data>
+  <data name="PleaseEnterEmailToCompleteSignIn" xml:space="preserve">
+    <value>Ingrese una dirección de correo electrónico para este sitio a continuación y haga clic en el botón Registrarse para finalizar el inicio de sesión.</value>
+  </data>
+  <data name="RegisterConfirmation" xml:space="preserve">
+    <value>Confirmación de Registro</value>
+  </data>
+  <data name="LinkYourAccount" xml:space="preserve">
+    <value>Vincula tu cuenta con</value>
+  </data>
+  <data name="LoginWith" xml:space="preserve">
+    <value>Iniciar sesión con</value>
+  </data>
+  <data name="LoginUsing" xml:space="preserve">
+    <value>Inicia sesión con tu cuenta de </value>
+  </data>
+  <data name="RegisterWith" xml:space="preserve">
+    <value>Regístrese con</value>
+  </data>
+  <data name="RegisterUsing" xml:space="preserve">
+    <value>Regístrese usando</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Continuar</value>
+  </data>
+  <data name="NewToIvoryStores" xml:space="preserve">
+    <value>Parece que eres nuevo en Ivory Stores.</value>
+  </data>
+  <data name="LetsCreateAnAccount" xml:space="preserve">
+    <value>Vamos a crear una cuenta con ese correo electrónico.</value>
+  </data>
+  <data name="ContinueRegistration" xml:space="preserve">
+    <value>Continuar registro</value>
+  </data>
+  <data name="AddSubject" xml:space="preserve">
+    <value>Agregar un tema</value>
+  </data>
+  <data name="MostImportant" xml:space="preserve">
+    <value>¿Qué es lo más importante que debes saber?</value>
+  </data>
+  <data name="AddReview" xml:space="preserve">
+    <value>Agregar reseña escrita</value>
+  </data>
+  <data name="AddPhotoOrVideo" xml:space="preserve">
+    <value>Añadir una foto o un vídeo</value>
+  </data>
+  <data name="OverallRating" xml:space="preserve">
+    <value>Calificación general</value>
+  </data>
+  <data name="CreateReview" xml:space="preserve">
+    <value>Crear reseña</value>
+  </data>
+  <data name="Submit" xml:space="preserve">
+    <value>Entregar</value>
+  </data>
+  <data name="LikesDislikes" xml:space="preserve">
+    <value>¿Qué te gustó y qué no? ¿Este producto fue un regalo?</value>
+  </data>
+  <data name="ShoppersFind" xml:space="preserve">
+    <value>Los compradores encuentran más útiles las imágenes que el texto. Mantenga pulsada la tecla Mayús para seleccionar varias imágenes.</value>
+  </data>
+  <data name="SimilarItem" xml:space="preserve">
+    <value>Artículo similar</value>
+  </data>
+  <data name="GenerateEmbeddings" xml:space="preserve">
+    <value>Generar incrustaciones</value>
+  </data>
+  <data name="SimilarItems" xml:space="preserve">
+    <value>Productos relacionados con este artículo</value>
   </data>
 </root>

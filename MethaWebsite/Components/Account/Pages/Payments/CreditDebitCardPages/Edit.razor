@@ -3,14 +3,13 @@
 @inject IStringLocalizer<SharedResource> Loc
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
 
 @rendermode InteractiveServer
 
-@if (CreditDebitCard is null)
-{
-    <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
-}
-else
+@if (CreditDebitCard is not null)
 {
     <div class="container-sm" style="display: block; justify-content: center;">
         @{
@@ -130,6 +129,7 @@ else
     private string? errorMessage;
     private ChangeBillingAddressPopOver? changeBillingAddressPopOver;
     private SetAsDefaultPaymentPopOver setAsDefaultPaymentPopOver;
+    private ApplicationUser? ApplicationUser { get; set; }
 
     [Parameter]
     public bool IsVisible { get; set; } = false;
@@ -163,6 +163,9 @@ else
     {
         using var context = DbFactory.CreateDbContext();
         CreditDebitCard ??= await context.CreditDebitCard.FirstOrDefaultAsync(m => m.Id == Id);
+        
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
+
         if (CreditDebitCard is null)
         {
             NavigationManager.NavigateTo("notfound");
@@ -187,7 +190,7 @@ else
     private async Task Update()
     {
         using var context = DbFactory.CreateDbContext();
-        var defaultPaymentMethods = context.CreditDebitCard.Where(c => c.DefaultPaymentMethod == true);
+        var defaultPaymentMethods = context.CreditDebitCard.Where(c => c.DefaultPaymentMethod == true && c.UserId == ApplicationUser.Id);
 
         if (HasDefaultPaymentChanged)
         {
@@ -228,6 +231,7 @@ else
         if (DefaultPayment && HasDefaultPaymentChanged)
         {
             setAsDefaultPaymentPopOver.Show();
+            Close();
         }
         else
         {
@@ -283,6 +287,7 @@ else
     private void ShowChangeBillingAddressPopOver()
     {
         changeBillingAddressPopOver.Show();
+        Close();
     }
     private void OnCancel()
     {

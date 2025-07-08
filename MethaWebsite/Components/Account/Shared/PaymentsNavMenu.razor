@@ -174,8 +174,8 @@
     protected override async Task OnInitializedAsync()
     {
         context = await DbFactory.CreateDbContextAsync();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        applicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
         CreditDebitCards = context.CreditDebitCard.Where(c => c.UserId == applicationUser.Id).ToList();
         MpesaPaymentMethods = context.Mpesa.Where(c => c.UserId == applicationUser.Id).ToList();
         CurrentMonth = DateTime.Now.Month;

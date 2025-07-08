@@ -57,7 +57,7 @@ namespace MethaWebsite.Services
         }
         public double CalculateShippingCosts(string ShippingType)
         {
-            return (ShippingDistance * 35) + ShippingCosts[ShippingType];
+            return (ShippingDistance * 3.5) + ShippingCosts[ShippingType];
         }
     }
 }

@@ -20,35 +20,37 @@
 
 @rendermode InteractiveServer
 
-@if (!NavigationManager.Uri.Contains("Login") && !NavigationManager.Uri.Contains("Register") &&
+@if ((!NavigationManager.Uri.Contains("Login") && !NavigationManager.Uri.Contains("Register") &&
     !NavigationManager.Uri.Contains("ConfirmEmail") && !NavigationManager.Uri.Contains("Invalid") && 
     !NavigationManager.Uri.Contains("AccessDenied") && !NavigationManager.Uri.Contains("Lockout") && 
     !NavigationManager.Uri.Contains("EmailConfirmation") && !NavigationManager.Uri.Contains("Forgot")&& 
     !NavigationManager.Uri.Contains("Checkout") && !NavigationManager.Uri.Contains("OrderComplete")&& 
     !NavigationManager.Uri.Contains("OrderAbandoned") && !currentUrl!.Contains("checkout")&& 
-    !currentUrl!.Contains("invoice"))
+    !currentUrl!.Contains("invoice")) || NavigationManager.Uri.Contains("ExternalLogins"))
 {
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark top-row">
         <a class="navbar-brand ms-2" href="/">@Loc["CompanyLogo"]</a>
-        <form class="container-fluid">
+        <div class="container-fluid">
             <div class="input-group input-group-sm">
+
                 <InputSelect @bind-Value="filter" class="search_filter form-select" style="max-width:fit-content;
-                        border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
+                                            border-top-left-radius: 8px; border-bottom-left-radius: 8px;">
                     @foreach (var filtr in filters)
                     {
                         <option value="@filtr">@Loc[filtr]</option>
                     }
                 </InputSelect>
+
                 <InputText class="input-no-focus form-control" @bind-Value="search" typeof="search" placeholder="@Loc["SearchCompany"]"
-                           aria-label="Search" @bind-Value:after="Search">
+                           aria-label="Search" @bind-Value:after="Search" @onkeydown="HandleKeyDown">
                 </InputText>
-                
                 <button class="btn btn-outline-success" style="background-color: #89c182; border-top-right-radius: 8px;
-                                    border-bottom-right-radius: 8px; border-color: #89c182;" type="submit" @onclick=Search>
+                                                        border-bottom-right-radius: 8px; border-color: #89c182;" type="submit" @onclick="Search">
                     <i class="search_icon"></i>
                 </button>
             </div>
-        </form>
+
+        </div>
         <div class="dropdown">
             @{
                 var language = selectedCulture.Name.Substring(0, selectedCulture.Name.IndexOf('-'));
@@ -126,7 +128,10 @@
                                         <tr>
                                             <td class="border-end" style="padding-right: 40px;">
                                                 <div>
-                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/productlists/create">@Loc["CreateList"]</a>
+                                                    <button type="submit" class="btn btn-sm" style="background-color: transparent; width: fit-content; padding: 0px;"
+                                                            @onclick="OnCreateListClicked">
+                                                        @Loc["CreateList"]
+                                                    </button>
                                                 </div>
                                             </td>
                                             <td style="padding-left: 40px;">
@@ -289,7 +294,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-            <p>Try scrolling the rest of the page to see this option in action.</p>
+            <p></p>
         </div>
     </div>
 
@@ -361,6 +366,9 @@
     [Parameter]
     public ProductList? defaultList { get; set; }
 
+    [Parameter]
+    public Product? Product { get; set; } = new();
+
     private MethaWebsite.Components.Account.Pages.Lists.EditListPopOver CreateListPopUp;
 
 
@@ -372,13 +380,13 @@
         NavigationManager.LocationChanged += OnLocationChanged;
         RefreshService.OnRefreshRequested += RefreshLayout;
 
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
         using var context = await DbFactory.CreateDbContextAsync();
         if (ApplicationUser is not null)
         {
             ProductLists = context.ProductList.Where(c => c.UserId == ApplicationUser.Id).ToList();
-            defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default");
+            defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default" && l.UserId == ApplicationUser.Id);
             ProductLists.Remove(defaultList);
             ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == ApplicationUser.Id);
 
@@ -401,6 +409,13 @@
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
         RefreshService.OnRefreshRequested -= RefreshLayout;
+    }
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            Search();
+        }
     }
 
     private void Search()

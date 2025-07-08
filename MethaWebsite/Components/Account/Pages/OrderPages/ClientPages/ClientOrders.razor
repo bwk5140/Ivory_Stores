@@ -1,4 +1,7 @@
 ﻿@page "/Account/Orders"
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
 
 @inject IStringLocalizer<SharedResource> Loc
 @inject ApplicationUserService ApplicationUserService
@@ -8,6 +11,7 @@
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 
 @rendermode InteractiveServer
+
 
 <div class="container-sm mt-5 mb-5" style="display: block; justify-content: center;">
     <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
@@ -29,10 +33,10 @@
                     <a class="nav-link active" aria-current="page" href="/Account/Orders">@Loc["Orders"]</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">@Loc["NotYetShipped"]</a>
+                    <a class="nav-link" href="/Account/Orders/NotYetShipped">@Loc["NotYetShipped"]</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">@Loc["CancelledOrders"]</a>
+                    <a class="nav-link" href="/Account/Orders/Cancelled">@Loc["CancelledOrders"]</a>
                 </li>
             </ul>
         </div>
@@ -68,7 +72,7 @@
                     {
                         Products = context.Product.Where(p => order.ProductIds.Contains(p.Id)).Distinct()
                         .ToList();
-                        @if (Products is not null)
+                        @if (Products is not null && Products.Any())
                         {
                             <div class="card mb-3" style="max-width: 1000px; padding: 0px;">
                                 <div class="card-header">
@@ -97,32 +101,35 @@
                                                 @{
                                                     ShippedAddress = context.Address.FirstOrDefault(a => a.Id == order.ShippingAdressId);
                                                 }
-                                                <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                                                        style="background-color:transparent; color: black; padding: 0px;"
-                                                        @onclick="e => this.show[order.Id] = !this.show[order.Id]">
-                                                    @ShippedAddress.FullName
-                                                </button>
-                                                <ul class="dropdown-menu @(show[order.Id] ? "show" : "")" @onmouseleave="e => this.show[order.Id] = !this.show[order.Id]">
-                                                    <li class="list-group-item dropdown-item ms-2 me-2 mb-1" style="background-color: transparent;">
-                                                        <div class="col ms-3 mt-3">
-                                                            <div>
-                                                                <strong>@ShippedAddress.FullName</strong>
+                                                @if (ShippedAddress is not null)
+                                                {
+                                                    <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                                            style="background-color:transparent; color: black; padding: 0px;"
+                                                            @onclick="e => this.show[order.Id] = !this.show[order.Id]">
+                                                        @ShippedAddress.FullName
+                                                    </button>
+                                                    <ul class="dropdown-menu @(show[order.Id] ? "show" : "")" @onmouseleave="e => this.show[order.Id] = !this.show[order.Id]">
+                                                        <li class="list-group-item dropdown-item ms-2 me-2 mb-1" style="background-color: transparent;">
+                                                            <div class="col ms-3 mt-3">
+                                                                <div>
+                                                                    <strong>@ShippedAddress.FullName</strong>
+                                                                </div>
+                                                                <div style="color: gray;">
+                                                                    @ShippedAddress.AddressLine1
+                                                                </div>
+                                                                <div style="color: gray;">
+                                                                    @ShippedAddress.AddressLine2
+                                                                </div>
+                                                                <div style="color: gray;">
+                                                                    @ShippedAddress.Country
+                                                                </div>
+                                                                <div style="color: gray;">
+                                                                    @Loc["PhoneNumber"] : @ShippedAddress.PhoneNumber
+                                                                </div>
                                                             </div>
-                                                            <div style="color: gray;">
-                                                                @ShippedAddress.AddressLine1
-                                                            </div>
-                                                            <div style="color: gray;">
-                                                                @ShippedAddress.AddressLine2
-                                                            </div>
-                                                            <div style="color: gray;">
-                                                                @ShippedAddress.Country
-                                                            </div>
-                                                            <div style="color: gray;">
-                                                                @Loc["PhoneNumber"] : @ShippedAddress.PhoneNumber
-                                                            </div>
-                                                        </div>
-                                                    </li>
-                                                </ul>
+                                                        </li>
+                                                    </ul>
+                                                }
                                             </div>
                                         </div>
                                         <div class="col-sm-5">
@@ -174,10 +181,10 @@
                                                     </button>
                                                 </div>
                                                 <div>
-                                                    <button class="btn btn-primary mt-1 me-2" style="background-color: transparent;
+                                                    <a href="@($"productreviews/create?id={product.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: transparent;
                                                                                           border-color:black; border-radius: 25px; color: black; width: 200px;">
                                                         @Loc["WriteReview"]
-                                                    </button>
+                                                    </a>
                                                 </div>
                                             </div>
                                         </div>
@@ -249,8 +256,8 @@
         SelectionPeriod2 = Loc["3Months"];
         SelectedOrderPeriod = SelectionPeriod1;
         using var context = await DbFactory.CreateDbContextAsync();
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        ApplicationUser ??= await ApplicationUserService.GetApplicationUser(authState, UserManager);
+        
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
         Orders = context.Order.Where(o => o.UserId == ApplicationUser.Id).OrderByDescending(o => o.Date).ToList();
 
         for (int i = 0; i < 13; i++)
@@ -280,17 +287,17 @@
         using var context = await DbFactory.CreateDbContextAsync();
         if (SelectedOrderPeriod != SelectionPeriod1 && SelectedOrderPeriod != SelectionPeriod2)
         {
-            Orders = context.Order.Where(o => o.Date.Year.ToString() == SelectedOrderPeriod).OrderByDescending(o => o.Date).ToList();
+            Orders = context.Order.Where(o => o.UserId == ApplicationUser.Id && o.Date.Year.ToString() == SelectedOrderPeriod).OrderByDescending(o => o.Date).ToList();
         }
         else
         {
             if (SelectedOrderPeriod == SelectionPeriod1)
             {
-                Orders = context.Order.Where(o => o.Date.Month - 1 <= DateTime.Now.AddDays(-30).Month).OrderByDescending(o => o.Date).ToList();
+                Orders = context.Order.Where(o => o.UserId == ApplicationUser.Id && o.Date.Month - 1 <= DateTime.Now.AddDays(-30).Month).OrderByDescending(o => o.Date).ToList();
             }
             else
             {
-                Orders = context.Order.Where(o => o.Date.Month - 3 <= DateTime.Now.AddMonths(-3).Month).OrderByDescending(o => o.Date).ToList();
+                Orders = context.Order.Where(o => o.UserId == ApplicationUser.Id && o.Date.Month - 3 <= DateTime.Now.AddMonths(-3).Month).OrderByDescending(o => o.Date).ToList();
             }
 
         }

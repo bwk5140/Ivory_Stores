@@ -10,5 +10,7 @@
         public double ShippingCosts { get; set; }
         public string? ShippingAdressId { get; set; }
         public string? PaymentMethodId { get; set; }
+        public bool HasShipped { get; set; } = false;
+        public bool Cancelled { get; set; } = false;
     }
 }
