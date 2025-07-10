@@ -9,6 +9,6 @@
         public string? ProductId { get; set; }
         public string? UserId { get; set; }
         public List<string>? ImageIds { get; set; }
-        public List<string> RatingIds { get; set; }
+        public List<Rating>? Ratings { get; set; }
     }
 }

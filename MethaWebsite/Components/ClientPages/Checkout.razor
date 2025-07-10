@@ -14,6 +14,7 @@
 
 @inject IJSRuntime JS
 @inject HttpClient Http
+@inject IConfiguration Configuration
 @inject LayoutState LayoutState
 @inject CheckoutService CheckoutService
 @inject ProtectedSessionStorage sessionStorage
@@ -950,7 +951,7 @@ else
         }
         LayoutState.SetBackground("bg-checkout");
         context = DbFactory.CreateDbContext();
-        
+
         ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
         BuyNowProduct = await context.ShoppingCartProduct.FirstOrDefaultAsync(p => p.Id == Id);
 
@@ -1033,7 +1034,9 @@ else
         {
             isProcessing = true;
             using var context = await DbFactory.CreateDbContextAsync();
-            var paymentMethodService = new Stripe.PaymentMethodService();
+            var apiKey = Configuration["Stripe:SecretKey"];
+            var stripeClient = new Stripe.StripeClient(apiKey);
+            var paymentMethodService = new Stripe.PaymentMethodService(stripeClient);
             var paymentMethod = await paymentMethodService.GetAsync(DefaultCreditDebitCard.PaymentMethodId);
             var customerId = paymentMethod.CustomerId;
             var chargeRequest = new

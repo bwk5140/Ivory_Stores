@@ -43,7 +43,6 @@ h1:focus {
     background-color: whitesmoke;
     height: 100vh;
 }
-
 .card {
     background-color: white;
     border-color: lightgray;
@@ -82,7 +81,7 @@ h1:focus {
 }
 .image-container {
     position: relative;
-    height: 1400px;
+    max-height: 2000px;
 }
 .rotate-0 {
     transform: rotate(0deg);
@@ -230,8 +229,10 @@ h1:focus {
     background-repeat: no-repeat;
     vertical-align: middle;
 }
-.page-item:active {
-    background-color: #138a8a;
+.page-item.active .page-link {
+    background-color: #2f4f4f;
+    border-color: #065151;
+    color: white;
 }
 
 .page-link {

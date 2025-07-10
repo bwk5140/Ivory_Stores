@@ -119,7 +119,7 @@
     {
         using var context = await DbFactory.CreateDbContextAsync();
         Countries = context.Country.OrderBy(c => c.Name).ToList();
-        
+
         applicationUser ??= await ApplicationUserService.GetApplicationUser();
         Address.UserId = applicationUser.Id;
     }
@@ -128,6 +128,20 @@
     private async Task AddAddress()
     {
         using var context = await DbFactory.CreateDbContextAsync();
+        applicationUser.DefaultAddressId = Address.Id;
+        var ClientAddresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();
+        if (ClientAddresses is not null && ClientAddresses.Any())
+        {
+            foreach (var address in ClientAddresses)
+            {
+                if (address != Address && address.DefaultAddress)
+                {
+                    address.DefaultAddress = false;
+                    context.Attach(address).State = EntityState.Modified;
+                }
+            }
+        }
+        context.Users.Attach(applicationUser).State = EntityState.Modified;
         context.Address.Add(Address);
         await context.SaveChangesAsync();
         await OnAddressAdded.InvokeAsync();

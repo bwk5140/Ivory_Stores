@@ -28,6 +28,7 @@ namespace MethaWebsite.Data
         public int Quantity { get; set; } = 1;
         public double Rating { get; set; }
         public float[]? Embedding { get; set; }
+        public float Norm { get; set; }
         public double RatingTotal { get; set; }
         [Required]
         public string? Color { get; set; }

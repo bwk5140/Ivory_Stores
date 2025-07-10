@@ -1,13 +1,16 @@
 ﻿@using MethaWebsite.Data
 @using MethaWebsite.Services
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Caching.Memory
 @using System.Globalization
 @using PSC.Blazor.Components.Icons
+@using System.Text.Json
 
 @implements IDisposable
 
+@inject ProtectedSessionStorage sessionStorage
 @inject IStringLocalizer<SharedResource> Loc
 @inject NavigationManager NavigationManager
 @inject ApplicationUserService ApplicationUserService
@@ -161,7 +164,7 @@
                             @Loc["Hello"],
                             @if (ApplicationUser is not null)
                             {
-                                @ApplicationUser.UserName
+                                @Username
                             }
                         </button>
                         <div class="dropdown-menu @(showAccountOptions ? "show" : "")" @onmouseleave="e => this.showAccountOptions = !this.showAccountOptions">
@@ -233,7 +236,7 @@
                 </Authorized>
             </AuthorizeView>
             <button class="btn btn-sm ms-3" style="background-color: transparent; border-top-right-radius: 10px;
-                    border-bottom-right-radius: 10px; color:white; max-width: 25%; text-wrap:auto;" type="button" @onclick=Search>
+                    border-bottom-right-radius: 10px; color:white; max-width: 25%; text-wrap:auto;" type="button" @onclick=OnReturnsAndOrdersClicked>
                 @Loc["ReturnsAndOrders"]
             </button>
             <a href="/shoppingcart" class="btn btn-sm ms-3 me-4 mb-1 position-relative" style="background-color: transparent;" type="button">
@@ -369,8 +372,10 @@
     [Parameter]
     public Product? Product { get; set; } = new();
 
-    private MethaWebsite.Components.Account.Pages.Lists.EditListPopOver CreateListPopUp;
+    [Parameter]
+    public string? Username { get; set; }
 
+    private MethaWebsite.Components.Account.Pages.Lists.EditListPopOver CreateListPopUp;
 
     protected override async Task OnInitializedAsync()
     {
@@ -380,11 +385,16 @@
         NavigationManager.LocationChanged += OnLocationChanged;
         RefreshService.OnRefreshRequested += RefreshLayout;
 
-        
         ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
         using var context = await DbFactory.CreateDbContextAsync();
         if (ApplicationUser is not null)
         {
+            var index = ApplicationUser.Name.IndexOf(" ");
+            if (index == -1)
+            {
+                index = ApplicationUser.Name.Length - 1;
+            }
+            Username = ApplicationUser.Name.Substring(0, index);
             ProductLists = context.ProductList.Where(c => c.UserId == ApplicationUser.Id).ToList();
             defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default" && l.UserId == ApplicationUser.Id);
             ProductLists.Remove(defaultList);
@@ -397,8 +407,27 @@
         }
         else
         {
-            ShoppingCart = ShoppingCartService.getShoppingCart();
+            if (ShoppingCart is null)
+            {
+                ShoppingCart = ShoppingCartService.getShoppingCart();
+            }
         }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && ApplicationUser is null)
+        {
+            var json = await JS.InvokeAsync<string>("cartStorage.loadCart", "Cart");
+            if (!string.IsNullOrEmpty(json))
+            {
+                ShoppingCart = JsonSerializer.Deserialize<ShoppingCart>(json);
+            }
+            if (ShoppingCart is null)
+            {
+                ShoppingCart = ShoppingCartService.getShoppingCart();
+            }
+        }
+        StateHasChanged();
     }
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
@@ -474,5 +503,9 @@
     private void OnCreateListClicked()
     {
         NavigationManager.NavigateTo($"/wishlist/details/default?create={true}", true);
+    }
+    private void OnReturnsAndOrdersClicked()
+    {
+        NavigationManager.NavigateTo("/Account/Orders", true);
     }
 }

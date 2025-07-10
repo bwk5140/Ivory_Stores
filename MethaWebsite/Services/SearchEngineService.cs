@@ -34,29 +34,44 @@ namespace MethaWebsite.Services
             .Select(x => x.Product)
             .ToList();
         }
-        public async Task<List<Product>> SearchAsync(string query, List<Product> products, double threshold = 0.55)
+        public async Task<List<Product>> SearchAsync(float[] queryVector, float queryNorm, List<Product> products, double threshold = 0.55)
         {
-            var queryVector = await _embeddingService.GetEmbeddingAsync(query);
-
             return products
                 .Select(p => new
                 {
                     Product = p,
-                    Score = CosineSimilarity(queryVector, p.Embedding)
+                    Score = CosineSimilarity(queryVector, queryNorm, p.Embedding, p.Norm)
                 })
                 .Where(x => x.Score >= threshold)
                 .OrderByDescending(x => x.Score)
                 .Select(x => x.Product)
                 .ToList();
         }
-        public List<Product> RecommendSimilar(Product target, List<Product> allProducts, double threshold = 0.75, int max = 35)
+        public async Task<List<Product>> SearchAsync(string query, List<Product> products, double threshold = 0.55)
+        {
+            var result = await _embeddingService.GetEmbeddingAsync(query);
+            var queryVector = result.Vector;
+            var norm = result.Norm;
+
+            return products
+                .Select(p => new
+                {
+                    Product = p,
+                    Score = CosineSimilarity(queryVector, norm, p.Embedding, p.Norm)
+                })
+                .Where(x => x.Score >= threshold)
+                .OrderByDescending(x => x.Score)
+                .Select(x => x.Product)
+                .ToList();
+        }
+        public List<Product> RecommendSimilar(Product target, List<Product> allProducts, double threshold = 0.70, int max = 35)
         {
             return allProducts
                 .Where(p => p.Id != target.Id && p.Color != target.Color && p.Embedding?.Length > 0)
                 .Select(p => new
                 {
                     Product = p,
-                    Score = CosineSimilarity(target.Embedding, p.Embedding)
+                    Score = CosineSimilarity(target.Embedding, target.Norm, p.Embedding, p.Norm)
                 })
                 .Where(x => x.Score >= threshold)
                 .OrderByDescending(x => x.Score)
@@ -64,22 +79,16 @@ namespace MethaWebsite.Services
                 .Select(x => x.Product)
                 .ToList();
         }
-        public static double CosineSimilarity(float[] a, float[] b)
+        private float CosineSimilarity(float[] vec1, float norm1, float[] vec2, float norm2)
         {
-            if (a == null || b == null || a.Length != b.Length || a.Length == 0)
-                return 0;
-
-            double dot = 0, magA = 0, magB = 0;
-
-            for (int i = 0; i < a.Length; i++)
+            float dot = 0;
+            for (int i = 0; i < vec1.Length; i++)
             {
-                dot += a[i] * b[i];
-                magA += a[i] * a[i];
-                magB += b[i] * b[i];
+                dot += vec1[i] * vec2[i];
             }
 
-            double denominator = Math.Sqrt(magA) * Math.Sqrt(magB);
-            return denominator == 0 ? 0 : dot / denominator;
+            return dot / (norm1 * norm2);
         }
+
     }
 }

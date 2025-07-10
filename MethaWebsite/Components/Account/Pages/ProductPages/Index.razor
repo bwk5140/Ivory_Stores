@@ -8,7 +8,6 @@
 
 @implements IAsyncDisposable
 
-@inject AlgoliaIndexer AlgoliaIndexer
 @inject NavigationManager NavigationManager
 @inject IStringLocalizer<SharedResource> Loc
 @inject ILogger<Index> Logger
@@ -250,27 +249,7 @@
                 </tbody>
             </table>
 
-            <nav aria-label="..." style="display: flex; justify-content: center;">
-                <ul class="pagination">
-                    <li class="page-item activePageClass[0.ToString()]">
-                        <a style="width: 90px; cursor:pointer;" @onclick="@(() => UpdatePaginationItems(currentPage - 1))" class="page-link">
-                            Previous
-                        </a>
-                    </li>
-                    <li class="page-item activePageClass[1.ToString()]">
-                        <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(1))">1</a>
-                    </li>
-                    <li class="page-item activePageClass[2.ToString()]">
-                        <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(2))" aria-current="page">2</a>
-                    </li>
-                    <li class="page-item activePageClass[3.ToString()]">
-                        <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(3))">3</a>
-                    </li>
-                    <li class="page-item activePageClass[4.ToString()]">
-                        <a style="width: 90px; cursor:pointer;" class="page-link" @onclick="@(() => UpdatePaginationItems(currentPage + 1))">Next</a>
-                    </li>
-                </ul>
-            </nav>
+            <Pagination CurrentPage="@currentPage" TotalPages="@totalPages" OnPageChanged="HandlePageChange" />
         </div>
     </div>
 </div>
@@ -298,14 +277,12 @@
 
     private int TrueMin => 7;
     private double TrueMax = 7;
-
-    [SupplyParameterFromQuery]
-    private int prodLow { get; set; }
+    private int prodLow = 0;
 
     private int prodCount = 50;
+    private int totalPages { get; set; } = 3;
 
-    [SupplyParameterFromQuery]
-    private int currentPage { get; set; }
+    private int currentPage = 1;
 
     private Dictionary<string, bool> activePage = new ();
     private Dictionary<string, string> activePageClass = new ();
@@ -329,25 +306,19 @@
             {
                 product.Images ??= context.ProductImage.Where(m => m.ProductColorGroupId == product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
             }
-            var count = Products.Count();
-            int page_count = count / prodCount;
-            if (count % prodCount > 0)
-            {
-                page_count += 1;
-            }
-            for (int i = 1; i <= page_count; i++)
-            {
-                activePage[i.ToString()] = false;
-                activePageClass[i.ToString()] = activePage[i.ToString()] ? "active" : "none";
-            }
             try
             {
                 Products = Products.GetRange(prodLow, prodCount);
+                double ProdCount = context.Product.ToList().Count();
+                totalPages = (int)Math.Ceiling(ProdCount / prodCount);
             }
             catch (Exception ex)
             {
                 Logger.LogInformation(ex.Message);
                 Products = context.Product.ToList();
+                double ProdCount = Products.Count();
+                totalPages = (int)Math.Ceiling(ProdCount / prodCount);
+                StateHasChanged();
                 try
                 {
                     Products = Products.GetRange(prodLow, Products.Count() - prodLow);
@@ -479,42 +450,28 @@
     public void UpdateDiscountsAndDeals()
     {
     }
-    public void UpdatePaginationItems(int index)
+    public void UpdatePaginationItems(int page)
     {
-        var prods = context.Product.ToList();
-        var count = prods.Count();
-        int page_count = count / prodCount;
-        if (count % prodCount > 0)
+        var prodsCount = context.Product.ToList().Count();
+        int skip = (page - 1) * prodCount;
+        if (skip < prodsCount)
         {
-            page_count += 1;
-        }
-        if (index > 0 && index <= page_count)
-        {
-            activePage[index.ToString()] = !activePage[index.ToString()];
-            activePageClass[index.ToString()] = activePage[index.ToString()] ? "active" : "none";
-
-            if (currentPage > index)
+            if (skip + prodCount < prodsCount)
             {
-                if (prodLow - prodCount * (currentPage - index) >= 0)
-                {
-                    prodLow -= prodCount * (currentPage - index);
-                }
+                Products = context.Product.ToList().GetRange(skip, prodCount);
             }
             else
             {
-                if (prodLow + prodCount * (index - currentPage) >= 0 && prodLow + prodCount * (index - currentPage) < count)
-                {
-                    prodLow += prodCount * (index - currentPage);
-                }
+                Products = context.Product.ToList().GetRange(skip, prodsCount - skip);
             }
-            currentPage = index;
-            NavigationManager.NavigateTo($"/Account/products?prodLow={prodLow}&currentPage={index}&High={FilterState.High}");
-            NavigationManager.Refresh(true);
         }
+        
     }
-    private async Task SyncProducts()
+    private void HandlePageChange(int newPage)
     {
-        var IsSuccess = await AlgoliaIndexer.IndexProductsAsync(Products!);
+        currentPage = newPage;
+        UpdatePaginationItems(currentPage);
+        StateHasChanged();
     }
     private async Task GenerateEmbeddings()
     {
@@ -529,10 +486,13 @@
                 category = await context.Category.FirstOrDefaultAsync(c => c.Id == category.ParentID);
             }
             var description = HtmlToPlainText(product.Description);
-            
+
             var fullText = $"{product.Name} {Category} {description} {product.Brand} {product.Color}";
-            var productEmbedding = await EmbeddingService.GetEmbeddingAsync(fullText);
+            var result = await EmbeddingService.GetEmbeddingAsync(fullText);
+            var productEmbedding = result.Vector;
+            var norm = result.Norm;
             product.Embedding = productEmbedding;
+            product.Norm = norm;
             context.Product.Attach(product).State = EntityState.Modified;
         }
         await context.SaveChangesAsync();
@@ -543,5 +503,8 @@
         doc.LoadHtml(html);
         return doc.DocumentNode.InnerText;
     }
-
+    // private async Task SyncProducts()
+    // {
+    //     var IsSuccess = await AlgoliaIndexer.IndexProductsAsync(Products!);
+    // }
 }

@@ -3,15 +3,12 @@ using MethaWebsite.Components.Account;
 using MethaWebsite.Data;
 using MethaWebsite.Data.Contexts;
 using MethaWebsite.Services;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Stripe;
 using System.Globalization;
 
@@ -40,8 +37,7 @@ builder.Services.AddScoped<RatingFilterService>();
 builder.Services.AddScoped<LayoutRefreshService>();
 builder.Services.AddScoped<ShippingService>();
 builder.Services.AddScoped<LayoutState>();
-builder.Services.AddScoped<AlgoliaIndexer>();
-builder.Services.AddScoped<AlgoliaService>();
+builder.Services.AddScoped<ProductRatingService>();
 builder.Services.AddScoped<SearchEngineService>();
 builder.Services.AddScoped<LocalEmbeddingService>();
 builder.Services.AddScoped<HuggingFaceEmbeddingService>();
@@ -153,13 +149,15 @@ var localizationOptions = new RequestLocalizationOptions
     SupportedCultures = supportedCultures.Select(c => new CultureInfo(c)).ToList(),
     SupportedUICultures = supportedCultures.Select(c => new CultureInfo(c)).ToList()
 };
-app.MapPost("/api/stripe/charge-saved-card", async ([Microsoft.AspNetCore.Mvc.FromBody] ChargeRequest req) =>
+app.MapPost("/api/stripe/charge-saved-card", async ([FromBody] ChargeRequest req, IConfiguration config) =>
 {
-    var paymentIntentService = new PaymentIntentService();
+    var apiKey = config["Stripe:SecretKey"];
+    var client = new StripeClient(apiKey);
+    var paymentIntentService = new PaymentIntentService(client);
 
     var options = new PaymentIntentCreateOptions
     {
-        Amount = (long)(req.Amount * 100), // Stripe works in cents
+        Amount = (long)(req.Amount * 100),
         Currency = "KES",
         Customer = req.CustomerId,
         PaymentMethod = req.PaymentMethodId,
@@ -181,7 +179,7 @@ app.MapPost("/api/stripe/charge-saved-card", async ([Microsoft.AspNetCore.Mvc.Fr
     }
     catch (StripeException ex)
     {
-        return Results.Problem(detail:ex.Message);
+        return Results.Problem(detail: ex.Message);
     }
 });
 

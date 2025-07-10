@@ -1,4 +1,6 @@
 ﻿@using Stripe
+
+@inject IConfiguration Configuration
 @inject IStringLocalizer<SharedResource> Loc
 @inject IJSRuntime JS
 @inject HttpClient Http
@@ -165,7 +167,9 @@
             Verified = false;
             return;
         }
-        var service = new PaymentMethodService();
+        var Secretkey = Configuration["Stripe:SecretKey"];
+        var Client = new StripeClient(Secretkey);
+        var service = new PaymentMethodService(Client);
         var paymentMethod = await service.GetAsync(result.PaymentMethodId);
         var fingerprint = paymentMethod.Card.Fingerprint;
 

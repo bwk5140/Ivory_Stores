@@ -17,11 +17,10 @@
 <div class="container-sm mt-5" style="display:block; justify-content: center;">
     @if (product is not null)
     {
-        using var context = DbFactory.CreateDbContext();
-        product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
-        var CurrentImage = product.Images[0];
-
-        <div class="card" style="border: none;">
+        if (product.Images is not null && product.Images.Any())
+        {
+            var CurrentImage = product.Images[0];
+             <div class="card" style="border: none;">
             <div class="card-header" style="border: none; background-color: transparent;">
                 <h4>@Loc["CreateReview"]</h4>
                 <table>
@@ -173,6 +172,7 @@
                 </EditForm>
             </div>
         </div>
+        }
     }
     else
     {
@@ -207,30 +207,23 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Initialize rating filters
         Ratings = Enumerable.Range(0, 5)
-            .Select(_ => new Rating { Selected = false })
+            .Select(_ => new Rating { Selected = false, ProductReviewID = ProductReview.Id })
             .ToList();
-        ProductReview.RatingIds = new List<string>();
-        for (int i = 0; i < Ratings.Count(); i++)
-        {
-            ProductReview.RatingIds.Add(Ratings[i].Id);
-        }
+        ProductReview.Ratings = Ratings;
         ApplicationUser = await ApplicationUserService.GetApplicationUser();
         using var context = await DbFactory.CreateDbContextAsync();
         product = await context.Product.FirstOrDefaultAsync(p => p.Id == Id);
+        product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
     }
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddProductReview()
     {
+        using var context = await DbFactory.CreateDbContextAsync();
         ProductReview.ProductId = product.Id;
         ProductReview.UserId = ApplicationUser.Id;
         ProductReview.Description = await QuillHtml.GetHTML();
-        if (product.ProductReviewIds is null)
-        {
-            product.ProductReviewIds = new List<string>();
-        }
-        product.ProductReviewIds.Add(ProductReview.Id);
+
         int rating = 0;
         foreach (var _rating in Ratings)
         {
@@ -239,13 +232,28 @@
                 rating++;
             }
         }
-        product.RatingTotal += rating;
-        product.Rating = product.RatingTotal / product.ProductReviewIds.Count();
-        using var context = await DbFactory.CreateDbContextAsync();
+        var products = context.Product.Where(p => p.Name == product.Name);
+        foreach (var prod in products)
+        {
+            prod.RatingTotal += rating;
+            if (prod.ProductReviewIds is null)
+            {
+                prod.ProductReviewIds = new List<string>();
+            }
+            prod.ProductReviewIds.Add(ProductReview.Id);
+            prod.Rating = prod.RatingTotal / (prod.ProductReviewIds.Count());
+            context.Product.Attach(prod).State = EntityState.Modified;
+        }
+        var images = context.ProductImage.Where(i => ProductReview.ImageIds.Contains(i.Id)).ToList();
+        foreach (var image in images)
+        {
+            image.Name = "";
+            context.ProductImage.Attach(image).State = EntityState.Modified;
+        }
         context.ProductReview.Add(ProductReview);
-        context.Attach(product).State = EntityState.Modified;
         await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/productreviews");
+        await Task.Delay(100); // Let Blazor settle
+        NavigationManager.NavigateTo($"product/details?id={product.Id}");
     }
     public async Task OnRatingStarClicked(Rating rating)
     {
@@ -255,11 +263,7 @@
         // Apply rating filter using the service
         var service = new RatingFilterService();
         Ratings = service.FilterByRating(Ratings, index);
-
-        for (int i = 0; i < Ratings.Count(); i++)
-        {
-            ProductReview.RatingIds[i] = Ratings[i].Id;
-        }
+        ProductReview.Ratings = Ratings;
         StateHasChanged();
     }
     private async Task OpenFileDialog()
@@ -268,6 +272,7 @@
     }
     private async Task UploadProductReviewImages(InputFileChangeEventArgs args)
     {
+        using var context = await DbFactory.CreateDbContextAsync();
         var files = args.GetMultipleFiles().ToList();
         foreach (var file in files)
         {
@@ -288,7 +293,9 @@
                 {
                     ProductReview.ImageIds = new List<string>();
                 }
-                ProductReview!.ImageIds!.Add(ProductImage.Id);
+                ProductReview!.ImageIds!.Add(ProdImage.Id);
+                context.ProductImage.Add(ProdImage);
+                await context.SaveChangesAsync();
             }
             bytes.Clear();
             StateHasChanged();
@@ -317,7 +324,9 @@
     }
     private void Delete(ProductImage image)
     {
+        using var context = DbFactory.CreateDbContext();
         ProductReview!.ImageIds!.Remove(image.Id);
+        context.ProductImage.Remove(image);
         ProductImages.Remove(image);
     }
 }

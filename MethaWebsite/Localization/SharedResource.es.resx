@@ -1173,4 +1173,46 @@
   <data name="SimilarItems" xml:space="preserve">
     <value>Productos relacionados con este artículo</value>
   </data>
+  <data name="CustomerReviewsSm" xml:space="preserve">
+    <value>Opiniones de los clientes</value>
+  </data>
+  <data name="CustomersSay" xml:space="preserve">
+    <value>Lo que dicen las clientes</value>
+  </data>
+  <data name="ReviewImages" xml:space="preserve">
+    <value>Revisar imágenes</value>
+  </data>
+  <data name="OutOf5" xml:space="preserve">
+    <value>de 5</value>
+  </data>
+  <data name="Ratings" xml:space="preserve">
+    <value>calificaciónes</value>
+  </data>
+  <data name="RatingSm" xml:space="preserve">
+    <value>calificación</value>
+  </data>
+  <data name="star" xml:space="preserve">
+    <value>estrella</value>
+  </data>
+  <data name="stars" xml:space="preserve">
+    <value>estrellas</value>
+  </data>
+  <data name="TopReviews" xml:space="preserve">
+    <value>Principales reseñas de clientes</value>
+  </data>
+  <data name="ReviewdOn" xml:space="preserve">
+    <value>Revisado en</value>
+  </data>
+  <data name="VerifiedPurchase" xml:space="preserve">
+    <value>Compra verificada</value>
+  </data>
+  <data name="NoCustomerReviews" xml:space="preserve">
+    <value>No hay opiniones de clientes</value>
+  </data>
+  <data name="SelectDefaultAddress" xml:space="preserve">
+    <value>Seleccione una dirección de envío predeterminada para continuar.</value>
+  </data>
+  <data name="SelectADefaultAddress" xml:space="preserve">
+    <value>Establecer dirección predeterminada</value>
+  </data>
 </root>

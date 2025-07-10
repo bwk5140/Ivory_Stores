@@ -1,11 +1,14 @@
 ﻿@page "/shoppingcart"
 
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
+@using System.Text.Json
 
 @implements IAsyncDisposable
 
+@inject ProtectedSessionStorage sessionStorage
 @inject ApplicationUserService ApplicationUserService
 @inject LayoutRefreshService RefreshService
 @inject ShoppingCartService ShoppingCartService
@@ -15,6 +18,7 @@
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject IStringLocalizer<SharedResource> Loc
 @inject LayoutState LayoutState
+@inject IJSRuntime JS
 
 @rendermode InteractiveServer
 
@@ -34,14 +38,28 @@
         {
             if (ShippingAddressProblem)
             {
-                <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; color: red; border-left: 3px solid red;">
+                if (ClientAddresses is null || !ClientAddresses.Any())
+                {
+                    <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; color: red; border-left: 3px solid red;">
+                        <div class="card-body" style="display: inline-block;">
+                            <img src="info-circle.svg" /> @Loc["AddShippingAddress"]
+                            <a class="mt-3" href="Addresses" style="text-decoration: none;">
+                                @Loc["AddNewShippingAddress"]
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; color: red; border-left: 3px solid red;">
                     <div class="card-body" style="display: inline-block;">
-                        <img src="info-circle.svg" /> @Loc["AddShippingAddress"]
+                            <img src="info-circle.svg" /> @Loc["SelectDefaultAddress"]
                         <a class="mt-3" href="Addresses" style="text-decoration: none;">
-                            @Loc["AddNewShippingAddress"]
+                                @Loc["SelectADefaultAddress"]
                         </a>
                     </div>
                 </div>
+                }
             }
             <div class="row">
                 <div class="col-lg-9">
@@ -68,7 +86,10 @@
                                         {
                                             if (ShoppingCartProduct is not null)
                                             {
+                                                using var context = DbFactory.CreateDbContext();
                                                 var product = context.Product.FirstOrDefault(p => p.Id == ShoppingCartProduct.ProductId);
+                                                product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+                                                SelectedProducts[product.Id] = true;
                                                 if (product.Images.Count > 0)
                                                 {
                                                     var Id = product.Id;
@@ -187,6 +208,7 @@
     private ApplicationDbContext context = default!;
     private ApplicationUser? ApplicationUser { get; set; }
     private Address? DefaultAddress { get; set; }
+    private List<Address>? ClientAddresses { get; set; }
     private ShoppingCart? ShoppingCart { get; set; }
     private bool ShippingAddressProblem { get; set; } = false;
 
@@ -203,7 +225,7 @@
     {
         LayoutState.SetBackground("bg-cart");
         context = DbFactory.CreateDbContext();
-        
+
         ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
 
         if (ApplicationUser is not null)
@@ -224,9 +246,32 @@
                 }
             }
         }
-        else
+        
+        // if (ShoppingCartProducts is not null && ShoppingCartProducts.Any())
+        // {
+        //     foreach (var shoppingCartProduct in ShoppingCartProducts)
+        //     {
+        //         if (shoppingCartProduct is not null)
+        //         {
+        //             var product = await context.Product.FirstOrDefaultAsync(p => p.Id == shoppingCartProduct.ProductId);
+        //             SelectedProducts[product.Id] = true;
+        //             product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+        //         } 
+        //     }
+        // }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && ApplicationUser is null)
         {
-            ShoppingCart = ShoppingCartService.getShoppingCart();
+            var json = await JS.InvokeAsync<string>("cartStorage.loadCart", "Cart");
+            if (!string.IsNullOrEmpty(json))
+            {
+                ShoppingCart = JsonSerializer.Deserialize<ShoppingCart>(json);
+            }
+
+            if (ShoppingCart is null)
+                ShoppingCart = ShoppingCartService.getShoppingCart();
             foreach (var ShoppingCartProdId in ShoppingCart?.ProductIds)
             {
                 var shoppingCartProduct = await context.ShoppingCartProduct.FirstOrDefaultAsync(sp => sp.Id == ShoppingCartProdId);
@@ -236,18 +281,7 @@
                 }
             }
         }
-        if (ShoppingCartProducts is not null && ShoppingCartProducts.Any())
-        {
-            foreach (var shoppingCartProduct in ShoppingCartProducts)
-            {
-                if (shoppingCartProduct is not null)
-                {
-                    var product = await context.Product.FirstOrDefaultAsync(p => p.Id == shoppingCartProduct.ProductId);
-                    SelectedProducts[product.Id] = true;
-                    product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
-                } 
-            }
-        }
+        StateHasChanged();
     }
     private void UpdateCart(Product product)
     {
@@ -347,9 +381,11 @@
 
     public async Task GoToCart()
     {
-        using var context = await DbFactory.CreateDbContextAsync();
         if (ApplicationUser is not null)
+        {
             DefaultAddress = await context.Address.FirstOrDefaultAsync(a => a.Id == ApplicationUser.DefaultAddressId);
+            ClientAddresses = context.Address.Where(a => a.UserId == ApplicationUser.Id).ToList();
+        }
 
         if (DefaultAddress is not null)
         {

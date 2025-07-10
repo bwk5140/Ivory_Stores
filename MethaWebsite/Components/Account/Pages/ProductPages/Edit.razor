@@ -882,8 +882,11 @@ else
         }
         var description = HtmlToPlainText(product.Description);
         var fullText = $"{product.Name} {Category} {description} {product.Brand} {product.Color}";
-        var productEmbedding = await EmbeddingService.GetEmbeddingAsync(fullText);
+        var result = await EmbeddingService.GetEmbeddingAsync(fullText);
+        var productEmbedding = result.Vector;
+        var norm = result.Norm;
         product.Embedding = productEmbedding;
+        product.Norm = norm;
     }
     public static string HtmlToPlainText(string html)
     {

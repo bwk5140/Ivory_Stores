@@ -26,5 +26,7 @@ namespace MethaWebsite.Data.Contexts
         public DbSet<MethaWebsite.Data.Order> Order { get; set; } = default!;
         public DbSet<MethaWebsite.Data.Transaction> Transactions { get; set; } = default!;
         public DbSet<MethaWebsite.Data.ProductReview> ProductReview { get; set; } = default!;
+        public DbSet<MethaWebsite.Data.Rating> Rating { get; set; } = default!;
+        public DbSet<MethaWebsite.Data.SearchQueryVector> SearchQueryVector { get; set; } = default!;
     }
 }

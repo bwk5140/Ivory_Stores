@@ -11,9 +11,10 @@
     @{
         var showClass = IsVisible ? "d-block" : "d-none";
     }
-    <div class="toast-container toast-container-img @showClass" data-bs-autohide="true" data-bs-delay="5000">
+    <div class="toast-container toast-container-img @showClass" data-bs-autohide="true" data-bs-delay="5000"
+        style="top: 0;">
         <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
-             style="min-width:fit-content; max-width: 600px; max-height: 950px; background-color: white;">
+             style="min-width:fit-content; max-width: 600px; max-height: 950px; background-color: white; top: 0;">
             <div class="toast-header">
                 <strong class="me-auto">@Loc["Images"]</strong>
                 <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]

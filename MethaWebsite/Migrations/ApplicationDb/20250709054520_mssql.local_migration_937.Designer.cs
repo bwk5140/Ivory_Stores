@@ -4,6 +4,7 @@ using MethaWebsite.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MethaWebsite.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250709054520_mssql.local_migration_937")]
+    partial class mssqllocal_migration_937
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -349,9 +352,6 @@ namespace MethaWebsite.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<float>("Norm")
-                        .HasColumnType("real");
-
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
@@ -520,7 +520,7 @@ namespace MethaWebsite.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ProductReviewID")
+                    b.Property<string>("ProductReviewId")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("Selected")
@@ -528,28 +528,9 @@ namespace MethaWebsite.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductReviewID");
+                    b.HasIndex("ProductReviewId");
 
                     b.ToTable("Rating");
-                });
-
-            modelBuilder.Entity("MethaWebsite.Data.SearchQueryVector", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.PrimitiveCollection<string>("Embedding")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<float>("Norm")
-                        .HasColumnType("real");
-
-                    b.Property<string>("Query")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SearchQueryVector");
                 });
 
             modelBuilder.Entity("MethaWebsite.Data.Shipping", b =>
@@ -909,7 +890,7 @@ namespace MethaWebsite.Migrations
                 {
                     b.HasOne("MethaWebsite.Data.ProductReview", null)
                         .WithMany("Ratings")
-                        .HasForeignKey("ProductReviewID");
+                        .HasForeignKey("ProductReviewId");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

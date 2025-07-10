@@ -1,5 +1,6 @@
 ﻿@page "/searchresults"
 
+@using MethaWebsite.Components.Account.Shared
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Pinecone
@@ -14,6 +15,8 @@
 @inject ILogger<ProductSearch> Logger
 @inject ApplicationUserService ApplicationUserService
 @inject SearchEngineService SearchEngineService
+@inject PersistentComponentState ApplicationState
+@inject LocalEmbeddingService LocalEmbeddingService
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 
 @rendermode InteractiveServer
@@ -299,7 +302,9 @@
             </table>
             @if (Products is not null && Products.Any())
             {
-                <nav aria-label="..." style="display: flex; justify-content: center;">
+                <Pagination CurrentPage="@currentPage" TotalPages="@totalPages" OnPageChanged="HandlePageChange" />
+
+                @* <nav aria-label="..." style="display: flex; justify-content: center;">
                     <ul class="pagination">
                         <li class="page-item activePageClass[0.ToString()]">
                             <a style="width: 90px; cursor:pointer;" @onclick="@(() => UpdatePaginationItems(currentPage - 1))" class="page-link">
@@ -319,7 +324,7 @@
                             <a style="width: 90px; cursor:pointer;" class="page-link" @onclick="@(() => UpdatePaginationItems(currentPage + 1))">Next</a>
                         </li>
                     </ul>
-                </nav>
+                </nav> *@
             }
         </div>
     </div>
@@ -365,13 +370,13 @@
     [Parameter]
     public List<Rating>? Rating { get; set; } = new List<Rating>();
 
-    [SupplyParameterFromQuery]
-    private int prodLow { get; set; }
+    private int prodLow = 0;
 
     private int prodCount = 50;
 
-    [SupplyParameterFromQuery]
-    private int currentPage { get; set; }
+    private int currentPage = 1;
+    private int totalPages { get; set; }
+
 
     [SupplyParameterFromQuery]
     public string? filter { get; set; }
@@ -389,132 +394,28 @@
     public double High { get; set; } = 3991;
 
     private string? QueryId { get; set; }
+    private SearchQueryVector? searchQueryVector { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        IsLoading = true;
         context = await DbFactory.CreateDbContextAsync();
-        TrueMax = High;
-
-        if (!string.IsNullOrWhiteSpace(search))
+        IsLoading = true;
+        searchQueryVector = await context.SearchQueryVector.FirstOrDefaultAsync(s => s.Query == search);
+        if (searchQueryVector is null && !string.IsNullOrWhiteSpace(search))
         {
-            var products = context.Product.ToList();
-            try
-            {
-                products = context.Product.ToList().GetRange(prodLow, prodCount);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogInformation(ex.Message);
-                products = context.Product.ToList();
-                try
-                {
-                    products = products.GetRange(prodLow, products.Count() - prodLow);
-                }
-                catch (Exception ex2)
-                {
-                    Logger.LogInformation(ex2.Message);
-                }
-
-            }
-            List<Product> newProds = new List<Product>();
-
-            newProds = await SearchEngineService.SearchAsync(search, context.Product.ToList());
-            if (newProds.Count() <= 0)
-                newProds = SearchEngineService.SearchWithScoring(search, context.Product.ToList());
-
-            foreach (var product in newProds)
-            {
-                Products.Add(context.Product.FirstOrDefault(p => p.Name == product.Name));
-            }
+            searchQueryVector = new();
+            searchQueryVector.Query = search;
+            var result = await LocalEmbeddingService.GetEmbeddingAsync(search);
+            searchQueryVector.Embedding = result.Vector;
+            searchQueryVector.Norm = result.Norm;
+            context.SearchQueryVector.Add(searchQueryVector);
+            await context.SaveChangesAsync();
         }
-
-        if (Products?.Any() != true)
-        {
-            IsLoading = false;
-            return;
-        }
-
-        if (currentPage == 0)
-        {
-            currentPage = 1;
-        }
-
-        // Load images and collect product groups
-        productGroups = Products
-            .Select(p =>
-            {
-                p.Images = context.ProductImage
-                    .Where(img => img.ProductColorGroupId == p.ProductColorGroupID)
-                    .OrderBy(img => img.Created)
-                    .ToList();
-
-                return context.ProductGroup.FirstOrDefault(pg => pg.Name == p.Name);
-            })
-            .Where(pg => pg != null)
-            .Distinct()
-            .ToList();
-
-        // Load product color groups
-        productColorGroups = productGroups
-            .SelectMany(pg => context.ProductColorGroup.Where(pcg => pcg.ProductGroupID == pg.Id))
-            .Distinct()
-            .ToList();
-
-        // Load products from color groups
-        Products = productColorGroups
-            .Select(pcg => context.Product.FirstOrDefault(p => p.ProductColorGroupID == pcg.Id))
-            .Where(p => p != null)
-            .ToList();
-
-        Products = Products
-            .GroupBy(p => p.Name)
-            .Select(g => g.First())
-            .ToList();
-
-        // Populate brand, lifestyle, and gender filters
-        foreach (var product in Products)
-        {
-            if (!Brands.Contains(product.Brand)){
-                Brands.Add(product.Brand);
-                SelectedBrands[product.Brand] = false;
-            }
-            if (!Lifestyle.Contains(product.Lifestyle))
-            {
-                Lifestyle.Add(product.Lifestyle);
-                SelectedLifestyle[product.Lifestyle] = false;
-            }
-            if (!Genders.Contains(product.Gender))
-            {
-                Genders.Add(product.Gender);
-                SelectedGenders[product.Gender] = false;
-            }
-            if (product.Images is null)
-            {
-                product.Images = context.ProductImage.Where(m => m.ProductColorGroupId == product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
-            }
-        }
-        // Initialize rating filters
-        Rating = Enumerable.Range(0, 5)
-            .Select(_ => new Rating { Selected = false })
-            .ToList();
-
-        var prods = context.Product.ToList();
-        var count = prods.Count();
-        int page_count = count / prodCount;
-        if (count % prodCount > 0)
-        {
-            page_count += 1;
-        }
-        for (int i = 1; i <= page_count; i++)
-        {
-            activePage[i.ToString()] = false;
-            activePageClass[i.ToString()] = activePage[i.ToString()] ? "active" : "none";
-        }
-        IsLoading = false;
     }
-
-    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+    public async ValueTask DisposeAsync()
+    {
+        await context.DisposeAsync();
+    }
 
     public void OnDetailsClicked(Product prod)
     {
@@ -550,138 +451,145 @@
             }
         }
     }
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        using var Context = await DbFactory.CreateDbContextAsync();
         if (High < TrueMin)
         {
             High = TrueMin;
             StateHasChanged();
         }
+        if (firstRender)
+        {
+            TrueMax = High;
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var products = context.Product.ToList();
+                try
+                {
+                    products = context.Product.ToList().GetRange(prodLow, prodCount);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogInformation(ex.Message);
+                    products = context.Product.ToList();
+                    try
+                    {
+                        products = products.GetRange(prodLow, products.Count() - prodLow);
+                    }
+                    catch (Exception ex2)
+                    {
+                        Logger.LogInformation(ex2.Message);
+                    }
+
+                }
+                List<Product> newProds = new List<Product>();
+
+                newProds = SearchEngineService.SearchWithScoring(search, context.Product.ToList());
+                if (newProds.Count() > 0)
+                {
+                    List<Product> search_prods;
+                    if (searchQueryVector is not null)
+                    {
+                        search_prods = await SearchEngineService.SearchAsync(searchQueryVector.Embedding, searchQueryVector.Norm, newProds);
+                    }
+                    else
+                    {
+                        search_prods = await SearchEngineService.SearchAsync(search, newProds);
+                    }
+
+                    if (search_prods.Any())
+                    {
+                        newProds = search_prods;
+                    }
+                }
+                else
+                {
+                    newProds = await SearchEngineService.SearchAsync(search, context.Product.ToList());
+                }
+                Products = newProds;
+            }
+
+            if (Products?.Any() != true)
+            {
+                IsLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            if (currentPage == 0)
+            {
+                currentPage = 1;
+            }
+
+            // Load images and collect product groups
+            productGroups = Products
+                .Select(p =>
+                {
+                    p.Images = context.ProductImage
+                        .Where(img => img.ProductColorGroupId == p.ProductColorGroupID)
+                        .OrderBy(img => img.Created)
+                        .ToList();
+
+                    return context.ProductGroup.FirstOrDefault(pg => pg.Name == p.Name);
+                })
+                .Where(pg => pg != null)
+                .Distinct()
+                .ToList();
+
+            // Load product color groups
+            productColorGroups = productGroups
+                .SelectMany(pg => context.ProductColorGroup.Where(pcg => pcg.ProductGroupID == pg.Id))
+                .Distinct()
+                .ToList();
+
+            // Load products from color groups
+            Products = productColorGroups
+                .Select(pcg => context.Product.FirstOrDefault(p => p.ProductColorGroupID == pcg.Id))
+                .Where(p => p != null)
+                .ToList();
+
+            Products = Products
+                .GroupBy(p => p.Name)
+                .Select(g => g.First())
+                .ToList();
+            double ProdCount = Products.Count();
+            totalPages = (int)Math.Ceiling(ProdCount / prodCount);
+
+            // Populate brand, lifestyle, and gender filters
+            foreach (var product in Products)
+            {
+                if (!Brands.Contains(product.Brand))
+                {
+                    Brands.Add(product.Brand);
+                    SelectedBrands[product.Brand] = false;
+                }
+                if (!Lifestyle.Contains(product.Lifestyle))
+                {
+                    Lifestyle.Add(product.Lifestyle);
+                    SelectedLifestyle[product.Lifestyle] = false;
+                }
+                if (!Genders.Contains(product.Gender))
+                {
+                    Genders.Add(product.Gender);
+                    SelectedGenders[product.Gender] = false;
+                }
+                if (product.Images is null)
+                {
+                    product.Images = context.ProductImage.Where(m => m.ProductColorGroupId == product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
+                }
+            }
+            // Initialize rating filters
+            Rating = Enumerable.Range(0, 5)
+                .Select(_ => new Rating { Selected = false })
+                .ToList();
+
+            IsLoading = false;
+            StateHasChanged();
+        }
+
     }
-    // protected override async Task OnParametersSetAsync()
-    // {
-    //     IsLoading = true;
-    //     context = await DbFactory.CreateDbContextAsync();
-    //     TrueMax = High;
-
-    //     if (!string.IsNullOrWhiteSpace(search))
-    //     {
-    //         var products = context.Product.ToList();
-    //         try
-    //         {
-    //             products = context.Product.ToList().GetRange(prodLow, prodCount);
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             Logger.LogInformation(ex.Message);
-    //             products = context.Product.ToList();
-    //             try
-    //             {
-    //                 products = products.GetRange(prodLow, products.Count() - prodLow);
-    //             }
-    //             catch (Exception ex2)
-    //             {
-    //                 Logger.LogInformation(ex2.Message);
-    //             }
-
-    //         }
-    //         List<Product> newProds = new List<Product>();
-
-    //         newProds = await SearchEngineService.SearchAsync(search, context.Product.ToList());
-    //         if (newProds.Count() <= 0)
-    //             newProds = SearchEngineService.SearchWithScoring(search, context.Product.ToList());
-    //         Products.Clear();
-    //         foreach (var product in newProds)
-    //         {
-    //             Products.Add(context.Product.FirstOrDefault(p => p.Name == product.Name));
-    //         }
-    //     }
-
-    //     if (Products?.Any() != true)
-    //     {
-    //         IsLoading = false;
-    //         return;
-    //     }
-
-    //     if (currentPage == 0)
-    //     {
-    //         currentPage = 1;
-    //     }
-
-    //     // Load images and collect product groups
-    //     productGroups = Products
-    //         .Select(p =>
-    //         {
-    //             p.Images = context.ProductImage
-    //                 .Where(img => img.ProductColorGroupId == p.ProductColorGroupID)
-    //                 .OrderBy(img => img.Created)
-    //                 .ToList();
-
-    //             return context.ProductGroup.FirstOrDefault(pg => pg.Name == p.Name);
-    //         })
-    //         .Where(pg => pg != null)
-    //         .Distinct()
-    //         .ToList();
-
-    //     // Load product color groups
-    //     productColorGroups = productGroups
-    //         .SelectMany(pg => context.ProductColorGroup.Where(pcg => pcg.ProductGroupID == pg.Id))
-    //         .Distinct()
-    //         .ToList();
-
-    //     // Load products from color groups
-    //     Products = productColorGroups
-    //         .Select(pcg => context.Product.FirstOrDefault(p => p.ProductColorGroupID == pcg.Id))
-    //         .Where(p => p != null)
-    //         .ToList();
-
-    //     Products = Products
-    //         .GroupBy(p => p.Name)
-    //         .Select(g => g.First())
-    //         .ToList();
-
-    //     // Populate brand, lifestyle, and gender filters
-    //     foreach (var product in Products)
-    //     {
-    //         if (!Brands.Contains(product.Brand))
-    //         {
-    //             Brands.Add(product.Brand);
-    //             SelectedBrands[product.Brand] = false;
-    //         }
-    //         if (!Lifestyle.Contains(product.Lifestyle))
-    //         {
-    //             Lifestyle.Add(product.Lifestyle);
-    //             SelectedLifestyle[product.Lifestyle] = false;
-    //         }
-    //         if (!Genders.Contains(product.Gender))
-    //         {
-    //             Genders.Add(product.Gender);
-    //             SelectedGenders[product.Gender] = false;
-    //         }
-    //         if (product.Images is null)
-    //         {
-    //             product.Images = context.ProductImage.Where(m => m.ProductColorGroupId == product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
-    //         }
-    //     }
-    //     // Initialize rating filters
-    //     Rating = Enumerable.Range(0, 5)
-    //         .Select(_ => new Rating { Selected = false })
-    //         .ToList();
-
-    //     var prods = context.Product.ToList();
-    //     var count = prods.Count();
-    //     int page_count = count / prodCount;
-    //     if (count % prodCount > 0)
-    //     {
-    //         page_count += 1;
-    //     }
-    //     for (int i = 1; i <= page_count; i++)
-    //     {
-    //         activePage[i.ToString()] = false;
-    //         activePageClass[i.ToString()] = activePage[i.ToString()] ? "active" : "none";
-    //     }
-    //     IsLoading = false;
-    // }
     public void UpdateGender(string gender)
     {
         var selectedGenders = Genders
@@ -759,7 +667,7 @@
     }
     private async Task TrackClick(string productId, int position)
     {
-       
+
     }
 
     public async Task UpdateLifeStyleProducts()
@@ -804,37 +712,27 @@
         var product = await Context.Product.FirstOrDefaultAsync(p => p.ProductColorGroupID == ColorGroup.Id && p.Color == ColorGroup.Color);
         NavigationManager.NavigateTo($"Account/products/details?id={product.Id}");
     }
-    public void UpdatePaginationItems(int index)
+    public void UpdatePaginationItems(int page)
     {
-        var count = Products.Count();
-        int page_count = count / prodCount;
-        if (count % prodCount > 0)
+        var prodsCount = context.Product.ToList().Count();
+        int skip = (page - 1) * prodCount;
+        if (skip < prodsCount)
         {
-            page_count += 1;
-        }
-        if (index > 0 && index <= page_count)
-        {
-            activePage[index.ToString()] = !activePage[index.ToString()];
-            activePageClass[index.ToString()] = activePage[index.ToString()] ? "active" : "none";
-
-            if (currentPage > index)
+            if (skip + prodCount < prodsCount)
             {
-                if (prodLow - prodCount * (currentPage - index) >= 0)
-                {
-                    prodLow -= prodCount * (currentPage - index);
-                }
+                Products = context.Product.ToList().GetRange(skip, prodCount);
             }
             else
             {
-                if (prodLow + prodCount * (index - currentPage) >= 0 && prodLow + prodCount * (index - currentPage) < count)
-                {
-                    prodLow += prodCount * (index - currentPage);
-                }
+                Products = context.Product.ToList().GetRange(skip, prodsCount - skip);
             }
-            currentPage = index;
-            NavigationManager.NavigateTo($"/searchresults?filter={filter}&search={search}&prodLow={prodLow}&currentPage={index}");
-            NavigationManager.Refresh(true);
         }
+    }
+    private void HandlePageChange(int newPage)
+    {
+        currentPage = newPage;
+        UpdatePaginationItems(currentPage);
+        StateHasChanged();
     }
 
     // private async Task SendData(Dictionary<string, string> info)

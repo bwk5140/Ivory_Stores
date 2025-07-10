@@ -7,6 +7,7 @@
 @inject ApplicationUserService ApplicationUserService
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
 @inject IJSRuntime JS
 @inject HttpClient Https
 
@@ -93,7 +94,9 @@
     {
         isSaving = true;
         Status = null;
-        var customerService = new CustomerService();
+        var Secretkey = Configuration["Stripe:SecretKey"];
+        var Client = new StripeClient(Secretkey);
+        var customerService = new CustomerService(Client);
         var customer = await customerService.CreateAsync(new CustomerCreateOptions
         {
             Email = applicationUser.Email,
