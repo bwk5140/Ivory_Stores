@@ -1,0 +1,104 @@
+﻿@inject IStringLocalizer<SharedResource> Loc
+
+@rendermode InteractiveServer
+
+<div class="container-sm" style="display: block; justify-content: center;">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
+         @onfocusout="@(() => IsVisible = false)" style="max-width: 450px;">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true" @onblur="Close"
+             style="min-width:fit-content; word-wrap:normal; background-color: white;">
+            <div class="toast-header">
+                <h5 class="me-auto">@title @Loc["Returns"]</h5>
+                <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                        aria-label="Close" @onclick="Close"></button>
+            </div>
+            <div class="toast-body m-3" style="background-color: white;">
+                <div class="mb-2">
+                    <p>
+                        At Ivory Stores, your satisfaction is our priority. If you’re not
+                        completely happy with your purchase, we’re here to help
+                        where we can.
+                    </p>
+                    
+                </div>
+                <div class="mb-2">
+                    <p>
+                        Please note that at this time, all sales are final. Once an item
+                        has been delivered and accepted by the customer, it cannot be
+                        returned or exchanged.
+                    </p>
+                    
+                </div>
+                <div class="mb-3">
+                    <p>
+                        If your order arrives damaged or incorrect, please contact us
+                        within 48 hours of delivery and we’ll assist you as best as we
+                        can.
+                    </p>
+                    
+                </div>
+                <ol>
+                    <li>
+                        <h6>Items Not Eligible for Return</h6>
+                        <ul>
+                            <li>
+                                Clearance or final sale items
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <h6>Delivery &amp; Acceptance</h6>
+                        <ul>
+                            <li>
+                                Once an item has been delivered and accepted, Ivory
+                                Stores is no longer responsible for any damage, loss, or
+                                theft that may occur afterward.
+                            </li>
+                        </ul>
+                        <ul>
+                            <li>
+                                We kindly ask customers to inspect their items upon
+                                arrival and reach out to us immediately if anything is
+                                wrong.
+                            </li>
+                        </ul>
+                    </li>
+                </ol>
+                <div>
+                    <p>
+                        Our return policy is subject to change as we grow.
+                        We’re working toward providing more flexible options in
+                        the future.
+                    </p>
+                    <p>
+                        We appreciate your understanding and support.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="@showClass darker-background"></div>
+</div>
+
+@code {
+
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public string? title { get; set; }
+
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+    public void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

@@ -11,7 +11,8 @@ namespace MethaWebsite.Data
         public string Name { get; set; } = "";
         public byte[]? ProfilePicture { get; set; }
         public string? DefaultAddressId { get; set; }
-        public string? ShoppingCardId { get; set; }
+        public string? ShoppingCartId { get; set; }
+        public DateTime? Created { get; set; } = DateTime.Now;
     }
 
 }

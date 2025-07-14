@@ -1,0 +1,163 @@
+﻿@using System.Globalization
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Data.SizeGuides
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.EntityFrameworkCore
+
+@inject ProductRatingService ProductRatingService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject IStringLocalizer<SharedResource> Loc
+
+@if (ReviewImages is not null && ReviewImages.Any())
+{
+    <div class="container-fluid" style="display: block; justify-content: center;">
+        @{
+            var showClass = IsVisible ? "d-block" : "d-none";
+        }
+        <div class="toast-container toast-container-img @showClass" data-bs-autohide="true" data-bs-delay="5000"
+             style="top: 5%; left: 30%;">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                 style="width: 80%; height: 80%; min-height: 550px; background-color: white; top: 0;">
+                <div class="toast-header">
+                    <strong class="me-auto">@Loc["Images"]</strong>
+                    <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                            aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="toast-body" style="background-color: white;">
+                    <div class="row">
+                        <div class="col-lg">
+                            <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                 alt=@Loc["ProductImage"] style="width:90%; height:90%; max-height: 600px; object-fit:contain;" />
+                        </div>
+                        <div class="col-md" style="max-width: 50%; padding: 0px;">
+                            <div class="row">
+                                <div class="col-lg-11" style="color: darkslategray;">
+                                    <img class="me-2" src="person-circle.svg" />
+                                    @ApplicationUser.Name
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-lg-11">
+                                    @{
+                                        var user_rating = GetRating();
+                                        var user_rating_stars = ProductRatingService.GetStarImages(user_rating);
+                                    }
+                                    @foreach (var star in user_rating_stars)
+                                    {
+                                        <div style="display: inline-block;">
+                                            <img src="@star" />
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-lg-11">
+                                    <strong>@ProductReview.Subject</strong>
+                                </div>
+                            </div>
+                            <div class="row mt-1">
+                                <div class="col-lg-11">
+                                    <div style="color: dimgray; display: inline-block;">
+                                        @Loc["ReviewedOn"] @ProductReview.Created.Value.ToString("MMMM") @ProductReview.Created.Value.Day, @ProductReview.Created.Value.Year
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-lg-11">
+                                    @((MarkupString)ProductReview.Description)
+                                </div>
+                            </div>
+                            <div class="row">
+                                @if (ReviewImages is not null)
+                                {
+                                    @foreach (var Image in ReviewImages)
+                                    {
+                                        <div class="col">
+                                            <button class="btn" @onclick="@(() => OnCurrentImageClicked(Image))">
+                                                <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(Image.Image!)))"
+                                                     alt=@Loc["ProductImage"] style="width:100px; height:100px; object-fit:contain;" />
+                                            </button>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="@showClass darker-background"></div>
+    </div>
+}
+
+
+@code {
+    private ApplicationDbContext? context;
+
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [CascadingParameter]
+    public ProductImage? CurrentImage { get; set; }
+
+    [Parameter]
+    public List<ProductImage>? ReviewImages { get; set; } = new List<ProductImage>();
+
+    [Parameter]
+    public ProductReview? ProductReview { get; set; }
+
+    [Parameter]
+    public ApplicationUser? ApplicationUser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+    }
+
+    public void SetReview(ProductReview review)
+    {
+        ProductReview = review;
+        ApplicationUser = context.Users.FirstOrDefault(u => u.Id == ProductReview.UserId);
+    }
+    public void Show()
+    {
+        if (ProductReview.ImageIds is not null && ProductReview.ImageIds.Any())
+        {
+            var images = context.ProductImage.Where(i => ProductReview.ImageIds.Contains(i.Id)).ToList();
+            if (images is not null)
+            {
+                ReviewImages = images;
+                CurrentImage = ReviewImages.FirstOrDefault();
+            }
+        }
+        IsVisible = true;
+        StateHasChanged();
+    }
+    public void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+    public void OnCurrentImageClicked(ProductImage image)
+    {
+        CurrentImage = image;
+        StateHasChanged();
+    }
+    public double GetRating()
+    {
+        double rating = 0;
+        using var context = DbFactory.CreateDbContext();
+
+        if (ProductReview is not null)
+        {
+            ProductReview.Ratings = context.Rating.Where(r => r.ProductReviewID == ProductReview.Id).ToList();
+            foreach (var _rating in ProductReview.Ratings)
+            {
+                if (_rating.Selected)
+                    rating += 1.0;
+            }
+        }
+        return rating;
+    }
+}

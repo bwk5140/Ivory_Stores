@@ -232,7 +232,11 @@
                 rating++;
             }
         }
-        var products = context.Product.Where(p => p.Name == product.Name);
+        var products = context.Product
+            .AsEnumerable()
+            .Where(p => p.Name.Equals(product.Name))
+            .ToList();
+
         foreach (var prod in products)
         {
             prod.RatingTotal += rating;
@@ -244,16 +248,18 @@
             prod.Rating = prod.RatingTotal / (prod.ProductReviewIds.Count());
             context.Product.Attach(prod).State = EntityState.Modified;
         }
-        var images = context.ProductImage.Where(i => ProductReview.ImageIds.Contains(i.Id)).ToList();
-        foreach (var image in images)
+        if (ProductReview.ImageIds is not null)
         {
-            image.Name = "";
-            context.ProductImage.Attach(image).State = EntityState.Modified;
+            var images = context.ProductImage.AsEnumerable().Where(i => ProductReview.ImageIds.Contains(i.Id)).ToList();
+            foreach (var image in images)
+            {
+                image.Name = "";
+                context.ProductImage.Attach(image).State = EntityState.Modified;
+            }
         }
         context.ProductReview.Add(ProductReview);
         await context.SaveChangesAsync();
-        await Task.Delay(100); // Let Blazor settle
-        NavigationManager.NavigateTo($"product/details?id={product.Id}");
+        NavigationManager.NavigateTo($"product/details?id={product.Id}", true);
     }
     public async Task OnRatingStarClicked(Rating rating)
     {

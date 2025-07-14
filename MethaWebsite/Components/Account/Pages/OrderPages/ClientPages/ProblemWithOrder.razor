@@ -1,0 +1,293 @@
+﻿@page "/Account/Orders/pwo"
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+
+<div class="container-sm mt-5 mb-5">
+    <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="AccountSettings" style="text-decoration: none;">
+                    @Loc["YourAccount"]
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="/Account/Orders" style="text-decoration: none;">
+                    @Loc["YourOrders"]
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">@Loc["ProblemWithOrder"]</li>
+        </ol>
+    </nav>
+    <h3>@Loc["ProblemWithOrder"]</h3>
+
+    @if (order is not null)
+    {
+        using var context = DbFactory.CreateDbContext();
+        if (ApplicationUser is not null)
+        {
+            if (order is not null && order.ProductIds is not null)
+            {
+                @if (product is not null)
+                {
+                    <div class="card mb-3" style="max-width: 1000px; padding: 0px;">
+                        <div class="card-body">
+                           @{
+                                product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+                                var CurrentImage = product.Images[0];
+                            }
+                            <div class="row mt-3">
+                                <div class="col-sm-2" style="padding: 0px;">
+                                    <a href="@($"product/details?id={product.Id}")" class="btn">
+                                        <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                             alt=@Loc["ProductImage"] style="width:100px; height:100px; object-fit:contain; vertical-align: central;" />
+                                    </a>
+                                </div>
+                                <div class="col-sm-6">
+                                    <a href="@($"product/details?id={product.Id}")" style="padding: 0px; text-decoration:none;">
+                                        <p>@product.Name</p>
+                                    </a>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div style="text-wrap: nowrap; color: gray;">
+                                        @Loc["OrderPlacedSmall"]
+                                    </div>
+                                    <div style="text-wrap: nowrap;">
+                                        @order.Date.ToString("MMMM") @order.Date.Day, @order.Date.Year
+                                    </div>
+                                    <div style="text-wrap: nowrap; color: gray;">
+                                        @Loc["Order"]
+                                    </div>
+                                    <div style="text-wrap: nowrap;">
+                                        <a href="@($"Account/Order/details?id={order.Id}")" style="text-decoration: none;">
+                                            @order.Id
+                                        </a>
+                                    </div>
+                                    <div style="text-wrap: nowrap; color: gray;">
+                                        @Loc["ExpectedBy"]
+                                    </div>
+                                    <div style="text-wrap: nowrap;">
+                                        @ExpectedBy.ToString("MMMM") @ExpectedBy.Day, @ExpectedBy.Year
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @if (!IssueClicked["PackageDidntArrive"] && !IssueClicked["MissingItems"] && !IssueClicked["DamagedOrDefective"]
+                                                  && !IssueClicked["DifferentFromOrder"] && !IssueClicked["OtherIssue"])
+                    {
+                        <h5>@Loc["WhatWentWrong"]</h5>
+                    }
+                    <div class="card mb-3" style="max-width: 1000px; padding: 0px;">
+                        <div class="card-body">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        @if (!IssueClicked["PackageDidntArrive"] && !IssueClicked["MissingItems"] && !IssueClicked["DamagedOrDefective"]
+                                                                && !IssueClicked["DifferentFromOrder"] && !IssueClicked["OtherIssue"])
+                                        {
+                                            <td>
+                                                <button type="button" class="btn btn-link" style="text-decoration: none; padding: 0px;"
+                                                        @onclick="@(() => OnIssueClicked("PackageDidntArrive"))">
+                                                    @Loc["PackageDidntArrive"]
+                                                </button>
+                                            </td>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        @if (!IssueClicked["PackageDidntArrive"] && !IssueClicked["MissingItems"] && !IssueClicked["DamagedOrDefective"]
+                                                                && !IssueClicked["DifferentFromOrder"] && !IssueClicked["OtherIssue"])
+                                        {
+                                            <td>
+                                                <button type="button" class="btn btn-link" style="text-decoration: none; padding: 0px;"
+                                                        @onclick="@(() => OnIssueClicked("MissingItems"))">
+                                                    @Loc["MissingItems"]
+                                                </button>
+                                            </td>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        @if (!IssueClicked["PackageDidntArrive"] && !IssueClicked["MissingItems"] && !IssueClicked["DamagedOrDefective"]
+                                                                && !IssueClicked["DifferentFromOrder"] && !IssueClicked["OtherIssue"])
+                                        {
+                                            <td>
+                                                <button type="button" class="btn btn-link" style="text-decoration: none; padding: 0px;"
+                                                        @onclick="@(() => OnIssueClicked("DamagedOrDefective"))">
+                                                    @Loc["DamagedOrDefective"]
+                                                </button>
+                                            </td>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        @if (!IssueClicked["PackageDidntArrive"] && !IssueClicked["MissingItems"] && !IssueClicked["DamagedOrDefective"]
+                                                                && !IssueClicked["DifferentFromOrder"] && !IssueClicked["OtherIssue"])
+                                        {
+                                            <td>
+                                                <button type="button" class="btn btn-link" style="text-decoration: none; padding: 0px;"
+                                                        @onclick="@(() => OnIssueClicked("DifferentFromOrder"))">
+                                                    @Loc["DifferentFromOrder"]
+                                                </button>
+                                            </td>
+                                        }
+                                    </tr>
+                                    <tr>
+                                        @if (!IssueClicked["PackageDidntArrive"] && !IssueClicked["MissingItems"] && !IssueClicked["DamagedOrDefective"]
+                                                                && !IssueClicked["DifferentFromOrder"] && !IssueClicked["OtherIssue"])
+                                        {
+                                            <td>
+                                                <button type="button" class="btn btn-link" style="text-decoration: none; padding: 0px;"
+                                                        @onclick="@(() => OnIssueClicked("OtherIssue"))">
+                                                    @Loc["OtherIssue"]
+                                                </button>
+                                            </td>
+                                        }
+                                    </tr>
+                                </tbody>
+                            </table>
+                            @if (IssueClicked["PackageDidntArrive"])
+                            {
+                                <div class="row">
+                                    <div class="col-sm-10">
+                                        <h5>@Loc["PackageDidntArrive"]</h5>
+                                    </div>
+                                    <div class="col-sm-2" style="text-align: right;">
+                                        <button class="btn btn-link" type="button" style="border: none; background-color: transparent; padding:0px; text-decoration: none;"
+                                                @onclick="@(() => OnChange("PackageDidntArrive"))">
+                                            @Loc["Change"]
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                            @if (IssueClicked["MissingItems"])
+                            {
+                                <div class="row">
+                                    <div class="col-sm-10">
+                                        <h5>@Loc["MissingItems"]</h5>
+                                    </div>
+                                    <div class="col-sm-2" style="text-align: right;">
+                                        <button class="btn btn-link" type="button" style="border: none; background-color: transparent; padding:0px; text-decoration: none;"
+                                                @onclick="@(() => OnChange("MissingItems"))">
+                                            @Loc["Change"]
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                            @if (IssueClicked["DamagedOrDefective"])
+                            {
+                                <div class="row">
+                                    <div class="col-sm-10">
+                                        <h5>@Loc["DamagedOrDefective"]</h5>
+                                    </div>
+                                    <div class="col-sm-2" style="text-align: right;">
+                                        <button class="btn btn-link" type="button" style="border: none; background-color: transparent; padding:0px; text-decoration: none;"
+                                                @onclick="@(() => OnChange("DamagedOrDefective"))">
+                                            @Loc["Change"]
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                            @if (IssueClicked["DifferentFromOrder"])
+                            {
+                                <div class="row">
+                                    <div class="col-sm-10">
+                                        <h5>@Loc["DifferentFromOrder"]</h5>
+                                    </div>
+                                    <div class="col-sm-2" style="text-align: right;">
+                                        <button class="btn btn-link" type="button" style="border: none; background-color: transparent; padding:0px; text-decoration: none;"
+                                                @onclick="@(() => OnChange("DifferentFromOrder"))">
+                                            @Loc["Change"]
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                            @if (IssueClicked["OtherIssue"])
+                            {
+                                <div class="row">
+                                    <div class="col-sm-10">
+                                        <h5>@Loc["OtherIssue"]</h5>
+                                    </div>
+                                    <div class="col-sm-2" style="text-align: right;">
+                                        <button class="btn btn-link" type="button" style="border: none; background-color: transparent; padding:0px; text-decoration: none;"
+                                                @onclick="@(() => OnChange("OtherIssue"))">
+                                            @Loc["Change"]
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        }
+    }
+</div>
+@code {
+
+    private ApplicationUser? ApplicationUser { get; set; }
+    private Dictionary<string, bool> show = new();
+
+    [Parameter]
+    public Product? product { get; set; }
+
+    [Parameter]
+    public Order? order { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? OrderId { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? ProductId { get; set; }
+
+    [Parameter]
+    public DateTime ExpectedBy { get; set; }
+
+    private Dictionary<string, bool> IssueClicked { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
+        order = await context.Order.FirstOrDefaultAsync(o => o.Id == OrderId);
+        product = await context.Product.FirstOrDefaultAsync(p => p.Id == ProductId);
+        if (order is not null)
+        {
+            ExpectedBy = order.Date.AddDays(order.ShippingTime);
+        }
+        IssueClicked["PackageDidntArrive"] = false;
+        IssueClicked["MissingItems"] = false;
+        IssueClicked["DamagedOrDefective"] = false;
+        IssueClicked["DifferentFromOrder"] = false;
+        IssueClicked["OtherIssue"] = false;
+    }
+    private Payment GetPaymentMethod(string Id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var credit_debit_card = context.CreditDebitCard.FirstOrDefault(c => c.Id == Id);
+        if (credit_debit_card is not null)
+            return credit_debit_card;
+        else
+        {
+            var mpesa_payment = context.Mpesa.FirstOrDefault(m => m.Id == Id);
+            return mpesa_payment;
+        }
+    }
+    private void OnChange(string issue)
+    {
+        IssueClicked[issue] = false;
+    }
+    private void OnIssueClicked(string issue)
+    {
+        IssueClicked[issue] = true;
+    }
+}

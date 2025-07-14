@@ -1078,7 +1078,7 @@
     <value>Please add a delivery address to continue.</value>
   </data>
   <data name="AddNewShippingAddress" xml:space="preserve">
-    <value>Add new shipping address</value>
+    <value>Add new delivery address</value>
   </data>
   <data name="ProblemWithPaymentMethod" xml:space="preserve">
     <value>There was a problem with the payment method. Please add a debit or credit card, or add a new Mpesa payment account.</value>
@@ -1200,7 +1200,7 @@
   <data name="TopReviews" xml:space="preserve">
     <value>Top reviews from customers</value>
   </data>
-  <data name="ReviewdOn" xml:space="preserve">
+  <data name="ReviewedOn" xml:space="preserve">
     <value>Reviewed on</value>
   </data>
   <data name="VerifiedPurchase" xml:space="preserve">
@@ -1214,5 +1214,35 @@
   </data>
   <data name="SelectADefaultAddress" xml:space="preserve">
     <value>Set default address</value>
+  </data>
+  <data name="DeliverToThisAddress" xml:space="preserve">
+    <value>Deliver to this address</value>
+  </data>
+  <data name="Returns" xml:space="preserve">
+    <value>Ivory Stores Return Policy</value>
+  </data>
+  <data name="ProblemWithOrder" xml:space="preserve">
+    <value>Problem with order</value>
+  </data>
+  <data name="ExpectedBy" xml:space="preserve">
+    <value>EXPECTED BY</value>
+  </data>
+  <data name="WhatWentWrong" xml:space="preserve">
+    <value>What went wrong?</value>
+  </data>
+  <data name="PackageDidntArrive" xml:space="preserve">
+    <value>Package didn't arrive</value>
+  </data>
+  <data name="MissingItems" xml:space="preserve">
+    <value>Missing items</value>
+  </data>
+  <data name="DamagedOrDefective" xml:space="preserve">
+    <value>Damaged or defective item</value>
+  </data>
+  <data name="DifferentFromOrder" xml:space="preserve">
+    <value>Different from what I ordered</value>
+  </data>
+  <data name="OtherIssue" xml:space="preserve">
+    <value>Other issue</value>
   </data>
 </root>

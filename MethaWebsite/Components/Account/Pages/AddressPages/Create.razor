@@ -108,7 +108,7 @@
     public bool IsVisible { get; set; } = false;
 
     [Parameter]
-    public EventCallback<SaveChangesEventArgs> OnAddressAdded { get; set; }
+    public EventCallback<Address> OnAddressAdded { get; set; }
 
     [Parameter]
     public List<Country>? Countries { get; set; }
@@ -144,7 +144,7 @@
         context.Users.Attach(applicationUser).State = EntityState.Modified;
         context.Address.Add(Address);
         await context.SaveChangesAsync();
-        await OnAddressAdded.InvokeAsync();
+        await OnAddressAdded.InvokeAsync(Address);
         Close();
     }
     public void Show()

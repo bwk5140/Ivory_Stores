@@ -24,6 +24,7 @@ namespace MethaWebsite.Services
         public Dictionary<string, int> ShippingDates = new();
         public Dictionary<string, double> ShippingCosts = new();
         public readonly IStringLocalizer<CheckoutService> Loc;
+        public CreditDebitCard? DefaultCreditDebitCard;
         public string? FreeShipping { get; set; }
         public string? StandardShippng { get; set; }
         public string? FastShippng { get; set; }
@@ -46,14 +47,14 @@ namespace MethaWebsite.Services
             ShippingMonths["Fast"] = DateTime.Now.AddDays(FastShippingDays).ToString("MMMM");
             ShippingDates["Fast"] = DateTime.Now.AddDays(FastShippingDays).Day;
 
-            FreeShipping = Loc["FreeDelivery"];
-            StandardShippng = Loc["Standard"];
-            FastShippng = Loc["Fast"];
+            FreeShipping = "Free Delivery";
+            StandardShippng = "Standard";
+            FastShippng = "Fast";
 
             ShippingCosts[FreeShipping] = 0;
             ShippingCosts[StandardShippng] = 150;
             ShippingCosts[FastShippng] = 300;
-            ShippingType = Loc["Standard"];
+            ShippingType = "Standard";
         }
         public double CalculateShippingCosts(string ShippingType)
         {

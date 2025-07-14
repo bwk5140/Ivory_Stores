@@ -169,16 +169,10 @@
                                             </div>
                                             <div class="col-sm-3">
                                                 <div>
-                                                    <button class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f;
-                                                             border-color:transparent; border-radius: 25px; width: 200px;">
-                                                        @Loc["GetProductSupport"]
-                                                    </button>
-                                                </div>
-                                                <div>
-                                                    <button class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f;
+                                                    <a href="@($"/Account/Orders/pwo?orderid={order.Id}&productid={product.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f;
                                                                                                   border-color:transparent; border-radius: 25px; width: 200px;">
                                                         @Loc["ProductProblem"]
-                                                    </button>
+                                                    </a>
                                                 </div>
                                                 <div>
                                                     <a href="@($"productreviews/create?id={product.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: transparent;
@@ -256,11 +250,11 @@
         SelectionPeriod2 = Loc["3Months"];
         SelectedOrderPeriod = SelectionPeriod1;
         using var context = await DbFactory.CreateDbContextAsync();
-        
+
         ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
         Orders = context.Order.Where(o => o.UserId == ApplicationUser.Id).OrderByDescending(o => o.Date).ToList();
-
-        for (int i = 0; i < 13; i++)
+        var UserRegistrationYear = ApplicationUser.Created.Value.Year;
+        for (int i = 0; i <= (DateTime.Now.Year - UserRegistrationYear); i++)
         {
             OrderPeriodYears.Add((DateTime.Now.Year - i).ToString());
         }

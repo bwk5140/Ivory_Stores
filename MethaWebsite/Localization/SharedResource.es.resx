@@ -1200,7 +1200,7 @@
   <data name="TopReviews" xml:space="preserve">
     <value>Principales reseñas de clientes</value>
   </data>
-  <data name="ReviewdOn" xml:space="preserve">
+  <data name="ReviewedOn" xml:space="preserve">
     <value>Revisado en</value>
   </data>
   <data name="VerifiedPurchase" xml:space="preserve">
@@ -1214,5 +1214,35 @@
   </data>
   <data name="SelectADefaultAddress" xml:space="preserve">
     <value>Establecer dirección predeterminada</value>
+  </data>
+  <data name="DeliverToThisAddress" xml:space="preserve">
+    <value>Entregar a esta dirección</value>
+  </data>
+  <data name="Returns" xml:space="preserve">
+    <value>Política de devoluciones de Ivory Stores</value>
+  </data>
+  <data name="ProblemWithOrder" xml:space="preserve">
+    <value>problema con el pedido</value>
+  </data>
+  <data name="ExpectedBy" xml:space="preserve">
+    <value>ESPERADO POR</value>
+  </data>
+  <data name="WhatWentWrong" xml:space="preserve">
+    <value>¿Qué salió mal?</value>
+  </data>
+  <data name="PackageDidntArrive" xml:space="preserve">
+    <value>El paquete no llegó</value>
+  </data>
+  <data name="MissingItems" xml:space="preserve">
+    <value>Artículos faltantes</value>
+  </data>
+  <data name="DamagedOrDefective" xml:space="preserve">
+    <value>Artículo dañado o defectuoso</value>
+  </data>
+  <data name="DifferentFromOrder" xml:space="preserve">
+    <value>Diferente a lo que pedí</value>
+  </data>
+  <data name="OtherIssue" xml:space="preserve">
+    <value>Otro tema</value>
   </data>
 </root>

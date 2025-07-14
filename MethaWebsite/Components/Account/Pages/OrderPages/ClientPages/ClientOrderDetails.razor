@@ -199,14 +199,9 @@
                                     </div>
                                     <div class="col-sm-3">
                                         <div>
-                                            <button class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f;border-color:transparent; border-radius: 25px; width: 200px;">
-                                                @Loc["GetProductSupport"]
-                                            </button>
-                                        </div>
-                                        <div>
-                                            <button class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f; border-color:transparent; border-radius: 25px; width: 200px;">
+                                            <a href="@($"/Account/Orders/pwo?orderid={order.Id}&productid={product.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f; border-color:transparent; border-radius: 25px; width: 200px;">
                                                 @Loc["ProductProblem"]
-                                            </button>
+                                            </a>
                                         </div>
                                         <div>
                                             <a href="@($"productreviews/create?id={product.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: transparent;border-color:black; border-radius: 25px; color: black; width: 200px;">

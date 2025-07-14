@@ -263,7 +263,7 @@
                 <ul class="navbar-nav">
                     <li class="nav-item me-2">
                         <button class="btn btn-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasWithBothOptions" 
-                        aria-controls="offcanvasWithBothOptions" style="background-color: transparent; border: none;"
+                            aria-controls="offcanvasWithBothOptions" style="background-color: transparent; border: none;"
                                 @onclick="e => showOffCanvas = !showOffCanvas">
                             <img src="list.svg" alt="OffCanvasMenu" />
                         </button>
@@ -294,10 +294,10 @@
     <div class="offcanvas offcanvas-start @showOffCanvasClass" data-bs-scroll="true" tabindex="-1" id="offcanvasWithBothOptions" aria-labelledby="offcanvasWithBothOptionsLabel">
         <div class="offcanvas-header">
             <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">Backdrop with scrolling</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close" @onclick="e => showOffCanvas = !showOffCanvas"></button>
         </div>
         <div class="offcanvas-body">
-            <p></p>
+            <p>All Departments</p>
         </div>
     </div>
 

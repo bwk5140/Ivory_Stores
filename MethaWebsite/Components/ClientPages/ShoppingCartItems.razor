@@ -36,7 +36,7 @@
         }
         else
         {
-            if (ShippingAddressProblem)
+            @* if (ShippingAddressProblem)
             {
                 if (ClientAddresses is null || !ClientAddresses.Any())
                 {
@@ -60,7 +60,7 @@
                     </div>
                 </div>
                 }
-            }
+            } *@
             <div class="row">
                 <div class="col-lg-9">
                     <div class="card mb-5">
@@ -386,16 +386,16 @@
             DefaultAddress = await context.Address.FirstOrDefaultAsync(a => a.Id == ApplicationUser.DefaultAddressId);
             ClientAddresses = context.Address.Where(a => a.UserId == ApplicationUser.Id).ToList();
         }
-
-        if (DefaultAddress is not null)
-        {
-            ShippingAddressProblem = false;
-            NavigationManager.NavigateTo("/Checkout");
-        }
-        else
-        {
-            ShippingAddressProblem = true;
-        }
+        NavigationManager.NavigateTo("/Checkout");
+        // if (DefaultAddress is not null)
+        // {
+        //     ShippingAddressProblem = false;
+        //     NavigationManager.NavigateTo("/Checkout");
+        // }
+        // else
+        // {
+        //     ShippingAddressProblem = true;
+        // }
     }
     private void TriggerLayoutRefresh()
     {

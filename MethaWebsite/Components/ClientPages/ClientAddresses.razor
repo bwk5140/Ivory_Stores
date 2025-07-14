@@ -448,7 +448,7 @@
         }
         StateHasChanged();
     }
-    private async Task UpdateAddresses()
+    private async Task UpdateAddresses(Address Address)
     {
         using var context = await DbFactory.CreateDbContextAsync();
         Addresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();

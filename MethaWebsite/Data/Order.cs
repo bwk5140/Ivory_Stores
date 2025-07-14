@@ -12,5 +12,6 @@
         public string? PaymentMethodId { get; set; }
         public bool HasShipped { get; set; } = false;
         public bool Cancelled { get; set; } = false;
+        public int ShippingTime { get; set; }
     }
 }
