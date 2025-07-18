@@ -226,6 +226,28 @@
                             }
                         </div>
                     </div>
+                    var problem = context.OrderProblem.FirstOrDefault(o => o.Name == CurrentIssue);
+                    if (!string.IsNullOrWhiteSpace(CurrentIssue))
+                    {
+                        <div class="card" style="max-width: 1000px;">
+                            <div class="card-body">
+                                <h5 class="mb-3">@Loc["ContactUs"]</h5>
+                                @if (problem is not null && problem.Subjects.Any())
+                                {
+                                    <InputSelect id="category" @bind-Value="Subject" @bind-Value:after="UpdateMessageSubject" class="form-select-sm ms-1 mb-3"
+                                                 style="border-color: lightgray;">
+                                        <option selected disabled value="" style="color: gray;">@Loc["SelectReason"]</option>
+                                        @foreach (var subject in problem.Subjects)
+                                        {
+                                            <option value="@subject" style="color: black;">@subject</option>
+                                        }
+                                    </InputSelect>
+
+                                }
+                                <MethaWebsite.Components.Account.Pages.MessagePages.Create @ref="CreateMessage" />
+                            </div>
+                        </div>
+                    }
                 }
             }
         }
@@ -235,6 +257,7 @@
 
     private ApplicationUser? ApplicationUser { get; set; }
     private Dictionary<string, bool> show = new();
+    private MethaWebsite.Components.Account.Pages.MessagePages.Create? CreateMessage;
 
     [Parameter]
     public Product? product { get; set; }
@@ -251,7 +274,15 @@
     [Parameter]
     public DateTime ExpectedBy { get; set; }
 
+    [Parameter]
+    public string? CurrentIssue { get; set; }
+
+    [Parameter]
+    public string? Subject { get; set; }
+
     private Dictionary<string, bool> IssueClicked { get; set; } = new();
+    private Dictionary<string, Action> keywordActions;
+    private List<OrderProblem> orderProblems { get; set; } = new List<OrderProblem>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -269,6 +300,80 @@
         IssueClicked["DamagedOrDefective"] = false;
         IssueClicked["DifferentFromOrder"] = false;
         IssueClicked["OtherIssue"] = false;
+
+        keywordActions = new Dictionary<string, Action>()
+        {
+            {"PackageDidntArrive", ()=> AddPackageDidntArriveSubjects() },
+            {"MissingItems", ()=> AddMissingItemsSubjects() },
+            {"DamagedOrDefective", ()=> AddDamagedOrDefectiveSubjects() },
+            {"DifferentFromOrder", ()=> AddDifferentFromOrderSubjects() },
+            {"OtherIssue", ()=> AddOtherIssueSubjects() },
+        };
+
+        foreach (var item in IssueClicked){
+            var problem = await context.OrderProblem.FirstOrDefaultAsync(o => o.Name == item.Key);
+            if (problem is null)
+            {
+                problem = new OrderProblem();
+                problem.Name = item.Key;
+                problem.Subjects = new List<string>();
+                problem.Subjects.AddRange();
+                context.OrderProblem.Add(problem);
+            }
+        }
+        await context.SaveChangesAsync();
+    }
+    private bool TrySetOrderProblemMessageSubject(string name, Dictionary<string, Action> keywordActions)
+    {
+        foreach (var kvp in keywordActions)
+        {
+            if (name.Contains(kvp.Key, StringComparison.OrdinalIgnoreCase))
+            {
+                kvp.Value.Invoke();
+                return true;
+            }
+        }
+        return false;
+    }
+    private async Task AddPackageDidntArriveSubjects()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var problem = await context.OrderProblem.FirstOrDefaultAsync(o => o.Name == "PackageDidntArrive");
+        if (problem is not null && !problem.Subjects.Any())
+        {
+            problem.Subjects.Add(Loc["RefundWanted"]);
+            problem.Subjects.Add(Loc["ReplacementWanted"]);
+            problem.Subjects.Add(Loc["WhereIsMyStuff"]);
+            context.OrderProblem.Attach(problem).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+        }
+    }
+    private void AddMissingItemsSubjects()
+    {
+    }
+    private void AddDamagedOrDefectiveSubjects()
+    {
+    }
+    private void AddDifferentFromOrderSubjects()
+    {
+    }
+    private async Task AddOtherIssueSubjects()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var problem = await context.OrderProblem.FirstOrDefaultAsync(o => o.Name == "OtherIssue");
+        if (problem is not null && !problem.Subjects.Any())
+        {
+            problem.Subjects.Add(Loc["ShippingQuestion"]);
+            problem.Subjects.Add(Loc["ReturnsAndRefundQuestion"]);
+            problem.Subjects.Add(Loc["RequestCancellation"]);
+            problem.Subjects.Add(Loc["ProductQuestion"]);
+            problem.Subjects.Add(Loc["ProductCustomization"]);
+            problem.Subjects.Add(Loc["RequestInvoice"]);
+            problem.Subjects.Add(Loc["OtherIssue"]);
+            context.OrderProblem.Attach(problem).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+        }
+
     }
     private Payment GetPaymentMethod(string Id)
     {
@@ -284,10 +389,18 @@
     }
     private void OnChange(string issue)
     {
+        CurrentIssue = "";
+        Subject = "";
         IssueClicked[issue] = false;
     }
     private void OnIssueClicked(string issue)
     {
+        bool SubjectsAdded = TrySetOrderProblemMessageSubject(issue, keywordActions);
         IssueClicked[issue] = true;
+        CurrentIssue = issue;
+    }
+    private void UpdateMessageSubject()
+    {
+        
     }
 }

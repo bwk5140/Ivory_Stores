@@ -3,6 +3,7 @@
 @attribute [Authorize]
 
 @using MethaWebsite.Components.Account.Pages.Payments.CreditDebitCardPages
+@using MethaWebsite.Components.ClientPages.PaymentMethods
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 @using Microsoft.AspNetCore.Identity
@@ -1171,11 +1172,11 @@
                 TriggerLayoutRefresh();
                 isProcessing = false;
                 if (BuyNowProduct is null && !ShoppingCart.ProductIds.Any())
-                    NavigationManager.NavigateTo("Account/OrderComplete", true);
+                    NavigationManager.NavigateTo($"Account/OrderComplete?id={Order.Id}", true);
                 else
                 {
                     if (BuyNowProduct is not null)
-                        NavigationManager.NavigateTo("Account/OrderComplete", true);
+                        NavigationManager.NavigateTo($"Account/OrderComplete?id={Order.Id}", true);
                 }
             }
             else
@@ -1461,34 +1462,32 @@
             ShippingAddressProblem = true;
         }
     }
-    private void UpdateCards()
+    private void UpdateCards(CreditDebitCard creditDebitCard)
     {
-        var creditDebitCards = context.CreditDebitCard.Where(c => c.UserId == ApplicationUser.Id).ToList();
-        foreach (var paymentMethod in creditDebitCards)
+        foreach (var item in radiosChecked)
         {
-            if (!CreditDebitCards.Contains(paymentMethod))
-            {
-                CreditDebitCards.Add(paymentMethod);
-                DefaultCreditDebitCard = paymentMethod;
-                radiosChecked[DefaultCreditDebitCard.Id] = true;
-                CheckoutService.DefaultCreditDebitCard = paymentMethod;
-                break;
-            }
+            radiosChecked[item.Key] = false;
+        }
+        if (!CreditDebitCards.Contains(creditDebitCard))
+        {
+            CreditDebitCards.Add(creditDebitCard);
+            DefaultCreditDebitCard = creditDebitCard;
+            radiosChecked[creditDebitCard.Id] = true;
+            CheckoutService.DefaultCreditDebitCard = creditDebitCard;
         }
         StateHasChanged();
     }
-    private void UpdateMpesaPaymentMethods()
+    private void UpdateMpesaPaymentMethods(Mpesa mpesa)
     {
-        var mpesaPaymentMethods = context.Mpesa.Where(c => c.UserId == ApplicationUser.Id).ToList();
-        foreach (var paymentMethod in mpesaPaymentMethods)
+        foreach (var item in radiosChecked)
         {
-            if (!MpesaPaymentMethods.Contains(paymentMethod))
-            {
-                MpesaPaymentMethods.Add(paymentMethod);
-                DefaultMpesaPaymentMethod = paymentMethod;
-                radiosChecked[DefaultMpesaPaymentMethod.Id] = true;
-                break;
-            }
+            radiosChecked[item.Key] = false;
+        }
+        if (!MpesaPaymentMethods.Contains(mpesa))
+        {
+            MpesaPaymentMethods.Add(mpesa);
+            DefaultMpesaPaymentMethod = mpesa;
+            radiosChecked[mpesa.Id] = true;
         }
         StateHasChanged();
     }

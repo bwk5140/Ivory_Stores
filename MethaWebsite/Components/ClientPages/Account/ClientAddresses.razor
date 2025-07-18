@@ -348,7 +348,7 @@
 @code {
     [Parameter]
     public List<Address>? Addresses { get; set; }
-    private MethaWebsite.Components.Account.Pages.AddressPages.Create AddNewAddressPopUp;
+    
     [Parameter]
     public List<Country>? Countries { get; set; }
     [Parameter]
@@ -370,6 +370,7 @@
     public bool IsVisibleDelete2 { get; set; } = false;
 
     private ApplicationUser? applicationUser { get; set; }
+    private MethaWebsite.Components.Account.Pages.AddressPages.Create AddNewAddressPopUp;
     string? currentUrl { get; set; }
 
     protected override async Task OnInitializedAsync()

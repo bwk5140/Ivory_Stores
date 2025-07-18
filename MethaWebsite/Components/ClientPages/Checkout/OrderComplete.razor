@@ -1,0 +1,129 @@
+﻿@page "/Account/OrderComplete"
+@using Microsoft.AspNetCore.Authorization
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+@inject ApplicationUserService ApplicationUserService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+
+@attribute [Authorize]
+
+@rendermode InteractiveServer
+
+<PageTitle>@Loc["OrderConfirmation"]</PageTitle>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark top-row">
+    <a class="navbar-brand ms-2" href="/">@Loc["CompanyLogo"]</a>
+    <div class="container-fluid" style="display: flex; justify-content:center;">
+        <h4>@Loc["Checkout"]</h4>
+    </div>
+</nav>
+<div class="container-sm">
+    <div class="container-sm mt-5" style="text-align: center; color: #2f4f4f;">
+        <a href="/" style="text-decoration: none;"><h3 class="header mb-3">@Loc["CompanyLogo"]</h3></a>
+        <div class="center-container">
+            <div class="card" style="max-width: 350px;">
+                <div class="card-header">
+                    <strong>@Loc["OrderConfirmation"]</strong>
+                </div>
+                <div class="card-body">
+                    <div class="card mt-2 mb-2" style="border-color: green; max-width: 1200px; border-left: 3px solid green;">
+                        <div class="card-body">
+                            <img src="check-circle-fill.svg" /> @Loc["SuccessfulOrder"]
+                        </div>
+                    </div>
+                    <p> @Loc["ThanksForShopping"]</p>
+                </div>
+            </div>
+        </div>
+        <div class="center-container">
+            @if (Order is not null)
+            {
+                <div class="card mt-3" style="max-width: 350px; width: 100%; text-align: start;">
+                    <div class="card-body">
+                        <strong>@Loc["DeliveringTo"] @applicationUser.Name</strong>
+                        <div style="color: gray;">
+                            @Address.AddressLine1
+                        </div>
+                        <div style="color: gray;">
+                            @Address.AddressLine2
+                        </div>
+                        <div style="color: gray;">
+                            @Address.Country
+                        </div>
+                        <div style="color: gray;">
+                            @Loc["PhoneNumber"] : @Address.PhoneNumber
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="center-container">
+            @if (Order is not null)
+            {
+                <div class="card mt-3" style="max-width: 350px; width: 100%; text-align: start;">
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-sm-5" style="text-wrap: nowrap;">
+                                <strong>@Loc["ExpectedDelivery"]:</strong>
+                            </div>
+                            <div class="col-sm-7" style="text-wrap: nowrap;">
+                                @ExpectedBy.ToString("MMMM") @ExpectedBy.Day, @ExpectedBy.Year
+                            </div>
+                        </div>
+                        <div class="row">
+                            @{
+                                using var context = DbFactory.CreateDbContext();
+                            }
+                            @foreach (var product in products)
+                            {
+                                product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+                                var CurrentImage = product.Images[0];
+                                <a href="@($"product/details?id={product.Id}")" class="btn me-2" style="width:60px; height:60px;">
+                                    <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                         alt=@Loc["ProductImage"] style="width:60px; height:60px; object-fit:contain; vertical-align: central;" />
+                                </a>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private ApplicationUser? applicationUser;
+    private Address? Address;
+    private Order? Order;
+
+    private List<Product>? products { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Id { get; set; }
+
+    [Parameter]
+    public DateTime ExpectedBy { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        Order = await context.Order.FirstOrDefaultAsync(o => o.Id == Id);
+        if (Order is not null)
+        {
+            applicationUser ??= await context.Users.FirstOrDefaultAsync(u => u.Id == Order.UserId);
+            Address = await context.Address.FirstOrDefaultAsync(a => a.Id == Order.ShippingAdressId);
+            ExpectedBy = Order.Date.AddDays(Order.ShippingTime);
+            products = context.Product.AsEnumerable().Where(p => Order.ProductIds.Contains(p.Id)).ToList();
+        }
+    }
+    public void ManageAccount()
+    {
+        NavigationManager.NavigateTo("Account/Manage");
+    }
+    public void ManageAddresses()
+    {
+        NavigationManager.NavigateTo("Addresses");
+    }
+}

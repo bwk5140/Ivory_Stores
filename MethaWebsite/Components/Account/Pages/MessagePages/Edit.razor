@@ -1,0 +1,99 @@
+﻿@page "/messages/edit"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>Message</h2>
+<hr />
+@if (Message is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Message" OnValidSubmit="UpdateMessage" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="Message.Id" value="@Message.Id" />
+                <div class="mb-3">
+                    <label for="subject" class="form-label">Subject:</label>
+                    <InputText id="subject" @bind-Value="Message.Subject" class="form-control" />
+                    <ValidationMessage For="() => Message.Subject" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="comment" class="form-label">Comment:</label>
+                    <InputText id="comment" @bind-Value="Message.Comment" class="form-control" />
+                    <ValidationMessage For="() => Message.Comment" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="created" class="form-label">Created:</label>
+                    <InputDate id="created" @bind-Value="Message.Created" class="form-control" />
+                    <ValidationMessage For="() => Message.Created" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/messages">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private Message? Message { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Message ??= await context.Message.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (Message is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateMessage()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(Message!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!MessageExists(Message!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/messages");
+    }
+
+    private bool MessageExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.Message.Any(e => e.Id == id);
+    }
+}

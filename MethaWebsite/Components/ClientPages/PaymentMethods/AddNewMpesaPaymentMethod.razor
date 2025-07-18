@@ -1,4 +1,6 @@
 ﻿@using MethaWebsite.Components.Account.Pages.Payments.MpesaPages
+@using MethaWebsite.Components.ClientPages.Checkout
+
 @inject IStringLocalizer<SharedResource> Loc
 @inject SMS_Service SMS_Service
 @inject AuthenticationStateProvider AuthStateProvider
@@ -50,6 +52,7 @@
     <div class="@showClass darker-background"></div>
     <CascadingValue Value="Mpesa">
         <SendVerificationSMS @ref="SendVerificationSMSPopUp" OnUpdateClicked="AddMpesaPaymentMethod" />
+        <MethaWebsite.Components.ClientPages.Checkout.SelectBillingAddress @ref="SelectBillingAddressPopOver" />
     </CascadingValue>
     
 </div>
@@ -66,13 +69,14 @@
 
     private ApplicationUser? applicationUser { get; set; }
     private SendVerificationSMS? SendVerificationSMSPopUp;
+    private SelectBillingAddress SelectBillingAddressPopOver;
 
     [Parameter]
-    public EventCallback<SaveChangesEventArgs> OnMpesaPaymentMethodAdded { get; set; }
+    public EventCallback<Mpesa> OnMpesaPaymentMethodAdded { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        
+
         applicationUser ??= await ApplicationUserService.GetApplicationUser();
     }
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
@@ -94,6 +98,7 @@
         DefaultMpesaPaymentMethod = Mpesa;
         await OnMpesaPaymentMethodAdded.InvokeAsync();
         Close();
+        SelectBillingAddressPopOver.Show();
 
     }
     public void Show()

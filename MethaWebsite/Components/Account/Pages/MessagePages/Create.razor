@@ -1,0 +1,46 @@
+﻿@page "/messages/create"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+
+<EditForm method="post" Model="Message" OnValidSubmit="AddMessage" FormName="create" Enhance>
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+    <div class="form form-floating mb-3">
+        <InputTextArea id="comment" @bind-Value="Message.Comment" class="form-control" 
+            style="height: 150px;"/>
+        <label for="comment" class="form-label">@Loc["Comments"]:</label>
+        <ValidationMessage For="() => Message.Comment" class="text-danger" />
+    </div>
+    <div class="form form-floating mt-5" style="text-align: right;">
+        <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;border-color:transparent;
+                                border-radius: 15px;">
+            @Loc["Send"]
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private Message Message { get; set; } = new();
+
+    private List<string>? Subjects { get; set; } = new List<string>();
+
+    protected void SetSubject(string subject)
+    {
+        Message.Subject = subject;
+    }
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddMessage()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Message.Add(Message);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/messages");
+    }
+}

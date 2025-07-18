@@ -1,4 +1,5 @@
 ﻿@using Stripe
+@using MethaWebsite.Components.ClientPages.Checkout
 
 @inject IStringLocalizer<SharedResource> Loc
 @inject AuthenticationStateProvider AuthStateProvider
@@ -34,7 +35,7 @@
                         @Loc["CardInfo"]
                     </div>
                 </div>
-                <EditForm method="post" Model="CreditDebitCard" OnValidSubmit="SaveCard" FormName="create" Enhance>
+                <EditForm method="post" Model="CreditDebitCard" OnValidSubmit="Save" FormName="create" Enhance>
                     <ValidationSummary class="text-danger" role="alert" />
                     <div class="form form-floating mb-3">
                         <InputText id="Name" @bind-Value="CreditDebitCard.NameOnCard" class="form-control" placeholder="" />
@@ -54,6 +55,9 @@
         </div>
     </div>
     <div class="@showClass darker-background"></div>
+    <CascadingValue Value="CreditDebitCard">
+        <MethaWebsite.Components.ClientPages.Checkout.SelectBillingAddress @ref="SelectBillingAddressPopOver" OnAddressChange="UpdateBillingAddress"/>
+    </CascadingValue>
 </div>
 
 @code {
@@ -83,9 +87,10 @@
     private string NameOnCard;
     private Dictionary<string, string>? ImageSource { get; set; } = new();
     private Dictionary<string, string>? LogoSource { get; set; } = new();
+    private SelectBillingAddress SelectBillingAddressPopOver;
 
     [Parameter]
-    public EventCallback<SaveChangesEventArgs> OnCardAdded { get; set; }
+    public EventCallback<CreditDebitCard> OnCardAdded { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -94,7 +99,11 @@
             await JS.InvokeVoidAsync("initializeCardElement", "pk_test_51RdfvCR5Q65HyKGxDrFmdKdCtElG1UXSkaUMQy1lqSuoOBIUSYYwrjxd3xJ6gCxoOLMz9E2iiaVkvN84OaB1Zpw500WUtqL6wk");
         }
     }
-
+    private void Save()
+    {
+        Close();
+        SelectBillingAddressPopOver.Show();
+    }
     private async Task SaveCard()
     {
         isSaving = true;
@@ -163,7 +172,7 @@
         {
             Years.Add(i);
         }
-        
+
         applicationUser ??= await ApplicationUserService.GetApplicationUser();
         ImageSource["visa"] = "generic_card_visa.svg";
         ImageSource["mastercard"] = "generic_card_mastercard.svg";
@@ -194,8 +203,9 @@
         context.CreditDebitCard.Add(CreditDebitCard);
         await context.SaveChangesAsync();
         DefaultCreditDebitCard = CreditDebitCard;
-        await OnCardAdded.InvokeAsync();
+        await OnCardAdded.InvokeAsync(CreditDebitCard);
         Close();
+        CreditDebitCard = new();
     }
     public void Show()
     {
@@ -207,5 +217,10 @@
     {
         IsVisible = false;
         StateHasChanged();
+    }
+    private async Task UpdateBillingAddress()
+    {
+        Show();
+        await SaveCard();
     }
 }

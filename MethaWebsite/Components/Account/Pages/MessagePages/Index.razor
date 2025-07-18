@@ -1,0 +1,39 @@
+﻿@page "/messages"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@implements IAsyncDisposable
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="messages/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Message">
+    <PropertyColumn Property="message => message.Subject" />
+    <PropertyColumn Property="message => message.Comment" />
+    <PropertyColumn Property="message => message.Created" />
+    <PropertyColumn Property="message => message.ReplyIds" />
+
+    <TemplateColumn Context="message">
+        <a href="@($"messages/edit?id={message.Id}")">Edit</a> |
+        <a href="@($"messages/details?id={message.Id}")">Details</a> |
+        <a href="@($"messages/delete?id={message.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}
