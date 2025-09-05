@@ -1,0 +1,22 @@
+﻿@using MethaWebsite.Services
+@using MethaWebsite.Components.Account.Pages.ProductListPages
+
+@inherits LayoutComponentBase
+@layout MethaWebsite.Components.Layout.MainLayout
+
+@inject LayoutState LayoutState
+@inject StateChangeService StateChangeService
+@inject IStringLocalizer<SharedResource> Loc
+@inject LayoutRefreshService LayoutRefreshService
+
+<div class="container-sm mt-5">
+    <h4>@Loc["Notifications"]</h4>
+    <div class="row">
+        <div class="col-lg-3">
+            <NotificationsNavMenu />
+        </div>
+        <div class="col-lg-9 border-start">
+            @Body
+        </div>
+    </div>
+</div>

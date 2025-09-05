@@ -1,5 +1,6 @@
-﻿@page "/productreviews/create"
+﻿@page "/product/review/create"
 @using Blazored.TextEditor
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using MethaWebsite.Data
 
@@ -13,6 +14,8 @@
 @rendermode InteractiveServer
 
 <PageTitle>Create</PageTitle>
+
+@attribute [Authorize]
 
 <div class="container-sm mt-5" style="display:block; justify-content: center;">
     @if (product is not null)

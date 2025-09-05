@@ -1,0 +1,23 @@
+﻿@page "/Account/Product/Review"
+@using Microsoft.AspNetCore.Authorization
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+@inject ApplicationUserService ApplicationUserService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+
+@attribute [Authorize]
+
+@rendermode InteractiveServer
+
+<PageTitle>@Loc["ReviewPurchases"]</PageTitle>
+<div class="container-sm">
+    <div class="container-sm mt-5" style="text-align: center; color: #2f4f4f;">
+        <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; border-left: 3px solid red;">
+            <div class="card-body">
+                <img src="info-circle.svg" /> @Loc["IneligibleAccount"]
+            </div>
+        </div>
+    </div>
+</div>

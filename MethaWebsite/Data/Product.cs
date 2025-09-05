@@ -42,6 +42,7 @@ namespace MethaWebsite.Data
         public string? Lifestyle { get; set; }
         [Required]
         public string? WashInstructions { get; set; }
+        public List<string>? ProductIssueIds { get; set; }
         public List<ProductImage>? Images { get; set; }
         public List<string>? ProductReviewIds { get; set; }
     }

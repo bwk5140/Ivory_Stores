@@ -1,0 +1,232 @@
+﻿@page "/Account/CustomerService/SomethingElse"
+@using MethaWebsite.Components.Account
+@using Microsoft.AspNetCore.Authorization
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.Extensions.Logging
+
+@attribute [Authorize]
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@inject LayoutState LayoutStateService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+
+<div class="container-xxl mt-5 mb-5" style="display: block; justify-content: center;">
+    <div class="center-container">
+        <div style="display: inline-block;">
+            <div style="display: inline-block;">
+                <svg width="80" height="80">
+                    <circle cx="40" cy="40" r="20" fill="#277a7a" />
+                    <text x="33" y="50" font-size="24" fill="white">1</text>
+                </svg>
+            </div>
+            <div style="display: inline-block;">
+                <h6 class="ms-1">@Loc["TellUsWhatYouNeedHelpWith"]</h6>
+            </div>
+            <div style="display: inline-block;">
+                <svg width="163">
+                    <line x1="15" y1="75" x2="175" y2="75" stroke="lightgrey" stroke-width="1" />
+                </svg>
+            </div>
+        </div>
+        <div style="display: inline-block;">
+            <div style="display: inline-block;">
+                <svg width="80" height="80">
+                    <circle cx="40" cy="40" r="20" fill="#277a7a" />
+                    <text x="33" y="50" font-size="24" fill="white">2</text>
+                </svg>
+            </div>
+            <div style="display: inline-block;">
+                <h6 class="ms-1">@Loc["DescribeWhatsGoingOn"]</h6>
+            </div>
+            <div style="display: inline-block;">
+                <svg width="163">
+                    <line x1="15" y1="75" x2="175" y2="75" stroke="lightgrey" stroke-width="1" />
+                </svg>
+            </div>
+        </div>
+        @if (!HelpContent["UnknownOrIncorrectCharges"] && !HelpContent["ManageAccount"] && !HelpContent["INeedHelpWithSomethingElse"])
+        {
+            <div style="display: inline-block;">
+                <div style="display: inline-block;">
+                    <svg width="80" height="80">
+                        <circle cx="40" cy="40" r="20" fill="gray" />
+                        <circle cx="40" cy="40" r="19" fill="white" />
+                        <text x="33" y="50" font-size="24" fill="gray">3</text>
+                    </svg>
+                </div>
+                <div style="display: inline-block; color: gray;">
+                    <h6 class="ms-1">@Loc["GetAnAnswer"]</h6>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div style="display: inline-block;">
+                <div style="display: inline-block;">
+                    <svg width="80" height="80">
+                        <circle cx="40" cy="40" r="20" fill="#277a7a" />
+                        <text x="33" y="50" font-size="24" fill="white">3</text>
+                    </svg>
+                </div>
+                <div style="display: inline-block; color: black;">
+                    <h6 class="ms-1">@Loc["GetAnAnswer"]</h6>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="center-container">
+        <div class="card mb-3 me-4" style="max-width: 700px; padding: 0px;">
+            <div class="card-body">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td class="border-end" style="width: 35%; vertical-align: text-top;">
+                                <div style="position: relative; width: 50px; height: 50px;">
+                                    <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="50" height="50">
+                                        <circle cx="25" cy="25" r="25" fill="#277a7a" />
+                                    </svg>
+                                    <img src="three-dots.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 30px; height: 30px;" />
+                                </div>
+                                <div style="font-weight: 600; text-decoration: none;">
+                                    @Loc["SomethingElse"]
+                                </div>
+                            </td>
+                            <td style="width: 65%;">
+                                <div class="ms-4 me-4" style="vertical-align: text-top;">
+                                    @if (!HelpContent["UnknownOrIncorrectCharges"] && !HelpContent["ManageAccount"] && !HelpContent["INeedHelpWithSomethingElse"])
+                                    {
+                                        <a href="/Account/CustomerService" style="text-decoration: none; color: black;">
+                                            <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                            @Loc["Back"]
+                                        </a>
+                                        <div>
+                                            <strong>@Loc["PickWhatYouNeedHelpWith"]</strong>
+                                        </div>
+                                        <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => HelpContent["UnknownOrIncorrectCharges"] = true)">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-sm-10" style="font-size: medium;">
+                                                        @Loc["UnknownOrIncorrectCharges"]
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card mt-4" style="cursor: pointer;" @onclick="OnManageAccountClicked">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-sm-10" style="font-size: medium;">
+                                                        @Loc["ManageAccount"]
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => HelpContent["INeedHelpWithSomethingElse"] = true)">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-sm-10" style="font-size: medium;">
+                                                        @Loc["INeedHelpWithSomethingElse"]
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        if (HelpContent["UnknownOrIncorrectCharges"])
+                                        {
+                                            <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => HelpContent["UnknownOrIncorrectCharges"] = false)">
+                                                <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                @Loc["Back"]
+                                            </a>
+                                            <div>
+                                                <strong>@Loc["UnknownOrIncorrectCharges"]</strong>
+                                            </div>
+                                            <div class="mb-2 mt-3">
+                                                <p>
+                                                    @Loc["YouCanViewAllChargesOnYourTransactionsPage"]
+                                                </p>
+                                            </div>
+                                            <div class="mt-4" style="text-align: center;">
+                                                <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;border-color:transparent; border-radius: 5px;" @onclick="OnYourTransactionsClicked">
+                                                    @Loc["YourTransactions"]
+                                                </button>
+                                            </div>
+                                        }
+                                        if (HelpContent["INeedHelpWithSomethingElse"])
+                                        {
+                                            <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => HelpContent["INeedHelpWithSomethingElse"] = false)">
+                                                <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                @Loc["Back"]
+                                            </a>
+                                            <div>
+                                                <strong>@Loc["INeedHelpWithSomethingElse"]</strong>
+                                            </div>
+                                            <div class="mb-2 mt-3">
+                                                <p>
+                                                    @Loc["WeAreWorkingOnLiveChatFeature"]
+                                                </p>
+                                            </div>
+                                            <div class="mt-4" style="text-align: center;">
+                                                <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;border-color:transparent; border-radius: 5px;" @onclick="OnChatWithAgentClicked">
+                                                    @Loc["ChatWithAnAgent"]
+                                                </button>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+
+    private ApplicationUser? ApplicationUser { get; set; }
+
+    [Parameter]
+    public Dictionary<string, bool>? HelpContent { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
+        LayoutStateService.SetBackground("customer-service");
+        HelpContent["UnknownOrIncorrectCharges"] = false;
+        HelpContent["ManageAccount"] = false;
+        HelpContent["INeedHelpWithSomethingElse"] = false;
+    }
+    private void OnYourTransactionsClicked()
+    {
+        NavigationManager.NavigateTo("/Account/Payments/Transactions");
+    }
+    private void OnChatWithAgentClicked()
+    {
+        NavigationManager.NavigateTo("/Account/CustomerService/Chat");
+    }
+    private void OnManageAccountClicked()
+    {
+        NavigationManager.NavigateTo("/AccountSettings");
+    }
+    private void OnCancelledOrderClicked()
+    {
+        NavigationManager.NavigateTo("/Account/Orders/Cancelled");
+    }
+}

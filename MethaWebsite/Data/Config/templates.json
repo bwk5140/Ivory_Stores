@@ -1,0 +1,546 @@
+[
+  {
+    "TemplateId": "weather_template_1",
+    "AnchorId": "ask_weather",
+    "Locale": "en-KE",
+    "Conditions": [ "has:City", "has:Weather" ],
+    "Text": "The weather in {City} is {Weather}."
+  },
+  {
+    "TemplateId": "weather_template_1",
+    "AnchorId": "ask_weather",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes" ],
+    "Text": "The weather in {City} is {Weather}."
+  },
+  {
+    "TemplateId": "time_city_template_1",
+    "AnchorId": "datetime_query",
+    "Locale": "en-KE",
+    "Conditions": [ "has:City" ],
+    "Text": "The time in {City} is {Time}."
+  },
+  {
+    "TemplateId": "time_city_template_2",
+    "AnchorId": "datetime_query",
+    "Locale": "en-KE",
+    "Conditions": [ "has:CorrectionCity" ],
+    "Text": "Did you mean {CorrectionCity}?"
+  },
+  {
+    "TemplateId": "time_city_template_3",
+    "AnchorId": "datetime_query",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes", "has:CorrectionCity" ],
+    "Text": "The time in {CorrectionCity} is {Time}."
+  },
+  {
+    "TemplateId": "time_city_template_4",
+    "AnchorId": "datetime_query",
+    "Locale": "en-KE",
+    "Conditions": [ "has:No" ],
+    "Text": "Let me know if I can help with anything else."
+  },
+  {
+    "TemplateId": "time_city_template_5",
+    "AnchorId": "datetime_query",
+    "Locale": "en-KE",
+    "Text": "Unable to determine the time for the specified region."
+  },
+  {
+    "TemplateId": "user_greet_template_1",
+    "AnchorId": "greet",
+    "Locale": "en-KE",
+    "Text": "Hey there...😊 How can I help you today?"
+  },
+  {
+    "TemplateId": "user_greet_template_2",
+    "AnchorId": "greet",
+    "Locale": "en-KE",
+    "Text": "Hello...👋 How can I help you today?"
+  },
+  {
+    "TemplateId": "user_greet_template_3",
+    "AnchorId": "greet",
+    "Locale": "en-KE",
+    "Text": "Hey...👋 How can I help you today?"
+  },
+  {
+    "TemplateId": "user_greet_template_4",
+    "AnchorId": "greet",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Morning" ],
+    "Text": "Good morning {UserName}"
+  },
+  {
+    "TemplateId": "user_greet_template_5",
+    "AnchorId": "greet",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Afternoon" ],
+    "Text": "Good afternoon {UserName}"
+  },
+  {
+    "TemplateId": "user_greet_template_4",
+    "AnchorId": "greet",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Evening" ],
+    "Text": "Good evening {UserName}"
+  },
+  {
+    "TemplateId": "wellness_check_template_1",
+    "AnchorId": "wellness_check",
+    "Locale": "en-KE",
+    "Text": "Good. How are you {UserName}"
+  },
+  {
+    "TemplateId": "wellness_check_template_2",
+    "AnchorId": "wellness_check",
+    "Locale": "en-KE",
+    "Text": "Great! How's everything going {UserName}"
+  },
+  {
+    "TemplateId": "wellness_check_template_3",
+    "AnchorId": "wellness_check",
+    "Locale": "en-KE",
+    "Text": "Good. How's your day looking {UserName}"
+  },
+  {
+    "TemplateId": "filler_text_template_1",
+    "AnchorId": "general_quirky",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes" ],
+    "Text": "Great. Is there anything else on your mind today {UserName}"
+  },
+  {
+    "TemplateId": "filler_text_template_2",
+    "AnchorId": "general_quirky",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes" ],
+    "Text": "Nice. Anything else I can help with, just let me know {UserName}"
+  },
+  {
+    "TemplateId": "filler_text_template_3",
+    "AnchorId": "general_quirky",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes" ],
+    "Text": "Perfect. Let me know if you would like more help with this or something else. I am here to help. {UserName}"
+  },
+  {
+    "TemplateId": "filler_text_template_4",
+    "AnchorId": "general_quirky",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes" ],
+    "Text": "Ok. What's on your mind ' {UserName}?"
+  },
+  {
+    "TemplateId": "filler_text_template_5",
+    "AnchorId": "general_quirky",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes" ],
+    "Text": "Ok. What's on your mind?"
+  },
+  {
+    "TemplateId": "filler_text_template_6",
+    "AnchorId": "general_quirky",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes" ],
+    "Text": "Great. Is there anything else on your mind today"
+  },
+  {
+    "TemplateId": "filler_text_template_7",
+    "AnchorId": "general_quirky",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes" ],
+    "Text": "Nice. Anything else I can help with, just let me know"
+  },
+  {
+    "TemplateId": "filler_text_template_8",
+    "AnchorId": "general_quirky",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes" ],
+    "Text": "Perfect. Let me know if you would like more help with this or something else. I am here to help."
+  },
+  {
+    "TemplateId": "filler_text_template_9",
+    "AnchorId": "general_quirky",
+    "Locale": "en-KE",
+    "Conditions": [ "has:No" ],
+    "Text": "Ok. Let me know if you need help with anything else ' {UserName}"
+  },
+  {
+    "TemplateId": "filler_text_template_10",
+    "AnchorId": "general_quirky",
+    "Locale": "en-KE",
+    "Conditions": [ "has:No" ],
+    "Text": "Ok. Let me know if you need help with anything else"
+  },
+  {
+    "TemplateId": "filler_text_template_11",
+    "AnchorId": "general_quirky",
+    "Locale": "en-KE",
+    "Text": "Could you clarify what you meant?"
+  },
+  {
+    "TemplateId": "wellness_check_response_template_1",
+    "AnchorId": "wellness_check_response",
+    "Locale": "en-KE",
+    "Text": ""
+  },
+  {
+    "TemplateId": "open_account_template_1",
+    "AnchorId": "open_account",
+    "Locale": "en-KE",
+    "Text": "You can sign up for a new account here: {Link}"
+  },
+  {
+    "TemplateId": "manage_account_template_1",
+    "AnchorId": "manage_account",
+    "Locale": "en-KE",
+    "Text": "You can manage your account information here: {Link}"
+  },
+  {
+    "TemplateId": "account_trouble_template_1",
+    "AnchorId": "trouble_account",
+    "Locale": "en-KE",
+    "Text": "What seems to be the issue with your account {UserName}"
+  },
+  {
+    "TemplateId": "blocked_account_template_1",
+    "AnchorId": "blocked_account",
+    "Locale": "en-KE",
+    "Text": "Accounts can be locked for several security reasons {UserName}. You can wait a few hours or reset your password here: {Link}"
+  },
+  {
+    "TemplateId": "status_order_template_1",
+    "AnchorId": "status_order",
+    "Locale": "en-KE",
+    "Conditions": [ "has:OrderId" ],
+    "Text": "You can view your order here: {Link}"
+  },
+  {
+    "TemplateId": "status_order_template_2",
+    "AnchorId": "status_order",
+    "Locale": "en-KE",
+    "Conditions": [ "has:UserResponse" ],
+    "Text": "Got it. You can view and track all orders here: {Link}"
+  },
+  {
+    "TemplateId": "currency_template_v1",
+    "AnchorId": "CurrencyQuery",
+    "Locale": "en-KE",
+    "Text": "The currency of {Country} is {CurrencyCode}."
+  },
+  {
+    "TemplateId": "gratitude_template_1",
+    "AnchorId": "gratitude",
+    "Locale": "en-KE",
+    "Text": "You're very welcome {UserName}."
+  },
+  {
+    "TemplateId": "gratitude_template_2",
+    "AnchorId": "gratitude",
+    "Locale": "en-KE",
+    "Text": "Glad I could help."
+  },
+  {
+    "TemplateId": "gratitude_template_3",
+    "AnchorId": "gratitude",
+    "Locale": "en-KE",
+    "Text": "No probelm at all. I am here to help you {UserName}."
+  },
+  {
+    "TemplateId": "change_contact_details_template_1",
+    "AnchorId": "change_contact_details",
+    "Locale": "en-KE",
+    "Text": "You can change your contact details here: {Link}."
+  },
+  {
+    "TemplateId": "change_contact_details_template_2",
+    "AnchorId": "change_contact_details",
+    "Locale": "en-KE",
+    "Text": "You can manage your contact information here: {Link}."
+  },
+  {
+    "TemplateId": "change_contact_details_template_3",
+    "AnchorId": "change_contact_details",
+    "Locale": "en-KE",
+    "Text": "Change your contact details here {Link}."
+  },
+  {
+    "TemplateId": "change_contact_details_template_4",
+    "AnchorId": "confirm_contact_details",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Phone" ],
+    "Text": "The phone number provided does not match the one on your account. You can update that here: {Link}."
+  },
+  {
+    "TemplateId": "change_contact_details_template_5",
+    "AnchorId": "confirm_contact_details",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Email" ],
+    "Text": "The email provided does not match the one on your account. You can update it here: {Link}."
+  },
+  {
+    "TemplateId": "change_contact_details_template_6",
+    "AnchorId": "confirm_contact_details",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Phone", "has:PhoneMatch" ],
+    "Text": "The phone number provided matches the one on record. You can view or update it here: {Link}."
+  },
+  {
+    "TemplateId": "change_contact_details_template_7",
+    "AnchorId": "confirm_contact_details",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Email", "has:EmailMatch" ],
+    "Text": "The email provided matches your account email. You can view or update it here: {Link}."
+  },
+  {
+    "TemplateId": "confirm_contact_details_template_1",
+    "AnchorId": "confirm_contact_details",
+    "Locale": "en-KE",
+    "Text": "You can view your contact details here: {Link}."
+  },
+  {
+    "TemplateId": "confirm_contact_details_template_2",
+    "AnchorId": "confirm_contact_details",
+    "Locale": "en-KE",
+    "Text": "View and manage your contact details here: {Link}."
+  },
+  {
+    "TemplateId": "confirm_contact_details_template_3",
+    "AnchorId": "confirm_contact_details",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Phone" ],
+    "Text": "The phone number provided does not match the one on your account. You can try to enter the number again without the area code or view and manage your contact details here: {Link}."
+  },
+  {
+    "TemplateId": "confirm_contact_details_template_4",
+    "AnchorId": "confirm_contact_details",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Phone", "has:PhoneMatch" ],
+    "Text": "The phone number provided matches the one on record. View and manage your contact details here: {Link}."
+  },
+  {
+    "TemplateId": "confirm_contact_details_template_5",
+    "AnchorId": "confirm_contact_details",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Email" ],
+    "Text": "The email provided does not match the one on your account. View and manage your contact details here: {Link}."
+  },
+  {
+    "TemplateId": "confirm_contact_details_template_6",
+    "AnchorId": "confirm_contact_details",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Email", "has:EmailMatch" ],
+    "Text": "The email provided matches your account email. View and manage your contact details here: {Link}."
+  },
+  {
+    "TemplateId": "confirm_address_template_1",
+    "AnchorId": "confirm_address",
+    "Locale": "en-KE",
+    "Text": "You can view your addresses here: {Link}."
+  },
+  {
+    "TemplateId": "confirm_address_template_2",
+    "AnchorId": "confirm_address",
+    "Locale": "en-KE",
+    "Text": "Could you confirm the address you’d like us to use?"
+  },
+  {
+    "TemplateId": "confirm_address_template_3",
+    "AnchorId": "confirm_address",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Address" ],
+    "Text": "Just to be sure, is this still your current address: {Address}."
+  },
+  {
+    "TemplateId": "update_address_template_1",
+    "AnchorId": "update_address",
+    "Locale": "en-KE",
+    "Text": "Could you confirm the address you’d like us to update?"
+  },
+  {
+    "TemplateId": "update_address_template_2",
+    "AnchorId": "update_address",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Address" ],
+    "Text": "Just to be sure, is this still your current address: {Address}."
+  },
+  {
+    "TemplateId": "update_address_template_3",
+    "AnchorId": "update_address",
+    "Locale": "en-KE",
+    "Conditions": [ "has:address_confirmation_no" ],
+    "Text": "Got it. Would you like to add a new address? You can delete old addresses here: {Link}"
+  },
+  {
+    "TemplateId": "update_address_template_4",
+    "AnchorId": "update_address",
+    "Locale": "en-KE",
+    "Conditions": [ "has:address_confirmation_yes" ],
+    "Text": "Got it. Would you like to update this address?"
+  },
+  {
+    "TemplateId": "update_address_template_5",
+    "AnchorId": "update_address",
+    "Locale": "en-KE",
+    "Conditions": [ "has:update_address_confirmation_no" ],
+    "Text": "Ok. Let me know if you need help with anything else."
+  },
+  {
+    "TemplateId": "update_address_template_6",
+    "AnchorId": "update_address",
+    "Locale": "en-KE",
+    "Conditions": [ "has:update_address_confirmation_yes" ],
+    "Text": "Enter the new address in either of the following formats: 'name of apartments, street name or name of road, name of the area, city, country' or 'house number and street name/name of road, name of area, city, country'"
+  },
+  {
+    "TemplateId": "update_address_template_7",
+    "AnchorId": "update_address",
+    "Locale": "en-KE",
+    "Conditions": [ "has:add_address_confirmation_no" ],
+    "Text": "Ok. Let me know if you need help with anything else."
+  },
+  {
+    "TemplateId": "update_address_template_8",
+    "AnchorId": "update_address",
+    "Locale": "en-KE",
+    "Conditions": [ "has:add_address_confirmation_yes" ],
+    "Text": "Enter the new address in either of the following formats: 'name of apartments, street name or name of road, name of the area, city, country' or 'house number and street name/name of road, name of area, city, country'"
+  },
+  {
+    "TemplateId": "update_address_template_9",
+    "AnchorId": "update_address",
+    "Locale": "en-KE",
+    "Conditions": [ "has:NewAddress" ],
+    "Text": "You can view your updated addresses here: {Link}"
+  },
+  {
+    "TemplateId": "goodbye_template_1",
+    "AnchorId": "goodbye",
+    "Locale": "en-KE",
+    "Text": "It was a pleasure."
+  },
+  {
+    "TemplateId": "goodbye_template_2",
+    "AnchorId": "goodbye",
+    "Locale": "en-KE",
+    "Conditions": [ "has:UserName" ],
+    "Text": "Take care of yourself {UserName}."
+  },
+  {
+    "TemplateId": "goodbye_template_3",
+    "AnchorId": "goodbye",
+    "Locale": "en-KE",
+    "Text": "Adios, amigo!"
+  },
+  {
+    "TemplateId": "goodbye_template_4",
+    "AnchorId": "goodbye",
+    "Locale": "en-KE",
+    "Conditions": [ "has:UserName" ],
+    "Text": "May the force be with you {UserName}."
+  },
+  {
+    "TemplateId": "deliver_cost_template_1",
+    "AnchorId": "deliver_cost",
+    "Locale": "en-KE",
+    "Conditions": [ "has:UserName" ],
+    "Text": "Delivery costs are calculated at checkout {UserName}. We offer free shipping on all products depending on the shipping distance. Do you have a specific delivery location you would like to calculate costs?"
+  },
+  {
+    "TemplateId": "deliver_cost_template_2",
+    "AnchorId": "deliver_cost",
+    "Locale": "en-KE",
+    "Text": "Delivery costs are calculated at checkout. We offer free shipping on all products depending on the shipping distance. Do you have a specific delivery location you would like to calculate costs?"
+  },
+  {
+    "TemplateId": "deliver_cost_template_3",
+    "AnchorId": "deliver_cost",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes" ],
+    "Text": "Please share the address and I will calculate the delivery costs."
+  },
+  {
+    "TemplateId": "deliver_cost_template_3",
+    "AnchorId": "deliver_cost",
+    "Locale": "en-KE",
+    "Conditions": [ "has:No" ],
+    "Text": "Got it. Let me know if you would like help with anything else."
+  },
+  {
+    "TemplateId": "deliver_cost_template_4",
+    "AnchorId": "deliver_cost",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Address" ],
+    "Text": "The delivery costs to that address are as follows: Ksh {StandardShippingCost} for standard shipping (2-3 business days) and Ksh {FastShippingCost} for fast shipping (1-2 business days)."
+  },
+  {
+    "TemplateId": "inquire_delivery_template_1",
+    "AnchorId": "inquire_delivery",
+    "Locale": "en-KE",
+    "Conditions": [ "has:OrderId" ],
+    "Text": "You can track your order here: {Link}"
+  },
+  {
+    "TemplateId": "inquire_delivery_template_2",
+    "AnchorId": "inquire_delivery",
+    "Locale": "en-KE",
+    "Conditions": [ "has:UserResponse" ],
+    "Text": "Got it. Let me know if I can help with anything else."
+  },
+  {
+    "TemplateId": "inquire_delivery_template_3",
+    "AnchorId": "inquire_delivery",
+    "Locale": "en-KE",
+    "Text": "We offer free delivery that takes 4-5 business days, standard delivery (2-3 business days) and fast delivery (1-2 business days). Do you have a specific order you would like to track?"
+  },
+  {
+    "TemplateId": "inquire_delivery_template_4",
+    "AnchorId": "inquire_delivery",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes" ],
+    "Text": "Please share the order number for the order you would like to track."
+  },
+  {
+    "TemplateId": "inquire_delivery_template_5",
+    "AnchorId": "inquire_delivery",
+    "Locale": "en-KE",
+    "Conditions": [ "has:No" ],
+    "Text": "Got it. Let me know if I can help with anything else."
+  },
+  {
+    "TemplateId": "inquire_payment_options_template_1",
+    "AnchorId": "inquire_payment_options",
+    "Locale": "en-KE",
+    "Conditions": [ "has:UserResponse" ],
+    "Text": "Got it. Let me know if I can help with anything else."
+  },
+  {
+    "TemplateId": "inquire_payment_options_template_2",
+    "AnchorId": "inquire_payment_options",
+    "Locale": "en-KE",
+    "Conditions": [ "has:Yes" ],
+    "Text": "Please share the order number for the order you would like to manage."
+  },
+  {
+    "TemplateId": "inquire_payment_options_template_3",
+    "AnchorId": "inquire_payment_options",
+    "Locale": "en-KE",
+    "Conditions": [ "has:No" ],
+    "Text": "Got it. Let me know if I can help with anything else."
+  },
+  {
+    "TemplateId": "inquire_payment_options_template_4",
+    "AnchorId": "inquire_payment_options",
+    "Locale": "en-KE",
+    "Text": "We accept cards from most major financial institutions as well as Mpesa. Is there a specific order you would like to manage your payment?"
+  },
+  {
+    "TemplateId": "inquire_payment_options_template_5",
+    "AnchorId": "inquire_payment_options",
+    "Locale": "en-KE",
+    "Conditions": [ "has:OrderId" ],
+    "Text": "You can manage your order here: {Link}"
+  }
+]

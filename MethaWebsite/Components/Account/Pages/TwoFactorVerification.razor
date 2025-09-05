@@ -1,0 +1,234 @@
+﻿@page "/Account/2FAVerification"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using MethaWebsite.Data
+@using System.Security.Cryptography
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject IdentityRedirectManager RedirectManager
+@inject ApplicationUserService ApplicationUserService
+@inject SMS_Service SMS_Service
+@inject EmailService EmailService
+@inject OTPGenerator OTPGenerator
+@inject ILogger<LoginWith2fa> Logger
+@inject IStringLocalizer<SharedResource> Loc
+
+@attribute [Authorize]
+
+<PageTitle>Two-factor authentication</PageTitle>
+<div class="container-sm mt-4" style="max-width: 400px;">
+    <div style="display: flex; justify-content: center;">
+        <a href="/" style="text-decoration: none;"><img class="mb-2" src="CompanyLogoEmail.png" width="80" height="60" /></a>
+    </div>
+    @if (is2faEnabled)
+    {
+        <div class="card">
+            <div class="card-header">
+                <h4 class="header">Two-factor authentication</h4>
+            </div>
+            <div class="card-body">
+                <StatusMessage Message="@message" />
+                <p>@Loc["EnterAuthCodeBelow"]</p>
+                <EditForm Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValid2FASubmitAsync" method="post">
+                    <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
+                    <input type="hidden" name="RememberMe" value="@RememberMe" />
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" role="alert" />
+                    <div class="form form-floating mb-3">
+                        <InputText @bind-Value="Input.TwoFactorCode" id="Input.TwoFactorCode" class="form-control" autocomplete="off" placeholder="" />
+                        <label for="Input.TwoFactorCode" class="form-label">Authenticator code</label>
+                        <ValidationMessage For="() => Input.TwoFactorCode" class="text-danger" />
+                    </div>
+                    <div>
+                        <button type="submit" class="w-100 btn btn-lg btn-primary" style="background-color: #2f4f4f;
+                        border-color:transparent; border-radius: 5px;">
+                            @Loc["Verify"]
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+            <div class="card-footer">
+                <p>
+                    @Loc["DontHaveAccessToAuthDevice"]
+                    <a href="Account/LoginWithRecoveryCode?ReturnUrl=@ReturnUrl">@Loc["VerifyWithRecoveryCode"]</a>.
+                </p>
+            </div>
+        </div>
+    }
+    else
+    {
+        if (VerificationIssue)
+        {
+            <div class="card mt-2 mb-2" style="border-color: red; color:red; max-width: 1200px;">
+                <div class="card-body">
+                    <img src="info-circle.svg" />
+                    @Loc["InvalidCode"]
+                </div>
+            </div>
+        }
+        <div class="card">
+            <div class="card-header">
+                <h4 class="header">Two-factor authentication</h4>
+            </div>
+            <div class="card-body">
+                <StatusMessage Message="@message" />
+                <EditForm Model="Input" FormName="login-with-2fa" OnValidSubmit="OnValidOTPSubmitAsync" method="post">
+                    <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
+                    <input type="hidden" name="RememberMe" value="@RememberMe" />
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" role="alert" />
+                    <label for="Input.OTP" class="form-label">@Loc["CodeSentToYourEmailAndRegisteredPhone"]</label>
+                    <div class="form form-floating mb-3 mt-2">
+                        <InputText id="code" @bind-Value="Input.OTP" class="form-control" placeholder="@placeholder" style="height: 43px;" />
+                        <ValidationMessage For="() => Input.OTP" class="text-danger" />
+                    </div>
+                    <div>
+                        <button type="submit" class="w-100 btn btn-lg btn-primary" style="background-color: #2f4f4f;
+                            border-color:transparent; border-radius: 5px;">
+                            @Loc["Verify"]
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string? message;
+    private bool hasAuthenticator;
+    private int recoveryCodesLeft;
+    private bool is2faEnabled;
+
+    private ApplicationUser user = default!;
+
+    private string? MessageCode { get; set; }
+
+    [Parameter]
+    public string? code { get; set; } = "";
+
+    [Parameter]
+    public bool Verified { get; set; } = false;
+
+    [Parameter]
+    public bool VerificationIssue { get; set; } = false;
+
+    [Parameter]
+    public string? placeholder { get; set; }
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery]
+    private bool RememberMe { get; set; }
+
+    private string? OTP { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await ApplicationUserService.GetApplicationUser();
+        message = "";
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (user is not null)
+        {
+            is2faEnabled = await UserManager.GetTwoFactorEnabledAsync(user);
+            if (!is2faEnabled && (OTPGenerator.IsOTPNull() || OTPGenerator.GetUsage()))
+            {
+                OTP = OTPGenerator.GetOTP();
+                string msg = "Your one time password is : " + OTP;
+                if (user.PhoneNumber is not null)
+                    await SMS_Service.SendSmsAsync(msg, user.PhoneNumber);
+                await EmailService.SendEmailAsync(user.Email, "One Time Password", msg);
+            }
+            else
+            {
+                if (!is2faEnabled && OTP is null)
+                {
+                    OTP = OTPGenerator.GetOTP();
+                }
+            }
+        }
+        else
+        {
+            if (!is2faEnabled)
+            {
+                OTP = OTPGenerator.GetOTP();
+            }
+        }
+    }
+
+    private async Task OnValidOTPSubmitAsync()
+    {
+        if (string.IsNullOrEmpty(Input.OTP))
+        {
+            message = Loc["InvalidCode"];
+            return;
+        }
+        var authenticatorCode = Input.OTP!.Replace(" ", string.Empty).Replace("-", string.Empty);
+        var result = authenticatorCode.Equals(OTP) ? true : false;
+        var userId = await UserManager.GetUserIdAsync(user);
+
+        if (result)
+        {
+            Logger.LogInformation("User with ID '{UserId}' logged in with OTP.", userId);
+            OTPGenerator.SetUsage();
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else
+        {
+            Logger.LogWarning("Invalid one time password entered. for user with ID '{UserId}'.", userId);
+            message = "Error: Invalid one time password entered.";
+        }
+    }
+    private async Task OnValid2FASubmitAsync()
+    {
+        if (string.IsNullOrEmpty(Input.TwoFactorCode))
+        {
+            message = Loc["InvalidCode"];
+            return;
+        }
+        var authenticatorCode = Input.TwoFactorCode!.Replace(" ", string.Empty).Replace("-", string.Empty);
+        var result = await SignInManager.TwoFactorAuthenticatorSignInAsync(authenticatorCode, false, Input.RememberMachine);
+        var userId = await UserManager.GetUserIdAsync(user);
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User with ID '{UserId}' logged in with 2fa.", userId);
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        else if (result.IsLockedOut)
+        {
+            Logger.LogWarning("User with ID '{UserId}' account locked out.", userId);
+            RedirectManager.RedirectTo("Account/Lockout");
+        }
+        else
+        {
+            Logger.LogWarning("Invalid authenticator code entered for user with ID '{UserId}'.", userId);
+            message = "Error: Invalid authenticator code.";
+        }
+    }
+
+    private sealed class InputModel
+    {
+        [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Text)]
+        [Display(Name = "Authenticator code")]
+        public string? TwoFactorCode { get; set; }
+
+        [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Text)]
+        [Display(Name = "One time password")]
+        public string? OTP { get; set; }
+
+        [Display(Name = "Remember this machine")]
+        public bool RememberMachine { get; set; }
+    }
+}

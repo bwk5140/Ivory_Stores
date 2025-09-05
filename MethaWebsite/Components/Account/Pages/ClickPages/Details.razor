@@ -1,0 +1,48 @@
+﻿@page "/clicks/details"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Click</h2>
+    <hr />
+    @if (click is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">position</dt>
+            <dd class="col-sm-10">@click.position</dd>
+            <dt class="col-sm-2">ProductId</dt>
+            <dd class="col-sm-10">@click.ProductId</dd>
+        </dl>
+        <div>
+            <a href="@($"/clicks/edit?id={click.Id}")">Edit</a> |
+            <a href="@($"/clicks")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Click? click;
+
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        click = await context.Click.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (click is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

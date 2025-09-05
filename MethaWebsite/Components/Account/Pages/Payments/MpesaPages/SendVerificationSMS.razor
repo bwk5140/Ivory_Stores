@@ -8,7 +8,7 @@
             var showClass = IsVisible ? "d-block" : "d-none";
         }
         <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
-             style="top: 35%; z-index: 1450;">
+             style="z-index: 1450;">
             <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
                  style="background-color: white; width: max-content;">
                 <div class="toast-header">
@@ -156,7 +156,8 @@
         {
             MessageCode = Guid.NewGuid().ToString().Substring(0, 6);
         }
-        await SMS_Service.SendSmsAsync(MessageCode, MpesaPaymentMethod.Number);
+        string msg = "Your Ivory Stores verification code is: " + MessageCode;
+        await SMS_Service.SendSmsAsync(msg, MpesaPaymentMethod.Number);
     }
     private void OnVerifyPhoneClicked()
     {

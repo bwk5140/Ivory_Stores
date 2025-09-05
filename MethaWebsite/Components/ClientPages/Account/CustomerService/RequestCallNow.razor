@@ -1,0 +1,152 @@
+﻿@page "/Account/categories/create"
+@using System.Globalization
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject SMS_Service SMS_Service
+@inject ApplicationUserService ApplicationUserService
+
+@rendermode InteractiveServer
+
+<PageTitle>Create</PageTitle>
+@if (Countries is not null)
+{
+    <div class="container-sm">
+        @{
+            var showClass = IsVisible ? "d-block" : "d-none";
+        }
+        <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                 style="background-color: white;">
+                <div class="toast-header">
+                    <h6 class="me-auto">@Loc["RequestPhoneCall"]</h6>
+                    <button type="button" class="btn-close" aria-label="Close" @onclick="Close"></button>
+                </div>
+                <div class="toast-body">
+                    <div>
+                        <strong>
+                            @Loc["Issue"]
+                        </strong>
+                    </div>
+                    <div class="mb-3">
+                        @Issue
+                    </div>
+                    <div class="mb-2">
+                        <strong>
+                            @Loc["WhatIsTheBestNumberToCall"]
+                        </strong>
+                    </div>
+                    <div class="row mb-3" style="justify-content: space-between; width: fit-content;">
+                        <div class="col-sm-4">
+                            <div class="dropdown">
+                                <input id="countrycode" @bind="CountryCode" @bind:event="oninput" class="form-control" placeholder="@Loc["Select"]" style="border-color: black;"
+                                       data-bs-toggle="dropdown" aria-expanded="false" @bind:after="UpdateCountriesOnInput" @onclick="e => this.show = !this.show">
+                                </input>
+                                <ul class="dropdown-menu @(show ? "show" : "")" @onmouseleave="e => this.show = !this.show" style="max-height: 300px; overflow-y: scroll; overflow-x:hidden;">
+                                    @foreach (var country in Countries)
+                                    {
+                                        <li class="list-group-item dropdown-item ms-2 me-2 mb-1" style="background-color: transparent;">
+                                            <label class="form-check-label stretched-link" @onclick="@(() => GetCountryCode(country))" style="cursor: pointer;">
+                                                @country.Name +@country.Code
+                                            </label>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="form">
+                                <InputText id="Phone" @bind-Value="Phone" class="form-control" placeholder="" style="border-color: black;"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f; width: 100%;border-color:transparent; border-radius: 5px;" @onclick="OnCallMeNowClicked">
+                            @Loc["CallMeNow"]
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="@showClass darker-background"></div>
+    </div>
+}
+
+
+@code {
+    [CascadingParameter]
+    private string? Issue { get; set; }
+
+    [CascadingParameter]
+    private Product? Product { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnCallRequested { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    [Parameter]
+    public string? CountryCode { get; set; }
+
+    [Parameter]
+    public string? Phone { get; set; }
+
+    [Parameter]
+    public List<Country>? Countries { get; set; }
+
+    private bool show = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        Countries = await context.Country.OrderBy(c => c.Name).ToListAsync();
+    }
+    private void GetCountryCode(Country country)
+    {
+        CountryCode = "+" + country.Code;
+        StateHasChanged();
+    }
+    private async Task UpdateCountriesOnInput()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        Countries = await context.Country.Where(c => c.Name.Contains(CountryCode) || c.Code.Contains(CountryCode)).OrderBy(c => c.Name).ToListAsync();
+        if (Countries is null || !Countries.Any() || string.IsNullOrWhiteSpace(CountryCode))
+        {
+            Countries = await context.Country.OrderBy(c => c.Name).ToListAsync();
+        }
+        show = true;
+        StateHasChanged();
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+    private async Task OnCallMeNowClicked()
+    {
+        var user = await ApplicationUserService.GetApplicationUser();
+        var Phone = CountryCode + this.Phone;
+        if (Product is not null)
+        {
+            var Issue = "New Issue: " + this.Issue + ".\n" + "Product Id: " + Product.Id + ".\n" + "Contact info: " + Phone + ".\n" + "User: " + user.Name;
+        }
+        else
+        {
+            var Issue = "New Issue: " + this.Issue + ".\n" + "Contact info: " + Phone + ".\n" + "User: " + user.Name;
+        }
+        await SMS_Service.SendSmsAsync(Issue, Phone);
+        await OnCallRequested.InvokeAsync();
+        Close();
+    }
+}

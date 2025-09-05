@@ -1,0 +1,192 @@
+﻿@page "/Account/Notifications/DealsAndRecommendations"
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+<div class="container-sm">
+    @if (Notifications is not null)
+    {
+        <EditForm method="post" Model="Notifications" OnValidSubmit="UpdateNotifications" FormName="edit" Enhance>
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <td>
+                            <div>
+                                <strong>@Loc["Deals"]</strong>
+                            </div>
+                            <div class="mb-4">
+                                @Loc["ReceivedPersonalizedAndTopRatedDeals"]
+                            </div>
+                        </td>
+                        <td style="color: gray;">
+                            @if (Notifications.Deals)
+                            {
+                                <div>
+                                    @OnOrOff[Notifications.Deals] : @Loc["Email"]
+                                </div>
+                            }
+                            else
+                            {
+                                <div>
+                                    @OnOrOff[Notifications.Deals]
+                                </div>
+                            }
+                        </td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <InputCheckbox class="form-check-input" type="checkbox" @bind-Value="Notifications.Deals" id="Deals" switch @bind-Value:after="UpdateNotifications" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div>
+                                <strong>@Loc["OurSalesEvents"]</strong>
+                            </div>
+                            <div class="mb-4">
+                                @Loc["StayInformedAboutSpecialEvents"]
+                            </div>
+                        </td>
+                        <td style="color: gray;">
+                            @if (Notifications.SalesEvents)
+                            {
+                                <div>
+                                    @OnOrOff[Notifications.SalesEvents] : @Loc["Email"]
+                                </div>
+                            }
+                            else
+                            {
+                                <div>
+                                    @OnOrOff[Notifications.SalesEvents]
+                                </div>
+                            }
+                        </td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <InputCheckbox class="form-check-input" type="checkbox" @bind-Value="Notifications.SalesEvents" id="SalesEvents" switch @bind-Value:after="UpdateNotifications" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div>
+                                <strong>@Loc["SeasonalAndCurrentTrends"]</strong>
+                            </div>
+                            <div class="mb-4">
+                                @Loc["DiscoverSeasonalAndHolidayTrends"]
+                            </div>
+                        </td>
+                        <td style="color: gray;">
+                            @if (Notifications.SeasonalAndCurrentTrends)
+                            {
+                                <div>
+                                    @OnOrOff[Notifications.SeasonalAndCurrentTrends] : @Loc["Email"]
+                                </div>
+                            }
+                            else
+                            {
+                                <div>
+                                    @OnOrOff[Notifications.SeasonalAndCurrentTrends]
+                                </div>
+                            }
+                        </td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <InputCheckbox class="form-check-input" type="checkbox" @bind-Value="Notifications.SeasonalAndCurrentTrends" id="SeasonalAndCurrentTrends" switch @bind-Value:after="UpdateNotifications" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div>
+                                <strong>@Loc["ProductRecommendations"]</strong>
+                            </div>
+                            <div class="mb-4">
+                                @Loc["PersonalizedSuggestionsBasedOnViews"]
+                            </div>
+                        </td>
+                        <td style="color: gray;">
+                            @if (Notifications.ProductRecommendations)
+                            {
+                                <div>
+                                    @OnOrOff[Notifications.ProductRecommendations] : @Loc["Email"]
+                                </div>
+                            }
+                            else
+                            {
+                                <div>
+                                    @OnOrOff[Notifications.ProductRecommendations]
+                                </div>
+                            }
+                        </td>
+                        <td>
+                            <div class="form-check form-switch">
+                            <InputCheckbox class="form-check-input" type="checkbox" @bind-Value="@Notifications.ProductRecommendations" id="ProductRecommendations" switch @bind-Value:after="UpdateNotifications" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div>
+                                <strong>@Loc["NewReleases"]</strong>
+                            </div>
+                            <div class="mb-4">
+                                @Loc["GetUpdatesOnProductLaunchesAndReleases"]
+                            </div>
+                        </td>
+                        <td style="color: gray;">
+                            @if (Notifications.NewReleases)
+                            {
+                                <div>
+                                    @OnOrOff[Notifications.NewReleases] : @Loc["Email"]
+                                </div>
+                            }
+                            else
+                            {
+                                <div>
+                                    @OnOrOff[Notifications.NewReleases]
+                                </div>
+                            }
+                        </td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <InputCheckbox class="form-check-input" type="checkbox" @bind-Value="@Notifications.NewReleases" id="NewReleases" switch @bind-Value:after="UpdateNotifications" />
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </EditForm>
+    }
+    else
+    {
+        <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Notifications? Notifications { get; set; }
+
+    private ApplicationUser? applicationUser { get; set; }
+    private Dictionary<bool, string> OnOrOff { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
+        Notifications = await context.Notifications.FirstOrDefaultAsync(n => n.UserId == applicationUser.Id);
+        OnOrOff[true] = Loc["On"];
+        OnOrOff[false] = Loc["Off"];
+    }
+    private async Task UpdateNotifications()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.Notifications.Attach(Notifications).State = EntityState.Modified;
+        await context.SaveChangesAsync();
+        StateHasChanged();
+    }
+}

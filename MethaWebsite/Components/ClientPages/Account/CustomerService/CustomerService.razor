@@ -1,0 +1,184 @@
+﻿@page "/Account/CustomerService"
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+@inject ApplicationUserService ApplicationUserService
+
+@rendermode InteractiveServer
+
+<div class="container-fluid" style="background-color: #277a7a; color: white; height: 60vh;">
+    <div class="container-sm" style="padding-top: 50px;">
+        @if (ApplicationUser is not null)
+        {
+            <h3>
+                @Loc["WelcomeToCustomerService"], @Username
+            </h3>
+        }
+        else
+        {
+            <h3>
+                @Loc["WelcomeToCustomerService"]
+            </h3>
+        }
+        <div class="mt-3 mb-5">
+            <h5>
+                @Loc["HowCanWeHelp"]
+            </h5>
+        </div>
+        <div class="row">
+            <div class="col-sm-4">
+                <a href="/Account/CustomerService/Orders" style="border: none; background-color: transparent; text-decoration: none;">
+                    <div class="card" style="max-width: 350px;">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                    <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                        <circle cx="40" cy="40" r="40" fill="#277a7a" />
+                                    </svg>
+                                    <img src="box-seam-fill-CS.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 50px; height: 50px;" />
+                                </div>
+                                <div class="col-lg-9">
+                                    <div style="font-weight: 600;">
+                                        @Loc["DeliveryOrderOrReturn"]
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+            <div class="col-sm-4">
+                <a href="/Account/CustomerService/Account" style="border: none; background-color: transparent; text-decoration: none;">
+                    <div class="card" style="max-width: 350px;">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                    <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                        <circle cx="40" cy="40" r="40" fill="#277a7a" />
+                                    </svg>
+                                    <img src="person-lock-CS.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 50px; height: 50px;" />
+                                </div>
+                                <div class="col-lg-9">
+                                    <div style="font-weight: 600; text-decoration: none;">
+                                        @Loc["AccountInfoAddressesSecurity"]
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-sm-4">
+                <a href="/Account/CustomerService/Payments" style="border: none; background-color: transparent; text-decoration: none;">
+                    <div class="card" style="max-width: 350px;">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                    <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                        <circle cx="40" cy="40" r="40" fill="#277a7a" />
+                                    </svg>
+                                    <img src="credit-card-2-front-CS.svg" style="position: absolute; top: 20%; left: 10%; z-index: 1; width: 30px; height: 30px;" />
+                                    <img src="credit-card-CS.svg" style="position: absolute; top: 40%; left: 50%; z-index: 1; width: 30px; height: 30px;" />
+                                </div>
+                                <div class="col-lg-9">
+                                    <div style="font-weight: 600; text-decoration: none;">
+                                        @Loc["Payments"]
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-sm-4">
+                <a href="/Account/CustomerService/Messages&NotificationSettings" style="border: none; background-color: transparent; text-decoration: none;">
+                    <div class="card" style="max-width: 350px;">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                    <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                        <circle cx="40" cy="40" r="40" fill="#277a7a" />
+                                    </svg>
+                                    <img src="calendar2-week.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 50px; height: 50px;" />
+                                </div>
+                                <div class="col-lg-9">
+                                    <div style="font-weight: 600;">
+                                        @Loc["MessagesNotificationSettings"]
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+            <div class="col-sm-4">
+                <a href="/Account/CustomerService/SomethingElse" style="border: none; background-color: transparent; text-decoration: none;">
+                    <div class="card" style="max-width: 350px;">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                    <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                        <circle cx="40" cy="40" r="40" fill="#277a7a" />
+                                    </svg>
+                                    <img src="three-dots.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 50px; height: 50px;" />
+                                </div>
+                                <div class="col-lg-9">
+                                    <div style="font-weight: 600;">
+                                        @Loc["SomethingElse"]
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-sm-4">
+                <a href="/Account/CustomerService/ReportSuspiciousActivity" style="border: none; background-color: transparent; text-decoration: none;">
+                    <div class="card" style="max-width: 350px;">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                    <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                        <circle cx="40" cy="40" r="40" fill="#277a7a" />
+                                    </svg>
+                                    <img src="envelope-exclamation.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 50px; height: 50px;" />
+                                </div>
+                                <div class="col-lg-9">
+                                    <div style="font-weight: 600; text-decoration: none;">
+                                        @Loc["ReportSuspiciousActivity"]
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string? Username { get; set; }
+
+    private ApplicationUser? ApplicationUser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ApplicationUser = await ApplicationUserService.GetApplicationUser();
+        if (ApplicationUser is not null)
+        {
+            var index = ApplicationUser.Name.IndexOf(" ");
+            if (index == -1)
+            {
+                index = ApplicationUser.Name.Length - 1;
+            }
+            Username = ApplicationUser.Name.Substring(0, index);
+        }
+    }
+}

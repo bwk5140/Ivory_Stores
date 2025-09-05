@@ -20,8 +20,7 @@
     @{
         var showClass = IsVisible ? "d-block" : "d-none";
     }
-    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
-         style="top: 35%;">
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000">
         <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
              style="background-color: white;">
             <div class="toast-header">
@@ -104,8 +103,9 @@
         Close();
         SelectBillingAddressPopOver.Show();
     }
-    private async Task SaveCard()
+    private async Task SaveCard(string BillingAddress)
     {
+        using var context = DbFactory.CreateDbContext();
         isSaving = true;
         Status = null;
         var Secretkey = Configuration["Stripe:SecretKey"];
@@ -133,7 +133,7 @@
         if (infoRes.IsSuccessStatusCode)
         {
             CreditDebitCard = await infoRes.Content.ReadFromJsonAsync<CreditDebitCard>();
-            await AddCreditDebitCard();
+            await AddCreditDebitCard(BillingAddress);
 
         }
         else
@@ -190,12 +190,12 @@
     }
 
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
-    private async Task AddCreditDebitCard()
+    private async Task AddCreditDebitCard(string BillingAddress)
     {
         using var context = DbFactory.CreateDbContext();
         CreditDebitCard.NameOnCard = NameOnCard;
         CreditDebitCard.Id = Guid.NewGuid().ToString();
-        CreditDebitCard.BillingAddress = applicationUser.DefaultAddressId;
+        CreditDebitCard.BillingAddress = BillingAddress;
         CreditDebitCard.UserId = applicationUser.Id;
         CreditDebitCard.ImageSource = ImageSource[CreditDebitCard.Type];
         CreditDebitCard.LogoSource = LogoSource[CreditDebitCard.Type];
@@ -218,9 +218,9 @@
         IsVisible = false;
         StateHasChanged();
     }
-    private async Task UpdateBillingAddress()
+    private async Task UpdateBillingAddress(string billingAddress)
     {
         Show();
-        await SaveCard();
+        await SaveCard(billingAddress);
     }
 }

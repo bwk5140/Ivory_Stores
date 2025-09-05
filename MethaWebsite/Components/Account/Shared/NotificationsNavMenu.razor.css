@@ -1,0 +1,9 @@
+﻿::deep .nav-link.active {
+    background-color: transparent;
+    color: #2f4f4f;
+    font-weight: 700;
+}
+
+::deep .nav-link {
+    color: black;
+}

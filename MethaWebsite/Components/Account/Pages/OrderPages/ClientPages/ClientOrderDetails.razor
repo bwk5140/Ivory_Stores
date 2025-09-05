@@ -198,16 +198,42 @@
                                         </div>
                                     </div>
                                     <div class="col-sm-3">
-                                        <div>
-                                            <a href="@($"/Account/Orders/pwo?orderid={order.Id}&productid={product.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f; border-color:transparent; border-radius: 25px; width: 200px;">
-                                                @Loc["ProductProblem"]
-                                            </a>
-                                        </div>
-                                        <div>
-                                            <a href="@($"productreviews/create?id={product.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: transparent;border-color:black; border-radius: 25px; color: black; width: 200px;">
-                                                @Loc["WriteReview"]
-                                            </a>
-                                        </div>
+                                        @if (Products.IndexOf(product) == 0)
+                                        {
+                                            <div class="col-sm-3">
+                                                @if (!order.HasShipped)
+                                                {
+                                                    <div>
+                                                        <a href="@($"/Account/Order/details/track?id={order.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: #277a7a;
+                                                                                                                                                                                                                  border-color:transparent; border-radius: 25px; width: 200px;">
+                                                            @Loc["TrackPackage"]
+                                                        </a>
+                                                    </div>
+                                                }
+                                                <div>
+                                                    <a href="@($"/Account/Orders/pwo?orderid={order.Id}&productid={product.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: #2f4f4f;
+                                                                                                                                                          border-color:transparent; border-radius: 25px; width: 200px;">
+                                                        @Loc["ProductProblem"]
+                                                    </a>
+                                                </div>
+                                                <div>
+                                                    @if (order.ProductIds.Count() > 1)
+                                                    {
+                                                        <a href="@($"product/review/choose?id={order.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: transparent;
+                                                                                                                                                                                          border-color:black; border-radius: 25px; color: black; width: 200px;">
+                                                            @Loc["WriteReview"]
+                                                        </a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <a href="@($"product/review/create?id={product.Id}")" class="btn btn-primary mt-1 me-2" style="background-color: transparent;
+                                                                                                                                                                                          border-color:black; border-radius: 25px; color: black; width: 200px;">
+                                                            @Loc["WriteReview"]
+                                                        </a>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             }

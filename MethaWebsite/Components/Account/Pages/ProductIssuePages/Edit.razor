@@ -1,0 +1,99 @@
+﻿@page "/productissues/edit"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>ProductIssue</h2>
+<hr />
+@if (ProductIssue is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="ProductIssue" OnValidSubmit="UpdateProductIssue" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="ProductIssue.Id" value="@ProductIssue.Id" />
+                <div class="mb-3">
+                    <label for="type" class="form-label">Type:</label>
+                    <InputText id="type" @bind-Value="ProductIssue.Type" class="form-control" />
+                    <ValidationMessage For="() => ProductIssue.Type" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputText id="description" @bind-Value="ProductIssue.Description" class="form-control" />
+                    <ValidationMessage For="() => ProductIssue.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="comments" class="form-label">Comments:</label>
+                    <InputText id="comments" @bind-Value="ProductIssue.Comments" class="form-control" />
+                    <ValidationMessage For="() => ProductIssue.Comments" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/productissues">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private ProductIssue? ProductIssue { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        ProductIssue ??= await context.ProductIssue.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (ProductIssue is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateProductIssue()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(ProductIssue!).State = EntityState.Modified;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ProductIssueExists(ProductIssue!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/productissues");
+    }
+
+    private bool ProductIssueExists(string id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.ProductIssue.Any(e => e.Id == id);
+    }
+}

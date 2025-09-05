@@ -6,6 +6,8 @@
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
 @inject ApplicationUserService ApplicationUserService
+@inject ShoppingCartService ShoppingCartService
+@inject ProductRatingService ProductRatingService
 
 @rendermode InteractiveServer
 
@@ -39,51 +41,32 @@
                         <p>
                             @Loc["by"] @product.Brand
                         </p>
-                        <div>
+                        <div style="display: inline-block;">
+                            @{
+                                var stars = ProductRatingService.GetStarImages(product.Rating);
+                            }
                             @if (product.Rating > 0)
                             {
-                                <strong class="me-1">@product.Rating</strong>
+                                <div class="me-1" style="display: inline-block; font-size: medium;">
+                                    @product.Rating
+                                </div>
                             }
-                            @if (product.Rating == 0)
+
+                            @foreach (var star in stars)
                             {
-                                @for (int i = 0; i < 5; i++)
-                                {
-                                    <img src="star.svg" />
-                                }
-                                <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
-                                                                color: dodgerblue;">
-                                    (0)
-                                </button>
+                                <img src="@star" />
+                            }
+                            @if (product.ProductReviewIds is not null && product.ProductReviewIds.Any())
+                            {
+                                <a href="@($"product/details?id={product.Id}")" class="btn btn-link ms-1" style="border: unset; outline:none; background-color: transparent; text-decoration: none; padding: 0px;">
+                                    (@product.ProductReviewIds.Count())
+                                </a>
                             }
                             else
                             {
-                                @for (int i = 0; i < product.Rating; i++)
-                                {
-                                    <img src="star-fill.svg" />
-                                }
-                                var rating_difference = 5 - product.Rating;
-                                @if (rating_difference > 0)
-                                {
-                                    if (rating_difference > 1)
-                                    {
-                                        @for (int i = 0; i < (5 - product.Rating); i++)
-                                        {
-                                            <img src="star.svg" />
-                                        }
-                                        if (rating_difference.GetType() != typeof(int))
-                                        {
-                                            <img src="star-half.svg" />
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <img src="star-half.svg" />
-                                    }
-                                }
-                                <button class="btn btn-sm" style="border: unset; outline:none; background-color: transparent;
-                                                                color: dodgerblue;">
-                                    (@product.Rating)
-                                </button>
+                                <a href="@($"product/details?id={product.Id}")" class="btn btn-link ms-1" style="border: unset; outline:none; background-color: transparent; text-decoration: none; padding: 0px;">
+                                    (0)
+                                </a>
                             }
                         </div>
                         <p style="font-size: smaller;"><strong>@product.Price.ToString("C2")</strong></p>
@@ -101,13 +84,30 @@
                         <div>
                             <div class="btn-group">
                                 <button class="me-2" style="border-bottom-left-radius: 10px; border-top-left-radius: 10px; border: unset;
-                                                        background-color: #2f4f4f; color: white;">
+                                                                background-color: #2f4f4f; color: white;" @onclick="@(() => OnAddToCartClicked(product))">
                                     @Loc["AddToCart"]
                                 </button>
-                                <button style="border: medium;">
-                                    @Loc["Move"]
-                                </button>
-                                <button class="ms-2" style="border-bottom-right-radius: 10px; border-top-right-radius: 10px; border: medium;">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border: medium;"
+                                            @onclick="e => this.show[product.Id] = !this.show[product.Id]">
+                                        @Loc["Move"]
+                                    </button>
+                                    <ul class="dropdown-menu @(show[product.Id] ? "show" : "")" @onmouseleave="e => this.show[product.Id] = !this.show[product.Id]" style="left: -50%; top: 120%;">
+                                        @foreach (var list in Lists)
+                                        {
+                                            if (!list.Name.Equals(List.Name))
+                                            {
+                                                <li class="list-group-item dropdown-item ms-2 me-2 mb-1" style="background-color: transparent;">
+                                                    <label class="form-check-label stretched-link" @onclick="@(() => MoveToList(product, list))" style="cursor: pointer;">
+                                                        @list.Name
+                                                    </label>
+                                                </li>
+                                            }
+                                        }
+                                    </ul>
+                                </div>
+                                <button class="ms-2" style="border-bottom-right-radius: 10px; border-top-right-radius: 10px; border: medium;" @onclick="@(() => OnDeleteFromListClicked(product))"
+                                        data-bs-toggle="tooltip" title=@Loc["DeleteFromList"]>
                                     <img src="trash.svg" />
                                 </button>
                             </div>
@@ -129,13 +129,13 @@ else
     </div>
 }
 <div style="display: block; justify-content:center;">
-    <MethaWebsite.Components.Account.Pages.ProductListPages.Create @ref=CreateListPopUp OnAddToList="Update" OnCloseAddToList="Update" />
+    <MethaWebsite.Components.Account.Pages.ProductListPages.Create @ref=CreateListPopUp OnAddToList="Update" />
 </div>
 
 
 @code {
     [Parameter]
-    public List<Product>? Products { get; set; }
+    public List<Product>? Products { get; set; } = new();
 
     [Parameter]
     public ProductList? List { get; set; }
@@ -149,21 +149,41 @@ else
     [SupplyParameterFromQuery]
     public bool Create { get; set; } = false;
 
+    [Parameter]
+    public ShoppingCartProduct shoppingCartProduct { get; set; } = new();
+
+    [Parameter]
+    public List<ProductList>? Lists { get; set; }
+
+    private Dictionary<string, bool> show = new();
     private ApplicationUser? applicationUser { get; set; }
+    private ShoppingCart? ShoppingCart { get; set; }
     private MethaWebsite.Components.Account.Pages.Lists.EditListPopOver? EditListPopUp;
     private MethaWebsite.Components.Account.Pages.ProductListPages.Create? CreateListPopUp;
 
     protected override async Task OnInitializedAsync()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        
+
         applicationUser ??= await ApplicationUserService.GetApplicationUser();
-        List = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default" && l.UserId == applicationUser.Id);
+        List = await context.ProductList.FirstOrDefaultAsync(l => l.Name == Loc["Default"] && l.UserId == applicationUser.Id);
+        if (List is null)
+        {
+            List = await context.ProductList.FirstOrDefaultAsync(l => l.UserId == applicationUser.Id);
+        }
         if (List is not null && List.ProductIds is not null)
         {
             Products = await context.Product.Where(p => List.ProductIds.Contains(p.Id)).Distinct()
                         .ToListAsync();
+            if (Products is not null)
+            {
+                foreach (var product in Products)
+                {
+                    show[product.Id] = false;
+                }
+            }
         }
+        Lists = context.ProductList.Where(l => l.UserId == applicationUser.Id).ToList();
     }
     protected override void OnAfterRender(bool firstRender)
     {
@@ -178,11 +198,22 @@ else
     protected override async Task OnParametersSetAsync()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        List = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default" && l.UserId == applicationUser.Id);
+        List = await context.ProductList.FirstOrDefaultAsync(l => l.Name == Loc["Default"] && l.UserId == applicationUser.Id);
+        if (List is null)
+        {
+            List = await context.ProductList.FirstOrDefaultAsync(l => l.UserId == applicationUser.Id);
+        }
         if (List is not null && List.ProductIds is not null)
         {
             Products = await context.Product.Where(p => List.ProductIds.Contains(p.Id)).Distinct()
                         .ToListAsync();
+            if (Products is not null)
+            {
+                foreach (var product in Products)
+                {
+                    show[product.Id] = false;
+                }
+            }
         }
     }
     public void OnEditListClicked()
@@ -197,6 +228,67 @@ else
     private void Update()
     {
         NavigationManager.NavigateTo("/wishlist/details/default", true);
+    }
+    private async Task OnAddToCartClicked(Product product)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var ShoppingCartProduct = new ShoppingCartProduct();
+        ShoppingCartProduct.ProductId = product.Id;
+        context.ShoppingCartProduct.Add(ShoppingCartProduct);
+        ShoppingCartProduct.Quantity = 1;
+
+        if (applicationUser is not null)
+        {
+            ShoppingCart = await context.ShoppingCart.FirstOrDefaultAsync(s => s.UserId == applicationUser.Id);
+
+            if (ShoppingCart is null)
+            {
+                ShoppingCart = ShoppingCartService.getShoppingCart();
+                ShoppingCart.UserId = applicationUser.Id;
+                context.ShoppingCart.Add(ShoppingCart);
+                await context.SaveChangesAsync();
+            }
+        }
+        else
+        {
+            ShoppingCart = ShoppingCartService.getShoppingCart();
+            if (!context.ShoppingCart.Contains(ShoppingCart))
+            {
+                context.ShoppingCart.Add(ShoppingCart);
+                await context.SaveChangesAsync();
+            }
+        }
+        for (int i = shoppingCartProduct.Quantity; i > 0; i--)
+        {
+            ShoppingCart.ProductIds.Add(ShoppingCartProduct.Id);
+            ShoppingCart.Subtotal += product.Price;
+        }
+        context.Attach(ShoppingCart!).State = EntityState.Modified;
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo($"/shoppingcart/confirmation?id={product.Id}", forceLoad: true);
+    }
+    private async Task OnDeleteFromListClicked(Product product)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        List.ProductIds.Remove(product.Id);
+        context.Attach(List!).State = EntityState.Modified;
+        await context.SaveChangesAsync();
+        Products = await context.Product.Where(p => List.ProductIds.Contains(p.Id)).Distinct()
+                        .ToListAsync();
+        StateHasChanged();
+    }
+    private async Task MoveToList(Product product, ProductList list)
+    {
+        if (!list.ProductIds.Contains(product.Id))
+        {
+            await OnDeleteFromListClicked(product);
+            list.ProductIds.Add(product.Id);
+            using var context = await DbFactory.CreateDbContextAsync();
+            context.Attach(list!).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+            Lists = context.ProductList.Where(l => l.UserId == applicationUser.Id).ToList();
+            StateHasChanged();
+        }
     }
 }
 

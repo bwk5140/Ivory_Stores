@@ -1,11 +1,5 @@
-﻿using AfricasTalkingCS;
-using Humanizer;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Identity.Client;
-using Newtonsoft.Json.Linq;
-using PhoneNumbers;
+﻿using PhoneNumbers;
 using System.Globalization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MethaWebsite.Services
 {
@@ -33,7 +27,6 @@ namespace MethaWebsite.Services
             string formattedNumber;
             PhoneNumbers.PhoneNumber number;
 
-            message = "Your Ivory Stores verification code is: " + message;
             try
             {
                 // Use null region for international numbers
@@ -44,25 +37,53 @@ namespace MethaWebsite.Services
                 if (!phoneUtil.IsValidNumber(number))
                     return null;
 
-
             }
             catch (NumberParseException)
             {
                 return null;
             }
             formattedNumber = phoneUtil.Format(number, PhoneNumberFormat.E164);
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.africastalking.com/version1/messaging")
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.sandbox.africastalking.com/version1/messaging")
             {
                 Content = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
                     { "username", username },
+                    { "from", "9165"},
                     { "to", formattedNumber },
                     { "message", message }
                 })
             };
             request.Headers.Add("apiKey", apiKey);
             var response = await _httpClient.SendAsync(request);
-            return await response.Content.ReadAsStringAsync();
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return responseContent;
+
+
+            //TwilioClient.Init(accountSid, authToken);
+            //var msg = await MessageResource.CreateAsync(
+            //        body: message,
+            //        from: new Twilio.Types.PhoneNumber("+15732601144"),
+            //        to: new Twilio.Types.PhoneNumber(formattedNumber));
+        }
+        public async Task<string> SendSmsCompleteNumberAsync(string message, string phoneNumber)
+        {
+            var username = _config["AfricasTalking:Username"];
+            var apiKey = _config["AfricasTalking:ApiKey"];
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.sandbox.africastalking.com/version1/messaging")
+            {
+                Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    { "username", username },
+                    { "from", "9165"},
+                    { "to", phoneNumber },
+                    { "message", message }
+                })
+            };
+            request.Headers.Add("apiKey", apiKey);
+            var response = await _httpClient.SendAsync(request);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            return responseContent;
 
 
             //TwilioClient.Init(accountSid, authToken);

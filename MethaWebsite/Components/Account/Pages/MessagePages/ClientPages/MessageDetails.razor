@@ -1,0 +1,77 @@
+﻿@page "/Account/MessageCenter/Details"
+
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+<div class="container-sm">
+    <button type="button" class="btn btn-link" data-bs-toggle="tooltip" title=@Loc["BackToMessages"]
+            aria-label="Select" @onclick="OnBackClicked" style="text-align:left; text-decoration: none; color: black;
+                                                            border: none; background-color: transparent;">
+        <img src="arrow-left.svg"/>
+        @Loc["Back"]
+    </button>
+    <div class="card">
+        <div class="card-body">
+            @if (message is not null)
+            {
+                <div class="row mb-2">
+                    <div class="col-sm-9">
+                        <h4>@message.Subject</h4>
+                    </div>
+                    <div class="col-sm-3" style="text-align: right;">
+                        <strong>@message.Created.Value.Day/@message.Created.Value.Month/@message.Created.Value.Year, @message.Created.Value.Hour:@message.Created.Value.Minute:@message.Created.Value.Second</strong>
+                    </div>
+                </div>
+                
+                <div class="card" style="background-color: black; color: white; padding: 0px;">
+                    <div class="card-body" style="padding-top: 0px;">
+                        <div class="card" style="background-color: black; color: white; width: 50%; justify-self: center; border:none; padding: 0px;">
+                            <div class="card-header" style="padding: 0px;">
+                                <div style="background-color: transparent; width: min-content; padding: 0px;">
+                                    <img src="CompanyLogoMessage.png" width="90" height="80" />
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="mt-3">
+                                    <p>
+                                        @message.Comment
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="card-footer" style="padding: 0px; background-color: darkgray; color: lightgray; justify-self: center; border-radius: 0px;">
+                                <div>
+                                    <p class="ms-3 mt-3 mb-3" style="font-family: 'Times New Roman';">
+                                        &copy;2025 IvoryStores.com. @Loc["IvoryStoresAndAllRelatedMarks"]
+                                    </p>
+                                    <div style="background-color: whitesmoke; justify-self: left; color: black; width: min-content; padding: 0px;">
+                                        <img src="Ivory.png" width="80" height="40"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        }
+        </div>
+    </div>
+</div>
+@code {
+    [SupplyParameterFromQuery]
+    public string? Id { get; set; }
+
+    [Parameter]
+    public Message? message { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        message = await context.Message.FirstOrDefaultAsync(m => m.Id == Id);
+    }
+    private void OnBackClicked()
+    {
+        NavigationManager.NavigateTo("/Account/MessageCenter");
+    }
+}

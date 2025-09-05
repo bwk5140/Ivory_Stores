@@ -1,0 +1,25 @@
+﻿@inherits LayoutComponentBase
+@layout MethaWebsite.Components.Layout.MainLayout
+
+@inject LayoutRefreshService LayoutRefreshService
+
+<CustomerServiceLayoutWrapper/>
+@Body
+
+@code {
+    [Parameter]
+    public bool HasStateChanged { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        LayoutRefreshService.OnRefreshRequested += LayoutRefresh;
+    }
+    private void LayoutRefresh()
+    {
+        HasStateChanged = true;
+    }
+    public void Dispose()
+    {
+        LayoutRefreshService.OnRefreshRequested -= LayoutRefresh;
+    }
+}

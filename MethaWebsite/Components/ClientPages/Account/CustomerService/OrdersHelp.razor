@@ -1,0 +1,150 @@
+﻿@page "/Account/CustomerService/Orders"
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject LayoutState LayoutStateService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+
+<div class="container-xxl mt-5 mb-5" style="display: block; justify-content: center;">
+    @if (Orders is not null && Orders.Any())
+    {
+        <div class="center-container">
+            <div style="display: inline-block;">
+                <div style="display: inline-block;">
+                    <svg width="80" height="80">
+                        <circle cx="40" cy="40" r="20" fill="#277a7a" />
+                        <text x="33" y="50" font-size="24" fill="white">1</text>
+                    </svg>
+                </div>
+                <div style="display: inline-block;">
+                    <h6 class="ms-1">@Loc["TellUsWhatYouNeedHelpWith"]</h6>
+                </div>
+                <div style="display: inline-block;">
+                    <svg width="163">
+                        <line x1="15" y1="75" x2="175" y2="75" stroke="lightgrey" stroke-width="1" />
+                    </svg>
+                </div>
+            </div>
+            <div style="display: inline-block;">
+                <div style="display: inline-block;">
+                    <svg width="80" height="80">
+                        <circle cx="40" cy="40" r="20" fill="gray" />
+                        <circle cx="40" cy="40" r="19" fill="white" />
+                        <text x="33" y="50" font-size="24" fill="gray">2</text>
+                    </svg>
+                </div>
+                <div style="display: inline-block; color: gray;">
+                    <h6 class="ms-1">@Loc["DescribeWhatsGoingOn"]</h6>
+                </div>
+                <div style="display: inline-block;">
+                    <svg width="163">
+                        <line x1="15" y1="75" x2="175" y2="75" stroke="lightgrey" stroke-width="1" />
+                    </svg>
+                </div>
+            </div>
+            <div style="display: inline-block;">
+                <div style="display: inline-block;">
+                    <svg width="80" height="80">
+                        <circle cx="40" cy="40" r="20" fill="gray" />
+                        <circle cx="40" cy="40" r="19" fill="white" />
+                        <text x="33" y="50" font-size="24" fill="gray">3</text>
+                    </svg>
+                </div>
+                <div style="display: inline-block; color: gray;">
+                    <h6 class="ms-1">@Loc["GetAnAnswer"]</h6>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="mb-4">@Loc["WhichItemDoYouNeedHelpWith"]</h3>
+        using var context = DbFactory.CreateDbContext();
+        foreach (var order in Orders)
+        {
+            if (ApplicationUser is not null)
+            {
+                if (order is not null && order.ProductIds is not null)
+                {
+                    Products = context.Product.Where(p => order.ProductIds.Contains(p.Id)).Distinct()
+                    .ToList();
+                    @if (Products is not null && Products.Any())
+                    {
+                        @foreach (var product in Products)
+                        {
+                            <div style="display: inline-block;">
+                                <div class="card mb-3 me-4" style="width: 400px; height: 125px; padding: 0px; cursor: pointer;" @onclick="@(() => GoToProductOrderHelp(order, product))">
+                                    <div class="card-body">
+                                        @{
+                                            product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+                                            var CurrentImage = product.Images[0];
+                                        }
+                                        <div class="row mt-3">
+                                            <div class="col-sm-2" style="padding: 0px;">
+                                                <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                                     alt=@Loc["ProductImage"] style="width:50px; height:50px; object-fit:contain; vertical-align: central;" />
+                                            </div>
+                                            <div class="col-sm-10">
+                                                <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;text-overflow: ellipsis; ">
+                                                    <strong>
+                                                        @product.Name
+                                                    </strong>
+                                                </div>
+                                                <div class="mt-1 mb-3" style="text-wrap: nowrap; font-size: small; color: gray;">
+                                                    @Loc["OrderedOn"] @order.Date.ToString("MMMM") @order.Date.Day, @order.Date.Year
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        <div class="center-container">
+            <div class="card mt-5 mb-5 me-4" style="text-align: center;">
+                <div class="card-body">
+                    <strong >@Loc["NoOrdersYet"]</strong>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+@code {
+
+    private ApplicationUser? ApplicationUser { get; set; }
+    private Dictionary<string, bool> show = new();
+
+    [Parameter]
+    public List<Product>? Products { get; set; }
+
+    [Parameter]
+    public List<Order>? Orders { get; set; } = new List<Order>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
+        Orders = context.Order.Where(o => o.UserId == ApplicationUser.Id).OrderByDescending(o => o.Date).ToList();
+        LayoutStateService.SetBackground("customer-service");
+    }
+    private void GoToProductOrderHelp(Order order, Product product)
+    {
+        NavigationManager.NavigateTo($"/Account/CustomerService/Orders/Product?OrderId={order.Id}&ProductId={product.Id}");
+    }
+}

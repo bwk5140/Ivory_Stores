@@ -1,0 +1,676 @@
+﻿@page "/Account/CustomerService/Orders/Product"
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject NavigationManager NavigationManager
+@inject LayoutState LayoutStateService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+
+<div class="container-xxl mt-5 mb-5" style="display: block; justify-content: center;">
+    <div class="center-container">
+        <div style="display: inline-block;">
+            <div style="display: inline-block;">
+                <svg width="80" height="80">
+                    <circle cx="40" cy="40" r="20" fill="#277a7a" />
+                    <text x="33" y="50" font-size="24" fill="white">1</text>
+                </svg>
+            </div>
+            <div style="display: inline-block;">
+                <h6 class="ms-1">@Loc["TellUsWhatYouNeedHelpWith"]</h6>
+            </div>
+            <div style="display: inline-block;">
+                <svg width="163">
+                    <line x1="15" y1="75" x2="175" y2="75" stroke="lightgrey" stroke-width="1" />
+                </svg>
+            </div>
+        </div>
+        <div style="display: inline-block;">
+            <div style="display: inline-block;">
+                <svg width="80" height="80">
+                    <circle cx="40" cy="40" r="20" fill="#277a7a" />
+                    <text x="33" y="50" font-size="24" fill="white">2</text>
+                </svg>
+            </div>
+            <div style="display: inline-block;">
+                <h6 class="ms-1">@Loc["DescribeWhatsGoingOn"]</h6>
+            </div>
+            <div style="display: inline-block;">
+                <svg width="163">
+                    <line x1="15" y1="75" x2="175" y2="75" stroke="lightgrey" stroke-width="1" />
+                </svg>
+            </div>
+        </div>
+        @if (order is not null && order.ProductIds is not null)
+        {
+            @if (order.ProductIds.Count > 1)
+            {
+                if (!MissingContentHelp["EntirePackage"] && !MissingContentHelp["OneOrMoreItems"] && !DamagedPackageHelp["Yes"] &&
+                !DamagedProductPackageHelp["Yes"] && !DamagedProductPackageHelp["No"])
+                {
+                    <div style="display: inline-block;">
+                        <div style="display: inline-block;">
+                            <svg width="80" height="80">
+                                <circle cx="40" cy="40" r="20" fill="gray" />
+                                <circle cx="40" cy="40" r="19" fill="white" />
+                                <text x="33" y="50" font-size="24" fill="gray">3</text>
+                            </svg>
+                        </div>
+                        <div style="display: inline-block; color: gray;">
+                            <h6 class="ms-1">@Loc["GetAnAnswer"]</h6>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div style="display: inline-block;">
+                        <div style="display: inline-block;">
+                            <svg width="80" height="80">
+                                <circle cx="40" cy="40" r="20" fill="#277a7a" />
+                                <text x="33" y="50" font-size="24" fill="white">3</text>
+                            </svg>
+                        </div>
+                        <div style="display: inline-block; color: black;">
+                            <h6 class="ms-1">@Loc["GetAnAnswer"]</h6>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                if (!HelpContent["SaysDelivered"] && !DamagedPackageHelp["Yes"] && 
+                    !DamagedProductPackageHelp["Yes"] && !DamagedProductPackageHelp["No"])
+                {
+                    <div style="display: inline-block;">
+                        <div style="display: inline-block;">
+                            <svg width="80" height="80">
+                                <circle cx="40" cy="40" r="20" fill="gray" />
+                                <circle cx="40" cy="40" r="19" fill="white" />
+                                <text x="33" y="50" font-size="24" fill="gray">3</text>
+                            </svg>
+                        </div>
+                        <div style="display: inline-block; color: gray;">
+                            <h6 class="ms-1">@Loc["GetAnAnswer"]</h6>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div style="display: inline-block;">
+                        <div style="display: inline-block;">
+                            <svg width="80" height="80">
+                                <circle cx="40" cy="40" r="20" fill="#277a7a" />
+                                <text x="33" y="50" font-size="24" fill="white">3</text>
+                            </svg>
+                        </div>
+                        <div style="display: inline-block; color: black;">
+                            <h6 class="ms-1">@Loc["GetAnAnswer"]</h6>
+                        </div>
+                    </div>
+                }
+            }
+        }
+    </div>
+    @if (product is not null && order is not null)
+    {
+        <div class="center-container">
+            <div class="card mb-3 me-4" style="max-width: 700px; padding: 0px;">
+                <div class="card-body">
+                    @{
+                        using var context = DbFactory.CreateDbContext();
+                        product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+                        var CurrentImage = product.Images[0];
+                    }
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td class="border-end" style="width: 55%;">
+                                    <div class="ms-4 me-4">
+                                        <div class="mt-4">
+                                            <h6>
+                                                @product.Name
+                                            </h6>
+                                        </div>
+                                        <div class="mt-4">
+                                            <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                                 alt=@Loc["ProductImage"] style="width:100px; height:100px; object-fit:contain; vertical-align: central;" />
+                                        </div>
+                                        <div class="mt-4" style="font-size: small;">
+                                            <div style="color: gray;">
+                                                @Loc["ItemDetails"]
+                                            </div>
+                                            <div>
+                                                @product.Price.ToString("C2") | @Loc["Quantity"]: @order.ProductIds.Where(id => id == product.Id).Count()
+                                            </div>
+                                        </div>
+                                        <div class="mt-4" style="font-size: small;">
+                                            <div style="color: gray;">
+                                                @Loc["OrderNumber"]
+                                            </div>
+                                            <div>
+                                                @order.Id
+                                            </div>
+                                        </div>
+                                        <div class="mt-4" style="font-size: small;">
+                                            @{
+                                                var PaymentMethod = GetPaymentMethod(order.PaymentMethodId);
+                                            }
+                                            <div style="color: gray;">
+                                                @Loc["PaymentMethod"]
+                                            </div>
+                                            <div>
+                                                @PaymentMethod.Type @Loc["EndingIn"] @PaymentMethod.Number
+                                            </div>
+                                        </div>
+                                        <hr class="mt-4" />
+                                        <div class="mt-4">
+                                            <h6>
+                                                @Loc["OrderedOn"] @order.Date.ToString("MMMM") @order.Date.Day, @order.Date.Year
+                                            </h6>
+                                        </div>
+                                        @{
+                                            var ShippedAddress = context.Address.FirstOrDefault(a => a.Id == order.ShippingAdressId);
+                                        }
+                                        <div class="mt-4" style="color: gray; font-size: small;">
+                                            @Loc["ShippingAddress"]
+                                        </div>
+                                        <div style="font-size: small;">
+                                            @ShippedAddress.AddressLine1
+                                        </div>
+                                        <div style="font-size: small;">
+                                            @ShippedAddress.AddressLine2
+                                        </div>
+                                        <div style="font-size: small;">
+                                            @ShippedAddress.Country
+                                        </div>
+                                        <hr />
+                                    </div>
+                                </td>
+                                <td style="vertical-align: text-top; width: 45%;">
+                                    <div class="ms-4 me-4">
+                                        @if (!HelpContent["SaysDelivered"] && !HelpContent["DamagedOrDefective"] && !HelpContent["TrackPackage"]
+                                                                            && !HelpContent["ShareDeliveryFeedback"])
+                                        {
+                                            <a href="/Account/CustomerService/Orders" style="text-decoration: none; color: black;">
+                                                <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                @Loc["Back"]
+                                            </a>
+                                            <div>
+                                                <strong>@Loc["HowCanWeHelpWithThisItem"]</strong>
+                                            </div>
+                                            <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => HelpContent["SaysDelivered"] = true)">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col-sm-10" style="font-size: medium;">
+                                                            @Loc["SaysDelivered"]
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => HelpContent["DamagedOrDefective"] = true)">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col-sm-10" style="font-size: medium;">
+                                                            @Loc["DamagedOrDefective"]
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => HelpContent["TrackPackage"] = true)">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col-sm-10" style="font-size: medium;">
+                                                            @Loc["TrackPackage"]
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @* <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => HelpContent["ShareDeliveryFeedback"] = true)">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col-sm-10" style="font-size: medium;">
+                                                            @Loc["ShareDeliveryFeedback"]
+                                                        </div>
+                                                        <div class="col-sm-2">
+                                                            <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div> *@
+                                        }
+                                        else
+                                        {
+                                            if (HelpContent["SaysDelivered"])
+                                            {
+                                                if (order.ProductIds.Count() > 1)
+                                                {
+                                                    if (!MissingContentHelp["EntirePackage"] && !MissingContentHelp["OneOrMoreItems"])
+                                                    {
+                                                        <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => HelpContent["SaysDelivered"] = false)">
+                                                            <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                            @Loc["Back"]
+                                                        </a>
+                                                        <div>
+                                                            <strong>@Loc["OtherItemsInThisPackage"]</strong>
+                                                        </div>
+                                                        <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => MissingContentHelp["EntirePackage"] = true)">
+                                                            <div class="card-body">
+                                                                <div class="row">
+                                                                    <div class="col-sm-10" style="font-size: medium;">
+                                                                        @Loc["EntirePackage"]
+                                                                    </div>
+                                                                    <div class="col-sm-2">
+                                                                        <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => MissingContentHelp["OneOrMoreItems"] = true)">
+                                                            <div class="card-body">
+                                                                <div class="row">
+                                                                    <div class="col-sm-10" style="font-size: medium;">
+                                                                        @Loc["OneOrMoreItems"]
+                                                                    </div>
+                                                                    <div class="col-sm-2">
+                                                                        <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        if (MissingContentHelp["EntirePackage"])
+                                                        {
+                                                            <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => MissingContentHelp["EntirePackage"] = false)">
+                                                                <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                                @Loc["Back"]
+                                                            </a>
+                                                            <div>
+                                                                <strong>@Loc["SaysDelivered"]</strong>
+                                                            </div>
+                                                            <div class="mb-2 mt-3">
+                                                                <p>
+                                                                    @Loc["MostCustomersFindWithin24Hrs"]
+                                                                </p>
+                                                            </div>
+                                                            <div class="mb-2">
+                                                                <p>
+                                                                    @Loc["YouCanTrackPackage"]
+                                                                </p>
+                                                            </div>
+                                                            <div class="mb-2">
+                                                                <p>
+                                                                    @Loc["YouCanContactUs"]
+                                                                </p>
+                                                            </div>
+                                                            <div class="mt-4" style="text-align: center;">
+                                                                <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                                                                                            border-color:transparent; border-radius: 5px;" @onclick="OnTrackPackageClicked">
+                                                                    @Loc["TrackPackage"]
+                                                                </button>
+                                                            </div>
+                                                        }
+                                                        if (MissingContentHelp["OneOrMoreItems"])
+                                                        {
+                                                            <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => MissingContentHelp["OneOrMoreItems"] = false)">
+                                                                <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                                @Loc["Back"]
+                                                            </a>
+                                                            <div>
+                                                                <strong>@Loc["MissingItem"]</strong>
+                                                            </div>
+                                                            <div class="mb-2 mt-3">
+                                                                <p>
+                                                                    @Loc["WeAreSorryMissingItem"]
+                                                                </p>
+                                                            </div>
+                                                            <div class="mb-2">
+                                                                <p>
+                                                                    @Loc["ToFindAMissingItem"]
+                                                                </p>
+                                                            </div>
+                                                            <div class="mb-2">
+                                                                <p>
+                                                                    @Loc["YouCanTrackPackage"]
+                                                                </p>
+                                                            </div>
+                                                            <div class="mb-2">
+                                                                <p>
+                                                                    @Loc["YouCanContactUs"]
+                                                                </p>
+                                                            </div>
+                                                            <div class="mt-4" style="text-align: center;">
+                                                                <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                                                                    border-color:transparent; border-radius: 5px;" @onclick="OnTrackPackageClicked">
+                                                                    @Loc["TrackPackage"]
+                                                                </button>
+                                                            </div>
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => HelpContent["SaysDelivered"] = false)">
+                                                        <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                        @Loc["Back"]
+                                                    </a>
+                                                    <div>
+                                                        <strong>@Loc["SaysDelivered"]</strong>
+                                                    </div>
+                                                    <div class="mb-2 mt-3">
+                                                        <p>
+                                                            @Loc["MostCustomersFindWithin24Hrs"]
+                                                        </p>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <p>
+                                                            @Loc["YouCanTrackPackage"]
+                                                        </p>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <p>
+                                                            @Loc["YouCanContactUs"]
+                                                        </p>
+                                                    </div>
+                                                    <div class="mt-4" style="text-align: center;">
+                                                        <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                                                                                    border-color:transparent; border-radius: 5px;" @onclick="OnTrackPackageClicked">
+                                                            @Loc["TrackPackage"]
+                                                        </button>
+                                                    </div>
+                                                }
+                                            }
+                                            if (HelpContent["DamagedOrDefective"])
+                                            {
+                                                if (order.HasShipped && order.Date.AddDays(order.ShippingTime) > DateTime.Now.AddDays(30))
+                                                {
+                                                    <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => HelpContent["DamagedOrDefective"] = false)">
+                                                        <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                        @Loc["Back"]
+                                                    </a>
+                                                    <div>
+                                                        <strong>@Loc["DamagedOrDefective"]</strong>
+                                                    </div>
+                                                    <div class="mb-2 mt-3">
+                                                        <p>
+                                                            @Loc["ProductNotElligibleForReturn"]
+                                                        </p>
+                                                    </div>
+                                                    <div class="mt-4" style="text-align: center;">
+                                                        <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                                                                                                                            border-color:transparent; border-radius: 5px;" @onclick="OnReturnPolicyClicked">
+                                                            @Loc["ReadReturnPolicy"]
+                                                        </button>
+                                                    </div>
+                                                    <MethaWebsite.Components.ClientPages.ProductPages.ReturnPolicy @ref="returnPolicyPopUp" />
+                                                }
+                                                else
+                                                {
+                                                    if (!DamagedPackageHelp["Yes"] && !DamagedPackageHelp["No"])
+                                                    {
+                                                        <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => HelpContent["DamagedOrDefective"] = false)">
+                                                            <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                            @Loc["Back"]
+                                                        </a>
+                                                        <div>
+                                                            <strong>@Loc["WeAreSorryAboutThat"]</strong>
+                                                        </div>
+                                                        <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => DamagedPackageHelp["Yes"] = true)">
+                                                            <div class="card-body">
+                                                                <div class="row">
+                                                                    <div class="col-sm-10" style="font-size: medium;">
+                                                                        @Loc["Yes"]
+                                                                    </div>
+                                                                    <div class="col-sm-2">
+                                                                        <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => DamagedPackageHelp["No"] = true)">
+                                                            <div class="card-body">
+                                                                <div class="row">
+                                                                    <div class="col-sm-10" style="font-size: medium;">
+                                                                        @Loc["No"]
+                                                                    </div>
+                                                                    <div class="col-sm-2">
+                                                                        <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        if (DamagedPackageHelp["Yes"])
+                                                        {
+                                                            <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => DamagedPackageHelp["Yes"] = false)">
+                                                                <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                                @Loc["Back"]
+                                                            </a>
+                                                            <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; border-left: 3px solid red;">
+                                                                <div class="card-body">
+                                                                    <strong>@Loc["NoOptionsFound"]</strong>
+                                                                    <p class="ms-3">@Loc["ContactOurCustomerServiceTeam"]</p>
+                                                                    <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f; width: 95%;
+                                                                                                                                                                    border-color:transparent; border-radius: 5px;" @onclick="@(() => OnReachOutClicked(Loc["DamagedOrDefective"] + " " + Loc["and"] + " " + Loc["DamagedPackage"], product))">
+                                                                        @Loc["ReachOut"]
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                        if (DamagedPackageHelp["No"])
+                                                        {
+                                                            if (!DamagedProductPackageHelp["Yes"] && !DamagedProductPackageHelp["No"])
+                                                            {
+                                                                <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => DamagedPackageHelp["No"] = false)">
+                                                                    <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                                    @Loc["Back"]
+                                                                </a>
+                                                                <div>
+                                                                    <strong>@Loc["WhatAboutProductPackaging"]</strong>
+                                                                </div>
+                                                                <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => DamagedProductPackageHelp["Yes"] = true)">
+                                                                    <div class="card-body">
+                                                                        <div class="row">
+                                                                            <div class="col-sm-10" style="font-size: medium;">
+                                                                                @Loc["Yes"]
+                                                                            </div>
+                                                                            <div class="col-sm-2">
+                                                                                <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => DamagedProductPackageHelp["No"] = true)">
+                                                                    <div class="card-body">
+                                                                        <div class="row">
+                                                                            <div class="col-sm-10" style="font-size: medium;">
+                                                                                @Loc["No"]
+                                                                            </div>
+                                                                            <div class="col-sm-2">
+                                                                                <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                            else
+                                                            {
+                                                                if (DamagedProductPackageHelp["Yes"])
+                                                                {
+                                                                    <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => DamagedProductPackageHelp["Yes"] = false)">
+                                                                        <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                                        @Loc["Back"]
+                                                                    </a>
+                                                                    <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; border-left: 3px solid red;">
+                                                                        <div class="card-body">
+                                                                            <strong>@Loc["NoOptionsFound"]</strong>
+                                                                            <p class="ms-3">@Loc["ContactOurCustomerServiceTeam"]</p>
+                                                                            <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f; width: 95%;border-color:transparent; border-radius: 5px;" @onclick="@(() => OnReachOutClicked(Loc["DamagedOrDefective"] + " " + Loc["and"] + " " + Loc["DamagedProductPackageHelp"], product))">
+                                                                                @Loc["ReachOut"]
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                }
+                                                                if (DamagedProductPackageHelp["No"])
+                                                                {
+                                                                    <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => DamagedProductPackageHelp["No"] = false)">
+                                                                        <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                                        @Loc["Back"]
+                                                                    </a>
+                                                                    <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; border-left: 3px solid red;">
+                                                                        <div class="card-body">
+                                                                            <strong>@Loc["NoOptionsFound"]</strong>
+                                                                            <p class="ms-3">@Loc["ContactOurCustomerServiceTeam"]</p>
+                                                                            <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f; width: 95%;border-color:transparent; border-radius: 5px;" @onclick="@(() => OnReachOutClicked(Loc["DamagedOrDefective"] + " " + Loc["AndNo"] + " " + Loc["DamagedProductPackageHelp"], product))">
+                                                                                @Loc["ReachOut"]
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                }
+
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            if (HelpContent["TrackPackage"])
+                                            {
+                                                <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => HelpContent["TrackPackage"] = false)">
+                                                    <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                    @Loc["Back"]
+                                                </a>
+                                                <div>
+                                                    <strong>@Loc["TrackShipping"]</strong>
+                                                </div>
+                                                if (order.HasShipped && order.Date.AddDays(order.ShippingTime) > DateTime.Now.AddDays(30))
+                                                {
+                                                    <div class="mb-2 mt-3">
+                                                        <p>
+                                                            @Loc["ItemWasDelivered"]
+                                                        </p>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="mb-2 mt-3">
+                                                        <p>
+                                                            @Loc["YouCanViewTrackingInfo"]
+                                                        </p>
+                                                    </div>
+                                                }
+                                                <div class="mt-4" style="text-align: center;">
+                                                    <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
+                                                                                                border-color:transparent; border-radius: 5px;" @onclick="OnTrackPackageClicked">
+                                                        @Loc["TrackPackage"]
+                                                    </button>
+                                                </div>
+                                            }
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
+    }
+</div>
+@code {
+
+    private ApplicationUser? ApplicationUser { get; set; }
+    private Dictionary<string, bool> show = new();
+
+    [Parameter]
+    public Product? product { get; set; }
+
+    [Parameter]
+    public Order? order { get; set; }
+
+    [Parameter]
+    public Dictionary<string, bool>? HelpContent { get; set; } = new();
+
+    [Parameter]
+    public Dictionary<string, bool>? MissingContentHelp { get; set; } = new();
+
+    [Parameter]
+    public Dictionary<string, bool>? DamagedPackageHelp { get; set; } = new();
+
+    [Parameter]
+    public Dictionary<string, bool>? DamagedProductPackageHelp { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    public string? OrderId { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? ProductId { get; set; }
+
+    private MethaWebsite.Components.ClientPages.ProductPages.ReturnPolicy returnPolicyPopUp;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
+        order = await context.Order.FirstOrDefaultAsync(o => o.Id == OrderId);
+        product = await context.Product.FirstOrDefaultAsync(p => p.Id == ProductId);
+        LayoutStateService.SetBackground("customer-service");
+        HelpContent["SaysDelivered"] = false;
+        HelpContent["DamagedOrDefective"] = false;
+        HelpContent["TrackPackage"] = false;
+        HelpContent["ShareDeliveryFeedback"] = false;
+        MissingContentHelp["EntirePackage"] = false;
+        MissingContentHelp["OneOrMoreItems"] = false;
+        DamagedPackageHelp["Yes"] = false;
+        DamagedPackageHelp["No"] = false;
+        DamagedProductPackageHelp["Yes"] = false;
+        DamagedProductPackageHelp["No"] = false;
+    }
+    private Payment GetPaymentMethod(string Id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var credit_debit_card = context.CreditDebitCard.FirstOrDefault(c => c.Id == Id);
+        if (credit_debit_card is not null)
+            return credit_debit_card;
+        else
+        {
+            var mpesa_payment = context.Mpesa.FirstOrDefault(m => m.Id == Id);
+            return mpesa_payment;
+        }
+    }
+    private void OnReturnPolicyClicked()
+    {
+        returnPolicyPopUp.Show();
+    }
+    private void OnTrackPackageClicked()
+    {
+        NavigationManager.NavigateTo($"/Account/Order/details/track?id={order.Id}");
+    }
+    private void OnReachOutClicked(string issue, Product product)
+    {
+        NavigationManager.NavigateTo($"/Account/CustomerService/Orders/Product/ContactUs?Issue={issue}&Id={product.Id}");
+    }
+}

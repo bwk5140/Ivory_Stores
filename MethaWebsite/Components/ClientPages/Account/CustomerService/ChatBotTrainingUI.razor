@@ -1,0 +1,50 @@
+﻿@page "/train-sentiment"
+@inject TrainingService TrainingService
+
+@rendermode InteractiveServer
+
+<div class="container-sm">
+    <div class="card">
+        <div class="card-header">
+            <h3>Train Sentiment Model</h3>
+        </div>
+        <div class="card-body">
+            <div>
+                <div class="form form-floating mb-2">
+                    <input @bind="UserText" placeholder="Enter a message..." />
+                    <button @onclick="() => SubmitFeedback(true)">👍 Positive</button>
+                    <button @onclick="() => SubmitFeedback(false)">👎 Negative</button>
+                </div>
+                @if (TrainingLog.Any())
+                {
+                    <h4>Training Log</h4>
+                    <ul>
+                        @foreach (var entry in TrainingLog)
+                        {
+                            <li>@entry.Text — @entry.Label</li>
+                        }
+                    </ul>
+                }
+                <button @onclick="RetrainModel">🔁 Retrain Model</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string UserText = "";
+    private List<(string Text, string Label)> TrainingLog = new();
+
+    private async Task SubmitFeedback(bool isPositive)
+    {
+        await TrainingService.AddTrainingExampleAsync(UserText, isPositive);
+        TrainingLog.Add((UserText, isPositive ? "Positive" : "Negative"));
+        UserText = "";
+    }
+
+    private async Task RetrainModel()
+    {
+        await TrainingService.RetrainModelAsync();
+        TrainingService.TrainAndSaveModels();
+    }
+}

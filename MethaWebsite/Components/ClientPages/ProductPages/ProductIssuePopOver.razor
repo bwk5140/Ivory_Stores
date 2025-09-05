@@ -1,0 +1,324 @@
+﻿@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@rendermode InteractiveServer
+
+<div class="container-lg" style="display: block; justify-content: center;">
+    @{
+        var showClass = IsVisible ? "d-block" : "d-none";
+    }
+    <div class="toast-container @showClass" data-bs-autohide="true" data-bs-delay="5000">
+        <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+             style="background-color: white; width: fit-content;">
+            <div class="toast-header">
+                <strong class="me-auto">@Loc["ReportIssue"]</strong>
+                <button type="button" class="btn-close" aria-label="Close" @onclick=" e=> IsVisible = false"></button>
+            </div>
+            <div class="toast-body">
+                @if (FormIssue)
+                {
+                    <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; border-left: 3px solid red;">
+                        <div class="card-body">
+                            <img src="info-circle.svg" />
+                            @Loc["ToSubmitPleaseAgreeWithAccurateInfo"]
+                        </div>
+                    </div>
+                }
+                @if (FormDetailsIssue)
+                {
+                    <div class="card mt-2 mb-2" style="border-color: red; max-width: 1200px; border-left: 3px solid red;">
+                        <div class="card-body">
+                            <img src="info-circle.svg" />
+                            @Loc["PleaseProvideDetails"]
+                        </div>
+                    </div>
+                }
+                
+                <EditForm method="post" Model="ProductIssue" OnValidSubmit="AddProductIssue" FormName="create" Enhance>
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" role="alert"/>
+                    <p>
+                        <strong>
+                            @Loc["TellUsAboutTheIssue"]
+                        </strong>
+                    </p>
+                    <p>
+                        <strong>
+                            @Loc["WhatsWrongWithPage"]
+                        </strong>
+                    </p>
+                    <InputSelect id="issue" @bind-Value="ProductIssue.Type" @bind-Value:after="@(()=>SetCurrentIssue(ProductIssue.Type))" class="form-select-sm mb-3">
+                        <option selected disabled value="">@Loc["Choose"]</option>
+                        @foreach (var issue in Issues)
+                        {
+                            <option value="@issue">@issue</option>
+                        }
+                    </InputSelect>
+                    <div>
+                        @if (!string.IsNullOrWhiteSpace(CurrentIssue) && IssuesSubIssuePairs[CurrentIssue] is not null)
+                        {
+                            <p>
+                                <strong>
+                                    @Titles[CurrentIssue]
+                                </strong>
+                            </p>
+                            <InputSelect id="subIssue" @bind-Value="ProductIssue.Description" @bind-Value:after="@(()=>SetCurrentSubIssue(ProductIssue.Description))" class="form-select-sm mb-3">
+                                <option selected disabled value="">@Loc["Choose"]</option>
+                                @if (!string.IsNullOrWhiteSpace(CurrentIssue) && IssuesSubIssuePairs[CurrentIssue] is not null)
+                                {
+                                    @foreach (var subIssue in IssuesSubIssuePairs[CurrentIssue])
+                                    {
+                                        <option value="@subIssue">@subIssue</option>
+                                    }
+                                }
+                                
+                            </InputSelect>
+                        }
+                    </div>
+                    <div>
+                        @if (!string.IsNullOrWhiteSpace(CurrentSubIssue) && SubIssuesSubSubIssuePairs[CurrentSubIssue] is not null)
+                        {
+                            <p>
+                                <strong>
+                                    @SubTitles[CurrentSubIssue]
+                                </strong>
+                            </p>
+                            <InputSelect id="SubIssue-subIssue" @bind-Value="ProductIssue.Details" class="form-select-sm mb-3">
+                                <option selected disabled value="">@Loc["Choose"]</option>
+                                @if (!string.IsNullOrWhiteSpace(CurrentSubIssue))
+                                {
+                                    @foreach (var sub_subIssue in SubIssuesSubSubIssuePairs[CurrentSubIssue])
+                                    {
+                                        <option value="@sub_subIssue">@sub_subIssue</option>
+                                    }
+                                }
+                            </InputSelect>
+                        }
+                    </div>
+
+                    @if ((!string.IsNullOrWhiteSpace(CurrentIssue) && !string.IsNullOrWhiteSpace(ProductIssue.Description) && string.IsNullOrWhiteSpace(ProductIssue.Details) && SubIssuesSubSubIssuePairs[CurrentSubIssue] is null)
+                                        || (!string.IsNullOrWhiteSpace(CurrentIssue) && !string.IsNullOrWhiteSpace(ProductIssue.Description) && !string.IsNullOrWhiteSpace(ProductIssue.Details)))
+                    {
+                        @if (CurrentIssue.Equals(Loc["IllegalOrSuspicious"]))
+                        {
+                            <div class="mb-3">
+                                <label for="accurateinfo" class="form-label">
+                                    <InputCheckbox id="accurateinfo" @bind-Value="AccurateInformation" @bind-Value:after="UpdateForm" class="form-check-input" />
+                                    @Loc["AccurateInfo"]
+                                </label>
+                            </div>
+                        }
+                        <p class="">
+                            @if (CurrentIssue.Equals(Loc["IllegalOrSuspicious"]))
+                            {
+                                <strong>
+                                    @Loc["Details"]
+                                </strong>
+                            }
+                            else
+                            {
+                                <strong>
+                                    @Loc["Comments(optional)"]
+                                </strong>
+                            }
+                        </p>
+                        <div class="form form-floating mb-3">
+                            <InputTextArea id="comments" @bind-Value="ProductIssue.Comments" class="form-control" />
+                        </div>
+                    }
+                    @if (CurrentIssue.Equals(Loc["ProblemWithMyOrder"]))
+                    {
+                        <div class="card mt-2 mb-2" style="border-color: blue; max-width: 1200px; border-left: 3px solid blue;">
+                            <div class="card-body">
+                                <img src="info-circle.svg" />
+                                <a href="Account/Orders" style="text-decoration: none;">
+                                    @Loc["HelpWithOrder"]
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    <div style="text-align: right;">
+                        <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f">
+                            @Loc["Submit"]
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    <div class="darker-background @showClass"></div>
+</div>
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; } = false;
+
+    [Parameter]
+    public ProductIssue? ProductIssue { get; set; } = new();
+    [Parameter]
+    public string? CurrentIssue { get; set; } = "";
+    [Parameter]
+    public string? CurrentSubIssue { get; set; } = "";
+
+    [Parameter]
+    public List<string>? Issues { get; set; } = new List<string>();
+    [Parameter]
+    public List<string>? MissingInformationIssues { get; set; } = new List<string>();
+    [Parameter]
+    public List<string>? OffensiveIssues { get; set; } = new List<string>();
+    [Parameter]
+    public List<string>? IllegalOrSuspiciousIssues { get; set; } = new List<string>();
+    [Parameter]
+    public List<string>? NonComplianceWithSafetyRegsIssues { get; set; } = new List<string>();
+    [Parameter]
+    public List<string>? IllegalReviewIssues { get; set; } = new List<string>();
+    [Parameter]
+    public List<string>? IllegalProductIssues { get; set; } = new List<string>();
+
+    [CascadingParameter]
+    private Product? product { get; set; }
+
+    private Dictionary<string, List<string>> IssuesSubIssuePairs = new();
+    private Dictionary<string, List<string>> SubIssuesSubSubIssuePairs = new();
+    private Dictionary<string, string> Titles = new();
+    private Dictionary<string, string> SubTitles = new();
+    private bool AccurateInformation = false;
+    private bool FormIssue = false;
+    private bool FormDetailsIssue = false;
+    protected override void OnInitialized()
+    {
+        Issues!.Add(Loc["ProblemWithMyOrder"]);
+        Issues!.Add(Loc["MissingInformation"]);
+        Titles[Loc["ProblemWithMyOrder"]] = null;
+        Titles[Loc["MissingInformation"]] = Loc["WhatsMissing"];
+        Titles[Loc["OffensiveContent"]] = Loc["WhatsOffensive"];
+        Titles[Loc["IllegalOrSuspicious"]] = Loc["WhatsTheIssue"];
+        Titles[Loc["Other"]] = null;
+        SubTitles[Loc["Images"]] = null;
+        SubTitles[Loc["SizeDimension"]] = null;
+        SubTitles[Loc["ReleaseInfo"]] = null;
+        SubTitles[Loc["Brand"]] = null;
+        SubTitles[Loc["SexuallyExplicit"]] = null;
+        SubTitles[Loc["Counterfeit"]] = null;
+        SubTitles[Loc["IntellectualProperty"]] = null;
+        SubTitles[Loc["NonComplianceWithSafetyRegs"]] = Loc["WhyIsntItCompliantOrSafe"];
+        SubTitles[Loc["IllegalReview"]] = Loc["WheresTheIssue"];
+        SubTitles[Loc["IllegalProduct"]] = Loc["WhatsIllegal"];
+        SubTitles[Loc["Other"]] = null;
+
+        MissingInformationIssues!.Add(Loc["Images"]);
+        MissingInformationIssues!.Add(Loc["SizeDimension"]);
+        MissingInformationIssues!.Add(Loc["ReleaseInfo"]);
+        MissingInformationIssues!.Add(Loc["Brand"]);
+        MissingInformationIssues!.Add(Loc["Other"]);
+        Issues!.Add(Loc["OffensiveContent"]);
+        OffensiveIssues!.Add(Loc["SexuallyExplicit"]);
+        OffensiveIssues!.Add(Loc["Other"]);
+        Issues!.Add(Loc["IllegalOrSuspicious"]);
+        IllegalOrSuspiciousIssues!.Add(Loc["Counterfeit"]);
+        IllegalOrSuspiciousIssues!.Add(Loc["IntellectualProperty"]);
+        IllegalOrSuspiciousIssues!.Add(Loc["NonComplianceWithSafetyRegs"]);
+        IllegalOrSuspiciousIssues!.Add(Loc["IllegalReview"]);
+        IllegalOrSuspiciousIssues!.Add(Loc["IllegalProduct"]);
+        NonComplianceWithSafetyRegsIssues!.Add(Loc["InformationShowingNotSafe"]);
+        NonComplianceWithSafetyRegsIssues!.Add(Loc["InstructionsForUse"]);
+        NonComplianceWithSafetyRegsIssues!.Add(Loc["ContactDetails"]);
+        NonComplianceWithSafetyRegsIssues!.Add(Loc["Other"]);
+        IllegalReviewIssues!.Add(Loc["FakeIllegalReview"]);
+        IllegalReviewIssues!.Add(Loc["IllegalProfileInfo"]);
+        IllegalProductIssues!.Add(Loc["ProhibitedMaterialsOrSubstances"]);
+        IllegalProductIssues!.Add(Loc["ImageDescriptionContainsIllegal"]);
+        IllegalProductIssues!.Add(Loc["Other"]);
+        Issues!.Add(Loc["Other"]);
+        IssuesSubIssuePairs[Loc["ProblemWithMyOrder"]] = null;
+        IssuesSubIssuePairs[Loc["MissingInformation"]] = new List<string>();
+        IssuesSubIssuePairs[Loc["MissingInformation"]].AddRange(MissingInformationIssues);
+        IssuesSubIssuePairs[Loc["OffensiveContent"]] = new List<string>();
+        IssuesSubIssuePairs[Loc["OffensiveContent"]].AddRange(OffensiveIssues);
+        IssuesSubIssuePairs[Loc["IllegalOrSuspicious"]] = new List<string>();
+        IssuesSubIssuePairs[Loc["IllegalOrSuspicious"]].AddRange(IllegalOrSuspiciousIssues);
+        SubIssuesSubSubIssuePairs[Loc["Images"]] = null;
+        SubIssuesSubSubIssuePairs[Loc["SizeDimension"]] = null;
+        SubIssuesSubSubIssuePairs[Loc["ReleaseInfo"]] = null;
+        SubIssuesSubSubIssuePairs[Loc["Brand"]] = null;
+        SubIssuesSubSubIssuePairs[Loc["SexuallyExplicit"]] = null;
+        SubIssuesSubSubIssuePairs[Loc["Counterfeit"]] = null;
+        SubIssuesSubSubIssuePairs[Loc["IntellectualProperty"]] = null;
+        SubIssuesSubSubIssuePairs[Loc["NonComplianceWithSafetyRegs"]] = new List<string>();
+        SubIssuesSubSubIssuePairs[Loc["NonComplianceWithSafetyRegs"]].AddRange(NonComplianceWithSafetyRegsIssues);
+        SubIssuesSubSubIssuePairs[Loc["IllegalReview"]] = new List<string>();
+        SubIssuesSubSubIssuePairs[Loc["IllegalReview"]].AddRange(IllegalReviewIssues);
+        SubIssuesSubSubIssuePairs[Loc["IllegalProduct"]] = new List<string>();
+        SubIssuesSubSubIssuePairs[Loc["IllegalProduct"]].AddRange(IllegalProductIssues);
+        SubIssuesSubSubIssuePairs[Loc["Other"]] = null;
+        IssuesSubIssuePairs[Loc["Other"]] = null;
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        CurrentSubIssue = "";
+        ProductIssue.Description = "";
+        ProductIssue.Details = "";
+        StateHasChanged();
+    }
+    private void SetCurrentIssue(string issue)
+    {
+        CurrentIssue = issue;
+        CurrentSubIssue = "";
+        ProductIssue.Description = "";
+        ProductIssue.Details = "";
+        StateHasChanged();
+    }
+    private void SetCurrentSubIssue(string issue)
+    {
+        CurrentSubIssue = issue;
+        ProductIssue.Details = "";
+        StateHasChanged();
+    }
+    private async Task AddProductIssue()
+    {
+        if (CurrentIssue.Equals(Loc["IllegalOrSuspicious"]))
+        {
+            if (!AccurateInformation)
+            {
+                FormIssue = true;
+                StateHasChanged();
+                return;
+            }
+            else if (string.IsNullOrWhiteSpace(ProductIssue.Comments))
+            {
+                FormDetailsIssue = true;
+                StateHasChanged();
+                return;
+            }
+            else
+            {
+                FormDetailsIssue = false;
+                using var context = DbFactory.CreateDbContext();
+                context.ProductIssue.Add(ProductIssue);
+                await context.SaveChangesAsync();
+                ProductIssue = new();
+                Close();
+            }
+        }
+        else
+        {
+            using var context = DbFactory.CreateDbContext();
+            context.ProductIssue.Add(ProductIssue);
+            await context.SaveChangesAsync();
+            ProductIssue = new();
+            Close();
+        }
+    }
+    private void UpdateForm()
+    {
+        if (AccurateInformation)
+            FormIssue = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,226 @@
+[
+  {
+    "Name": "City",
+    "Type": "City",
+    "Required": true
+  },
+  {
+    "Name": "CorrectionCity",
+    "Type": "CorrectionCity",
+    "Required": false
+  },
+  {
+    "Name": "TimeZoneId",
+    "Type": "TimeZone",
+    "Required": false
+  },
+  {
+    "Name": "Yes",
+    "Type": "Confirmation",
+    "Required": false,
+    "Regex": "(?i)\\b(?:yes|yep|yeah|yup|sure|absolutely|definitely|of\\s+course|certainly|ok(?:ay)?|sounds\\s+good|i(?:'d| would)?\\s+love\\s+to|why\\s+not|affirmative|you\\s+bet|for\\s+sure|gladly|please\\s+do|go\\s+ahead|i(?:'m| am)?\\s+in|count\\s+me\\s+in|👍|y|sure\\s+thing|by\\s+all\\s+means|that(?:'s| is)?\\s+fine|that(?:'s| is)?\\s+okay|i\\s+agree|i\\s+accept|i(?:'ll| will)?\\s+do\\s+it|sounds\\s+great|sounds\\s+perfect|sounds\\s+like\\s+a\\s+plan)\\b"
+  },
+  {
+    "Name": "No",
+    "Type": "Confirmation",
+    "Required": false,
+    "Regex": "(?i)\\b(?:no|nope|nah|not\\s+really|not\\s+now|not\\s+interested|i(?:'m| am)?\\s+(?:not\\s+)?(?:interested|sure|ready)|don(?:'t| not)\\s+(?:want|feel\\s+like|think\\s+so)|never|👎|n|no\\s+thanks|rather\\s+not|i\\s+don(?:'t| not)\\s+think\\s+so|i\\s+prefer\\s+not\\s+to|maybe\\s+later|not\\s+today|not\\s+at\\s+this\\s+time|i\\s+have\\s+to\\s+decline|i\\s+can(?:'t|not))\\b"
+  },
+  {
+    "Name": "UserName",
+    "Type": "UserName",
+    "Required": false
+  },
+  {
+    "Name": "Morning",
+    "Type": "TimeOfDay",
+    "Required": false
+  },
+  {
+    "Name": "Afternoon",
+    "Type": "TimeOfDay",
+    "Required": false
+  },
+  {
+    "Name": "Evening",
+    "Type": "TimeOfDay",
+    "Required": false
+  },
+  {
+    "Name": "GreetingType",
+    "Type": "GreetingType",
+    "Required": false
+  },
+  {
+    "Name": "WellnessCheckType",
+    "Type": "WellnessCheckType",
+    "Required": false
+  },
+  {
+    "Name": "Gratitude",
+    "Type": "Gratitude",
+    "Required": false,
+    "Regex": "(?i)\\b(thanks?(?:\\s+(a\\s+lot|so\\s+much|a\\s+ton|a\\s+bunch|again|heaps|millions?|very\\s+much|for\\s+(everything|your\\s+(help|support|time|assistance|info|update|response|effort))))?|thank\\s+you(?:\\s+(so\\s+much|very\\s+much|kindly|again|for\\s+(everything|your\\s+(help|support|time|assistance|info|update|response|effort))))?|cheers|ta|much\\s+appreciated|really\\s+appreciate\\s+(it|that)|i\\s+(truly|really|deeply|sincerely)?\\s*appreciate\\s+(it|that|your\\s+(help|support|time|effort)))\\b"
+  },
+  {
+    "Name": "FillerResponse",
+    "Type": "FillerResponse",
+    "Required": false
+  },
+  {
+    "Name": "CreateAccount",
+    "Type": "CreateAccount",
+    "Required": false
+  },
+  {
+    "Name": "Link",
+    "Type": "Link",
+    "Required": false
+  },
+  {
+    "Name": "ManageAccount",
+    "Type": "ManageAccount",
+    "Required": false
+  },
+  {
+    "Name": "AccountTrouble",
+    "Type": "AccountTrouble",
+    "Required": false
+  },
+  {
+    "Name": "BlockedAccount",
+    "Type": "BlockedAccount",
+    "Required": false
+  },
+  {
+    "Name": "OrderStatus",
+    "Type": "OrderStatus",
+    "Required": false
+  },
+  {
+    "Name": "UserResponse",
+    "Type": "UserResponse",
+    "Required": false,
+    "Regex": "\\b(?:i\\s*)?(?:do\\s*not|don['’]t|dont|did\\s*not|didn['’]t|didnt|have\\s*not|haven['’]t|havent|no|missing|lost|forgot|forget|can(?:no|')t|cant|unable|don['’]t\\s*know|dont\\s*know|idk)\\s*(?:have|get|find|locate|remember|know)?\\s*(?:one|it|anything|any|that)?(?:\\s+\\w+){0,4}?\\s*(?:order\\s*(?:number|id)|tracking\\s*number|confirmation\\s*(?:code|number)|reference\\s*(?:number|code)|delivery\\s*code|package\\s*id)?\\b"
+  },
+  {
+    "Name": "OrderId",
+    "Type": "OrderId",
+    "Required": true,
+    "Regex": "(?i)\\b(?:#?\\d{4,10}|ORD[-_]?\\d{4,10}|ORDER[-_]?\\d{4,10}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\\b"
+  },
+  {
+    "Name": "ChangeContactDetails",
+    "Type": "ChangeContactDetails",
+    "Required": false
+  },
+  {
+    "Name": "Email",
+    "Type": "Email",
+    "Required": false
+  },
+  {
+    "Name": "EmailMatch",
+    "Type": "MatchingEmail",
+    "Required": false
+  },
+  {
+    "Name": "Phone",
+    "Type": "Phone",
+    "Required": false
+  },
+  {
+    "Name": "PhoneMatch",
+    "Type": "MatchingPhone",
+    "Required": false
+  },
+  {
+    "Name": "ConfirmContactDetails",
+    "Type": "ConfirmContactDetails",
+    "Required": false
+  },
+  {
+    "Name": "ConfirmAddresses",
+    "Type": "ConfirmAddresses",
+    "Required": false
+  },
+  {
+    "Name": "Address",
+    "Type": "Address",
+    "Required": false
+  },
+  {
+    "Name": "NewAddress",
+    "Type": "NewAddress",
+    "Required": false,
+    "OnFill": "updateAddressHandler"
+  },
+  {
+    "Name": "UpdateAddress",
+    "Type": "UpdateAddress",
+    "Required": false
+  },
+  {
+    "Name": "address_confirmation_yes",
+    "Type": "Confirmation",
+    "Required": false,
+    "Regex": "(?i)\\b(?:yes|yep|yeah|yup|sure|absolutely|definitely|of\\s+course|certainly|ok(?:ay)?|sounds\\s+good|i(?:'d| would)?\\s+love\\s+to|why\\s+not|affirmative|you\\s+bet|for\\s+sure|gladly|please\\s+do|go\\s+ahead|i(?:'m| am)?\\s+in|count\\s+me\\s+in|👍|y|sure\\s+thing|by\\s+all\\s+means|that(?:'s| is)?\\s+fine|that(?:'s| is)?\\s+okay|i\\s+agree|i\\s+accept|i(?:'ll| will)?\\s+do\\s+it|sounds\\s+great|sounds\\s+perfect|sounds\\s+like\\s+a\\s+plan)\\b"
+  },
+  {
+    "Name": "address_confirmation_no",
+    "Type": "Confirmation",
+    "Required": false,
+    "Regex": "(?i)\\b(?:no|nope|nah|not\\s+really|not\\s+now|not\\s+interested|i(?:'m| am)?\\s+(?:not\\s+)?(?:interested|sure|ready)|don(?:'t| not)\\s+(?:want|feel\\s+like|think\\s+so)|never|👎|n|no\\s+thanks|rather\\s+not|i\\s+don(?:'t| not)\\s+think\\s+so|i\\s+prefer\\s+not\\s+to|maybe\\s+later|not\\s+today|not\\s+at\\s+this\\s+time|i\\s+have\\s+to\\s+decline|i\\s+can(?:'t|not))\\b"
+  },
+  {
+    "Name": "update_address_confirmation_yes",
+    "Type": "Confirmation",
+    "Required": false,
+    "Regex": "(?i)\\b(?:yes|yep|yeah|yup|sure|absolutely|definitely|of\\s+course|certainly|ok(?:ay)?|sounds\\s+good|i(?:'d| would)?\\s+love\\s+to|why\\s+not|affirmative|you\\s+bet|for\\s+sure|gladly|please\\s+do|go\\s+ahead|i(?:'m| am)?\\s+in|count\\s+me\\s+in|👍|y|sure\\s+thing|by\\s+all\\s+means|that(?:'s| is)?\\s+fine|that(?:'s| is)?\\s+okay|i\\s+agree|i\\s+accept|i(?:'ll| will)?\\s+do\\s+it|sounds\\s+great|sounds\\s+perfect|sounds\\s+like\\s+a\\s+plan)\\b",
+    "OnFill": "updateAddressHandler"
+  },
+  {
+    "Name": "update_address_confirmation_no",
+    "Type": "Confirmation",
+    "Required": false,
+    "Regex": "(?i)\\b(?:no|nope|nah|not\\s+really|not\\s+now|not\\s+interested|i(?:'m| am)?\\s+(?:not\\s+)?(?:interested|sure|ready)|don(?:'t| not)\\s+(?:want|feel\\s+like|think\\s+so)|never|👎|n|no\\s+thanks|rather\\s+not|i\\s+don(?:'t| not)\\s+think\\s+so|i\\s+prefer\\s+not\\s+to|maybe\\s+later|not\\s+today|not\\s+at\\s+this\\s+time|i\\s+have\\s+to\\s+decline|i\\s+can(?:'t|not))\\b"
+  },
+  {
+    "Name": "add_address_confirmation_yes",
+    "Type": "Confirmation",
+    "Required": false,
+    "Regex": "(?i)\\b(?:yes|yep|yeah|yup|sure|absolutely|definitely|of\\s+course|certainly|ok(?:ay)?|sounds\\s+good|i(?:'d| would)?\\s+love\\s+to|why\\s+not|affirmative|you\\s+bet|for\\s+sure|gladly|please\\s+do|go\\s+ahead|i(?:'m| am)?\\s+in|count\\s+me\\s+in|👍|y|sure\\s+thing|by\\s+all\\s+means|that(?:'s| is)?\\s+fine|that(?:'s| is)?\\s+okay|i\\s+agree|i\\s+accept|i(?:'ll| will)?\\s+do\\s+it|sounds\\s+great|sounds\\s+perfect|sounds\\s+like\\s+a\\s+plan)\\b",
+    "OnFill": "addAddressHandler"
+  },
+  {
+    "Name": "add_address_confirmation_no",
+    "Type": "Confirmation",
+    "Required": false,
+    "Regex": "(?i)\\b(?:no|nope|nah|not\\s+really|not\\s+now|not\\s+interested|i(?:'m| am)?\\s+(?:not\\s+)?(?:interested|sure|ready)|don(?:'t| not)\\s+(?:want|feel\\s+like|think\\s+so)|never|👎|n|no\\s+thanks|rather\\s+not|i\\s+don(?:'t| not)\\s+think\\s+so|i\\s+prefer\\s+not\\s+to|maybe\\s+later|not\\s+today|not\\s+at\\s+this\\s+time|i\\s+have\\s+to\\s+decline|i\\s+can(?:'t|not))\\b"
+  },
+  {
+    "Name": "StandardShippingCost",
+    "Type": "StandardShippingCost",
+    "Required": false
+  },
+  {
+    "Name": "FastShippingCost",
+    "Type": "FastShippingCost",
+    "Required": false
+  },
+  {
+    "Name": "Amount",
+    "Type": "CurrencyValue",
+    "Required": true
+  },
+  {
+    "Name": "FromCurrency",
+    "Type": "CurrencyCode",
+    "Required": true
+  },
+  {
+    "Name": "ToCurrency",
+    "Type": "CurrencyCode",
+    "Required": true
+  }
+]

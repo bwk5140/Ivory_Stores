@@ -18,8 +18,7 @@
     @{
         var showClass = IsVisible ? "d-block" : "d-none";
     }
-    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
-         style="top: 35%;">
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000">
         <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
              style="background-color: white;">
             <div class="toast-header">
@@ -73,32 +72,28 @@
     public bool CreateIssue { get; set; } = false;
 
     [Parameter]
-    public EventCallback<SaveChangesEventArgs> OnAddToList { get; set; }
-    [Parameter]
-    public EventCallback<SaveChangesEventArgs> OnCloseAddToList { get; set; }
+    public EventCallback<ProductList> OnAddToList { get; set; }
 
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddProductList()
     {
         using var context = DbFactory.CreateDbContext();
-        if (context.ProductList.FirstOrDefault(l => l.Name == ProductList.Name) == null)
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
+        var existingList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == ProductList.Name && l.UserId == ApplicationUser.Id);
+        if (existingList == null)
         {
             CreateIssue = false;
             ProductList.Private = true;
-            
-            ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
             ProductList.UserId = ApplicationUser.Id;
             context.ProductList.Add(ProductList);
             await context.SaveChangesAsync();
-            await OnAddToList.InvokeAsync();
+            await OnAddToList.InvokeAsync(ProductList);
             Close();
         }
         else
         {
             CreateIssue = true;
         }
-
-
     }
     public void Show()
     {
@@ -108,7 +103,6 @@
 
     private async Task Close()
     {
-        await OnCloseAddToList.InvokeAsync();
         IsVisible = false;
         StateHasChanged();
     }

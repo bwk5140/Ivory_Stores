@@ -1,0 +1,27 @@
+﻿@if (IsNextCompleted)
+{
+    <div class="step-container">
+        <input type="checkbox" @bind="IsCompleted" style="accent-color: #277a7a;" />
+        <label class="ms-2">@StepName</label>
+    </div>
+}
+else
+{
+    <div class="step-container-grayed-out">
+        <input type="checkbox" @bind="IsCompleted" style="accent-color: #277a7a;" />
+        @if (IsCompleted)
+        {
+            <label class="ms-2">@StepName</label>
+        }
+        else
+        {
+            <label class="ms-2" style="color: gray;">@StepName</label>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string StepName { get; set; } = string.Empty;
+    [Parameter] public bool IsCompleted { get; set; }
+    [Parameter] public bool IsNextCompleted { get; set; }
+}

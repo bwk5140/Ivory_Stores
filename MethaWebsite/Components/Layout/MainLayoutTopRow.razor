@@ -29,10 +29,11 @@
     !NavigationManager.Uri.Contains("EmailConfirmation") && !NavigationManager.Uri.Contains("Forgot")&& 
     !NavigationManager.Uri.Contains("Checkout") && !NavigationManager.Uri.Contains("OrderComplete")&& 
     !NavigationManager.Uri.Contains("OrderAbandoned") && !currentUrl!.Contains("checkout")&& 
+    !NavigationManager.Uri.Contains("2FAVerification") &&
     !currentUrl!.Contains("invoice")) || NavigationManager.Uri.Contains("ExternalLogins"))
 {
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark top-row">
-        <a class="navbar-brand ms-2" href="/">@Loc["CompanyLogo"]</a>
+        <a class="navbar-brand ms-2" style="padding: 0px;" href="/"><img src="CompanyLogo.png" width="80" height="50" /></a>
         <div class="container-fluid">
             <div class="input-group input-group-sm">
 
@@ -145,7 +146,7 @@
                                                     <a style="text-decoration: none; font-size: small; color: black;" href="/Account/Orders">@Loc["Orders"]</a>
                                                 </div>
                                                 <div>
-                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["CustomerService"]</a>
+                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/Account/CustomerService">@Loc["CustomerService"]</a>
                                                 </div>
                                             </td>
                                         </tr>
@@ -192,16 +193,28 @@
                                                 }
                                                 @if (ProductLists is not null)
                                                 {
-                                                    @foreach (var list in ProductLists)
+                                                    if (ProductLists.Count > 1)
                                                     {
-                                                        <div>
-                                                            <a style="text-decoration: none; font-size: small; color: black;" href="@($"/wishlist/details?id={list.Id}")">
-                                                                @list.Name
-                                                            </a>
-                                                        </div>
+                                                        @foreach (var list in ProductLists)
+                                                        {
+                                                            <div>
+                                                                <a style="text-decoration: none; font-size: small; color: black;" href="@($"/wishlist/details?id={list.Id}")">
+                                                                    @list.Name
+                                                                </a>
+                                                            </div>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if (ProductLists.Count > 0)
+                                                        {
+                                                            <button type="submit" class="btn btn-sm" style="background-color: transparent; width: fit-content; padding: 0px;"
+                                                                    @onclick="OnListClicked">
+                                                                @ProductLists.First().Name
+                                                            </button>
+                                                        } 
                                                     }
                                                 }
-                                                
                                                 <hr class="dropdown-divider">
                                                 <button type="submit" class="btn btn-sm" style="background-color: transparent; width: fit-content; padding: 0px;"
                                                             @onclick="OnCreateListClicked">
@@ -224,7 +237,7 @@
                                                     <a style="text-decoration: none; font-size: small; color: black;" href="/Account/Orders">@Loc["Orders"]</a>
                                                 </div>
                                                 <div>
-                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/AccountSettings">@Loc["CustomerService"]</a>
+                                                    <a style="text-decoration: none; font-size: small; color: black;" href="/Account/CustomerService">@Loc["CustomerService"]</a>
                                                 </div>
                                             </td>
                                         </tr>
@@ -264,27 +277,43 @@
                     <li class="nav-item me-2">
                         <button class="btn btn-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasWithBothOptions" 
                             aria-controls="offcanvasWithBothOptions" style="background-color: transparent; border: none;"
-                                @onclick="e => showOffCanvas = !showOffCanvas">
+                                @onclick="e => showOffCanvas = true">
                             <img src="list.svg" alt="OffCanvasMenu" />
+                            @Loc["All"]
                         </button>
                     </li>
                     <li class="nav-item me-2">
                         <a class="nav-link" href="/Account/Products" style="color: white; font-size: medium;">@Loc["DealsAndDiscounts"]</a>
                     </li>
                     <li class="nav-item me-2">
-                        <a class="nav-link" href="#" style="color: white; font-size: medium;">@Loc["Cosmetics"]</a>
+                        <NavLink class="nav-link" @onclick="@(() => Search(Loc["Pants"]))" Match="NavLinkMatch.All"
+                            style="color: white; cursor: pointer;">
+                            @Loc["Pants"]
+                        </NavLink>
                     </li>
                     <li class="nav-item me-2">
-                        <a class="nav-link" href="#" style="color: white; font-size: medium;">@Loc["Shirts"]</a>
+                        <NavLink class="nav-link" @onclick="@(() => Search(Loc["Shirts"]))" Match="NavLinkMatch.All"
+                                 style="color: white; cursor: pointer;">
+                            @Loc["Shirts"]
+                        </NavLink>
                     </li>
                     <li class="nav-item me-2">
-                        <a class="nav-link" href="#" style="color: white; font-size: medium;">@Loc["Shoes"]</a>
+                        <NavLink class="nav-link" @onclick="@(() => Search(Loc["Shoes"]))" Match="NavLinkMatch.All"
+                                 style="color: white; cursor: pointer;">
+                            @Loc["Shoes"]
+                        </NavLink>
                     </li>
                     <li class="nav-item me-2">
-                        <a class="nav-link" href="#" style="color: white; font-size: medium;">@Loc["MatchingOutfits"]</a>
+                        <NavLink class="nav-link" @onclick="@(() => Search(Loc["Jeans"]))" Match="NavLinkMatch.All"
+                                 style="color: white; cursor: pointer;">
+                            @Loc["Jeans"]
+                        </NavLink>
                     </li>
                     <li class="nav-item me-2">
-                        <a class="nav-link" href="#" style="color: white; font-size: medium;">@Loc["PersonalRecommendations"]</a>
+                        <NavLink class="nav-link" @onclick="@(() => Search(Loc["MatchingOutfits"]))" Match="NavLinkMatch.All"
+                                 style="color: white; cursor: pointer;">
+                            @Loc["MatchingOutfits"]
+                        </NavLink>
                     </li>
                 </ul>
             </div>
@@ -292,12 +321,98 @@
     </nav>
     var showOffCanvasClass = showOffCanvas ? "d-block" : "d-none";
     <div class="offcanvas offcanvas-start @showOffCanvasClass" data-bs-scroll="true" tabindex="-1" id="offcanvasWithBothOptions" aria-labelledby="offcanvasWithBothOptionsLabel">
-        <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">Backdrop with scrolling</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close" @onclick="e => showOffCanvas = !showOffCanvas"></button>
+        <div class="offcanvas-header" style="background-color: #2f4f4f; color: white;">
+            @if (ApplicationUser is not null)
+            {
+                <NavLink class="nav-link" href="/AccountSettings" Match="NavLinkMatch.All">
+                    <h5 class="offcanvas-title ms-4" id="offcanvasWithBothOptionsLabel">
+                        <img class="me-2" src="person-circle-white.svg" style="color: white;" />
+                        @Loc["Hello"],
+                        @Username
+                    </h5>
+                </NavLink>
+            }
+            else
+            {
+                <NavLink class="nav-link" @onclick="OnSignInClicked" Match="NavLinkMatch.All" style="cursor: pointer;">
+                    <h5 class="offcanvas-title ms-4" id="offcanvasWithBothOptionsLabel" @onclick="e => showOffCanvas = false">
+                        <img class="me-2" src="person-circle-white.svg" style="color: white;" />
+                        @Loc["Hello"],
+                        @Loc["Login"]
+                    </h5>
+                </NavLink>
+            }
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close" @onclick="e => showOffCanvas = false"></button>
         </div>
-        <div class="offcanvas-body">
-            <p>All Departments</p>
+        <div class="offcanvas-body ms-4">
+            <h5>@Loc["Trending"]</h5>
+            <div class="mb-3 mt-3">
+                <NavLink class="nav-link-custom" href="/AccountSettings" Match="NavLinkMatch.All">
+                    @Loc["BestSelling"]
+                </NavLink>
+            </div>
+            <div class="mb-3 mt-3">
+                <NavLink class="nav-link-custom" href="/AccountSettings" Match="NavLinkMatch.All">
+                    @Loc["NewlyReleased"]
+                </NavLink>
+            </div>
+            <hr/>
+            <h5>@Loc["Categories"]</h5>
+            <div class="mb-3 mt-3">
+                <NavLink class="nav-link-custom" @onclick="@(() => Search(Loc["Shoes"]))" Match="NavLinkMatch.All">
+                    @Loc["Shoes"]
+                </NavLink>
+            </div>
+            <div class="mb-3 mt-3">
+                <NavLink class="nav-link-custom" @onclick="@(() => Search(Loc["Sandals"]))" Match="NavLinkMatch.All">
+                    @Loc["Sandals"]
+                </NavLink>
+            </div>
+            <div class="mb-3 mt-3">
+                <NavLink class="nav-link-custom" @onclick="@(() => Search(Loc["Shirts"]))" Match="NavLinkMatch.All">
+                    @Loc["Shirts"]
+                </NavLink>
+            </div>
+            <div class="mb-3 mt-3">
+                <NavLink class="nav-link-custom" @onclick="@(() => Search(Loc["Jackets"]))" Match="NavLinkMatch.All">
+                    @Loc["Jackets"]
+                </NavLink>
+            </div>
+            <div class="mb-3 mt-3">
+                <NavLink class="nav-link-custom" @onclick="@(() => Search(Loc["Pants"]))" Match="NavLinkMatch.All">
+                    @Loc["Pants"]
+                </NavLink>
+            </div>
+            <div class="mb-3 mt-3">
+                <NavLink class="nav-link-custom" @onclick="@(() => Search(Loc["Jeans"]))" Match="NavLinkMatch.All">
+                    @Loc["Jeans"]
+                </NavLink>
+            </div>
+            <hr/>
+            <h5>@Loc["HelpAndSettings"]</h5>
+            <div class="mb-3 mt-3">
+                <NavLink class="nav-link-custom" href="/AccountSettings" Match="NavLinkMatch.All">
+                    @Loc["YourAccount"]
+                </NavLink>
+            </div>
+            <div class="mb-3 mt-3">
+                @if (ApplicationUser is not null)
+                {
+                    <form action="Account/Logout" method="post">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                        <button type="submit" class="btn btn-sm" style="background-color: transparent; width: fit-content; padding: 0px; font-size: medium;">
+                            @Loc["Logout"]
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <button class="btn btn-link" @onclick=OnSignInClicked style="text-decoration: none; color:black; padding: 0px; font-size: medium;">
+                        @Loc["Login"]
+                    </button>
+                }
+            </div>
         </div>
     </div>
 
@@ -379,7 +494,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-
         selectedCulture = CultureInfo.CurrentCulture;
         currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
         NavigationManager.LocationChanged += OnLocationChanged;
@@ -413,6 +527,7 @@
             }
         }
     }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender && ApplicationUser is null)
@@ -449,11 +564,20 @@
 
     private void Search()
     {
+        if (currentUrl.Contains("searchresults"))
+            NavigationManager.NavigateTo($"searchresults?search={search}&filter={filter}&render={true}");
+        else
+        {
+            NavigationManager.NavigateTo($"searchresults?search={search}&filter={filter}&render={false}");
+        }
+    }
+    private void Search(string search)
+    {
         NavigationManager.NavigateTo($"searchresults?search={search}", true);
     }
     private void OnSignInClicked()
     {
-        NavigationManager.NavigateTo("Account/Login");
+        NavigationManager.NavigateTo("Account/Login", true);
     }
     private void SetChecked(CultureInfo culture)
     {
@@ -503,6 +627,10 @@
     private void OnCreateListClicked()
     {
         NavigationManager.NavigateTo($"/wishlist/details/default?create={true}", true);
+    }
+    private void OnListClicked()
+    {
+        NavigationManager.NavigateTo($"/wishlist/details/default");
     }
     private void OnReturnsAndOrdersClicked()
     {

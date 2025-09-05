@@ -31,6 +31,8 @@
     <script src="pdfInterop.js"></script>
     <script src="LocalStorageHelper.js"></script>
     <script src="scrollToSection.js"></script>
+    <script src="chat.js"></script>
+    <script src="auth.js"></script>
     <script>
         let fileHandle;
         let count = 0;
@@ -70,7 +72,30 @@
           }
         });
     </script>
+    <script>
+        window.getAnonId = function () {
+            let id = localStorage.getItem('anon_id');
+            if (!id) {
+                id = crypto.randomUUID();
+                localStorage.setItem('anon_id', id);
+            }
+            return id;
+        };
+    </script>
+    <script>
+        window.getDeviceId = function () {
+            let id = localStorage.getItem("device_id");
+            if (!id) {
+                id = crypto.randomUUID();
+                localStorage.setItem("device_id", id);
+            }
+            return id;
+        };
 
+        window.isFirstVisit = function () {
+            return localStorage.getItem("device_id") === null;
+        };
+    </script>
 </body>
 
 </html>

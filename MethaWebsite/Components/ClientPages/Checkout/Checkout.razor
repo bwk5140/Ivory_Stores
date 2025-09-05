@@ -35,12 +35,11 @@
 <PageTitle>Index</PageTitle>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark top-row">
-    <a class="navbar-brand ms-2" href="/">@Loc["CompanyLogo"]</a>
+    <a class="navbar-brand ms-2" href="/"><img src="CompanyLogo.png" width="80" height="50" /></a>
     <div class="container-fluid" style="display: flex; justify-content:center;">
         <h4>@Loc["Checkout"]</h4>
     </div>
 </nav>
-
 
 <div class="container-xxl mt-5 mb-5">
     @if (ShippingAddressProblem)
@@ -105,7 +104,7 @@
                 {
                     @if (Addresses is not null)
                     {
-                        <div class="card" style="padding: 20px; overflow-y: scroll; width: fit-content;">
+                        <div class="card" style="padding: 20px; overflow-y: scroll; width: 100%;">
                             <div class="card-header" style="border: none; background-color: transparent;">
                                 <h5>@Loc["SelectDeliveryAddress"]</h5>
                                 <hr />
@@ -125,10 +124,20 @@
                                         </div>
                                     </InputRadioGroup>
                                 }
-                                <button type="submit" class="btn btn-primary mt-4" style="background-color: #2f4f4f;
-                                                                                                    border-color:transparent; border-radius: 15px;" @onclick="OnSave">
-                                    @Loc["DeliverToThisAddress"]
-                                </button>
+                                @if (!string.IsNullOrWhiteSpace(CheckoutService.ShipTo))
+                                {
+                                    <button type="submit" class="btn btn-primary mt-4" style="background-color: #2f4f4f;
+                                                                                                                    border-color:transparent; border-radius: 15px;" @onclick="OnSave">
+                                        @Loc["DeliverToThisAddress"]
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="submit" disabled class="btn btn-primary mt-4" style="background-color: #2f4f4f;
+                                                                                                                    border-color:transparent; border-radius: 15px;" @onclick="OnSave">
+                                        @Loc["DeliverToThisAddress"]
+                                    </button>
+                                }
                                 <div>
                                     <button type="button" class="btn btn-link mt-4" style="padding: 0px; text-decoration:none;" @onclick="OnAddNewDeliveryAddress">
                                         @Loc["AddNewShippingAddress"]
@@ -142,23 +151,71 @@
             }
             else
             {
-                <div class="card">
-                    <div class="card-body">
-                        <button type="submit" class="btn btn-primary mt-4" style="background-color: #2f4f4f;border-color:transparent; border-radius: 15px;" @onclick="OnAddNewDeliveryAddress">
-                            @Loc["AddNewShippingAddress"]
-                        </button>
+                @if (Addresses is not null && Addresses.Any())
+                {
+                    <div class="card" style="padding: 20px; overflow-y: scroll; width: 100%;">
+                        <div class="card-header" style="border: none; background-color: transparent;">
+                            <h5>@Loc["SelectDeliveryAddress"]</h5>
+                            <hr />
+                            <h6>@Loc["DeliveryAddresses"] (@Addresses.Count())</h6>
+                        </div>
+                        <div class="card-body" style="width: fit-content;">
+                            @foreach (var address in Addresses)
+                            {
+                                <InputRadioGroup Name="Address" @bind-Value="CheckoutService.ShipTo">
+                                    <div class="mt-3">
+                                        <div>
+                                            <InputRadio Name="Address" class="form-check-input me-1" type="radio" Value="address.Id"
+                                                        id="culture" />
+                                            <strong>@address.FullName, </strong> @address.AddressLine1, @address.AddressLine2,
+                                            @address.City, @address.State, @address.ZipCode, @address.Country
+                                        </div>
+                                    </div>
+                                </InputRadioGroup>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(CheckoutService.ShipTo))
+                            {
+                                <button type="submit" class="btn btn-primary mt-4" style="background-color: #2f4f4f;
+                                                                                                                                border-color:transparent; border-radius: 15px;" @onclick="OnSave">
+                                    @Loc["DeliverToThisAddress"]
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="submit" disabled class="btn btn-primary mt-4" style="background-color: #2f4f4f;
+                                                                                                                                border-color:transparent; border-radius: 15px;" @onclick="OnSave">
+                                    @Loc["DeliverToThisAddress"]
+                                </button>
+                            }
+                            <div>
+                                <button type="button" class="btn btn-link mt-4" style="padding: 0px; text-decoration:none;" @onclick="OnAddNewDeliveryAddress">
+                                    @Loc["AddNewShippingAddress"]
+                                </button>
+                            </div>
+
+                        </div>
                     </div>
-                </div>
-                <div class="card mt-4 mb-5">
-                    <div class="card-body">
-                        @Loc["PaymentMethod"]
+                }
+                else
+                {
+                    <div class="card">
+                        <div class="card-body">
+                            <button type="submit" class="btn btn-primary mt-4" style="background-color: #2f4f4f;border-color:transparent; border-radius: 15px;" @onclick="OnAddNewDeliveryAddress">
+                                @Loc["AddNewShippingAddress"]
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="card mt-4 mb-5">
-                    <div class="card-body">
-                        @Loc["ReviewItemsAndShipping"]
+                    <div class="card mt-4 mb-5">
+                        <div class="card-body">
+                            @Loc["PaymentMethod"]
+                        </div>
                     </div>
-                </div>
+                    <div class="card mt-4 mb-5">
+                        <div class="card-body">
+                            @Loc["ReviewItemsAndShipping"]
+                        </div>
+                    </div>
+                } 
             }
             @if (CheckoutService.PaymentMethod is null && CheckoutService.ShippingAddress is not null && !AreAddressesVisible)
             {
@@ -712,9 +769,18 @@
                                 }
                                 else
                                 {
-                                    <button type="submit" class="btn btn-primary mt-4" style="background-color: #2f4f4f;border-color:transparent; border-radius: 15px;" @onclick="OnSave">
-                                        @Loc["DeliverToThisAddress"]
-                                    </button>
+                                    if (Addresses is not null && Addresses.Any() && !string.IsNullOrWhiteSpace(CheckoutService.ShipTo))
+                                    {
+                                        <button type="submit" class="btn btn-primary mt-4" style="background-color: #2f4f4f;border-color:transparent; border-radius: 15px;" @onclick="OnSave">
+                                            @Loc["DeliverToThisAddress"]
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" disabled class="btn btn-primary mt-4" style="background-color: #2f4f4f;border-color:transparent; border-radius: 15px;" @onclick="OnSave">
+                                            @Loc["DeliverToThisAddress"]
+                                        </button>
+                                    }
                                 }
                             }
                         </div>
@@ -1298,16 +1364,18 @@
         {
             if (!ShoppingCart.ProductIds.Any())
             {
+                CheckoutService.ShippingAddress = null;
+                CheckoutService.PaymentMethod = null;
                 NavigationManager.NavigateTo("shoppingcart", true);
-                CheckoutService = new CheckoutService(Localizer);
             }
         }
         else
         {
             if (BuyNowProduct.Quantity == 1)
             {
+                CheckoutService.ShippingAddress = null;
+                CheckoutService.PaymentMethod = null;
                 NavigationManager.NavigateTo("shoppingcart", true);
-                CheckoutService = new CheckoutService(Localizer);
             }
         }
     }

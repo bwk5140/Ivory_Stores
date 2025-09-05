@@ -1,0 +1,83 @@
+﻿@page "/Account/Notifications/Account"
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+<div class="container-sm">
+    @if (Notifications is not null)
+    {
+        <strong>@Loc["ChooseTheUpdatesYouWant"]</strong>
+        <table class="table mt-3">
+            <tbody>
+                <tr>
+                    <td>
+                        <div>
+                            <strong>@Loc["Account"]</strong>
+                        </div>
+                        <div class="mb-4">
+                            @Loc["GetNotifiedAboutAccountSecurity"]
+                        </div>
+                    </td>
+                    <td style="color: gray;">
+                        @Loc["On"] : @Loc["Email"]
+                    </td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <InputCheckbox class="form-check-input" type="checkbox" @bind-Value="@Notifications.Account" id="checkNativeSwitch" switch disabled />
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div>
+                            <strong>@Loc["ShippingAndDelivery"]</strong>
+                        </div>
+                        <div class="mb-4">
+                            @Loc["FindOutWhenPackagesShipAndArrive"]
+                        </div>
+                    </td>
+                    <td style="color: gray;">
+                        @Loc["On"] : @Loc["Email"]
+                    </td>
+                    <td>
+                        <div class="form-check form-switch">
+                            <InputCheckbox class="form-check-input" type="checkbox" @bind-Value="@Notifications.ShippingAndDelivery" id="checkNativeSwitch" switch disabled />
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="mt-3 ms-2" style="color: gray">
+            @Loc["YouWillAlwaysReceive"]
+        </p>
+    }
+    else
+    {
+        <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Notifications? Notifications { get; set; }
+
+    private ApplicationUser? applicationUser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
+        if (applicationUser is not null)
+        {
+            Notifications = await context.Notifications.FirstOrDefaultAsync(n => n.UserId == applicationUser.Id);
+            if (Notifications is null)
+            {
+                Notifications = new();
+                Notifications.UserId = applicationUser.Id;
+                context.Notifications.Add(Notifications);
+                await context.SaveChangesAsync();
+            }
+        }
+    }
+}

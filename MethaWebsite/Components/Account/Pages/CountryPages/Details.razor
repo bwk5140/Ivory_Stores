@@ -1,28 +1,45 @@
 ﻿@page "/countries/details"
 @using Microsoft.EntityFrameworkCore
 @using MethaWebsite.Data
+
+@inject IStringLocalizer<SharedResource> Loc
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
 
 <PageTitle>Details</PageTitle>
 
-<h1>Details</h1>
-
 <div>
-    <h2>Country</h2>
-    <hr />
     @if (country is null)
     {
         <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
     }
-    else {
-        <dl class="row">
-            <dt class="col-sm-2">Name</dt>
-            <dd class="col-sm-10">@country.Name</dd>
-        </dl>
-        <div>
-            <a href="@($"/countries/edit?id={country.Id}")">Edit</a> |
-            <a href="@($"/countries")">Back to List</a>
+    else
+    {
+        <div class="container-sm mt-5" style="display: flex; justify-content: center;">
+            @{
+                var showClass = IsVisible ? "d-block" : "d-none";
+            }
+            <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000">
+                <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                     style="width: fit-content; max-width: 550px; max-height: 600px; overflow-y: auto;
+                                background-color: white;">
+                    <div class="toast-header">
+                        <strong class="me-auto">@Loc["CountryDetails"]</strong>
+                        <button type="button" class="btn-close" data-bs-toggle="tooltip" title=@Loc["Cancel"]
+                                aria-label="Close" @onclick="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        <dl class="row">
+                            <dt class="col-sm-5">Name</dt>
+                            <dd class="col-sm-7">@country.Name</dd>
+                        </dl>
+                        <dl class="row">
+                            <dt class="col-sm-8">Country Code</dt>
+                            <dd class="col-sm-4">+@country.Code</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
         </div>
     }
 </div>
@@ -31,7 +48,10 @@
     private Country? country;
 
     [SupplyParameterFromQuery]
-    private string Id { get; set; }
+    private string? Id { get; set; }
+
+    [Parameter]
+    public bool IsVisible { get; set; } = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -42,5 +62,16 @@
         {
             NavigationManager.NavigateTo("notfound");
         }
+    }
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+        NavigationManager.NavigateTo("/countries");
     }
 }

@@ -23,25 +23,43 @@ h1:focus {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+.nav-link-custom{
+    color: black;
+    text-decoration: none;
+    font-size: medium;
+    cursor: pointer;
+}
 .page.bg-add-to-cart-confirmation {
     background-color: rgb(220, 230, 222, 0.25);
     height: 100vh;
 }
 .page.bg-cart {
     background-color: whitesmoke;
-    height: 100vh;
+    height: 100%;
 }
 .page.bg-checkout {
     background-color: whitesmoke;
-    height: 100vh;
+    height: 100%;
 }
 .page.bg-home {
     background-color: whitesmoke;
-    height: 100vh;
+    height: 100%;
 }
 .page.bg-payments {
     background-color: whitesmoke;
-    height: 100vh;
+    height: 100%;
+}
+.page.customer-service {
+    background-color: whitesmoke;
+    height: 100%;
+}
+.page.track-package {
+    background-color: whitesmoke;
+    height: 100%;
+}
+.bot {
+    text-align: left;
+    color: green;
 }
 .card {
     background-color: white;
@@ -50,11 +68,51 @@ h1:focus {
     border: thin;
     border-style: ridge;
 }
-
 .card-footer {
     border: none;
     background-color: white;
 }
+.chat-container {
+    max-width: 600px;
+    margin: auto;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    max-height: 600px;
+    scroll-behavior: smooth;
+}
+.chat-header {
+    position: sticky;
+    top: 0;
+    background-color: #ffffff;
+    padding-left: 1rem;
+    font-weight: bold;
+    z-index: 10;
+    border-bottom: 1px solid #ccc;
+}
+.chat-header-connection {
+    position: sticky;
+    top: 0;
+    background-color: #ffffff;
+    font-weight: bold;
+    z-index: 10;
+}
+
+.cookie-banner {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background-color: transparent;
+    border: none;
+    padding: 16px;
+    z-index: 9999;
+    max-width: 300px;
+    font-family: sans-serif;
+}
+
+    .cookie-banner button {
+        margin: 4px;
+    }
 
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
@@ -83,6 +141,12 @@ h1:focus {
     position: relative;
     max-height: 2000px;
 }
+.messages {
+    height: 400px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+
 .rotate-0 {
     transform: rotate(0deg);
     transition: transform 0.3s ease;
@@ -116,6 +180,78 @@ h1:focus {
     padding: 0px;
     font-weight: 400;
 }
+.second-top-row-custom {
+    background-color: #277a7a;
+    color: white;
+    max-height: min-content;
+    padding: 0px;
+    font-weight: 400;
+    box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+}
+.step-container {
+    position: relative;
+    margin-left: 40px;
+    padding-left: 10px;
+    margin-bottom: 40px;
+}
+
+    .step-container::before {
+        content: '';
+        position: absolute;
+        margin-top: 0.25%;
+        margin-left: 0.6%;
+        top: 15px;
+        width: 2px;
+        height: 230%;
+        background-color: #277a7a;
+    }
+
+    .step-container:last-child::before {
+        display: none;
+    }
+.step-container-grayed-out {
+    position: relative;
+    margin-left: 40px;
+    padding-left: 10px;
+    margin-bottom: 40px;
+}
+
+    .step-container-grayed-out::before {
+        content: '';
+        position: absolute;
+        margin-top: 0.3%;
+        margin-left: 0.6%;
+        top: 15px;
+        width: 2px;
+        height: 230%;
+        border-left: 2px dashed gray;
+    }
+
+    .step-container-grayed-out:last-child::before {
+        display: none;
+    }
+.toast-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    width: auto;
+    max-width: 90%;
+    padding: 16px;
+}
+.user {
+    text-align: right;
+    color: blue;
+}
+.dashed-line::before {
+    content: '';
+    position: absolute;
+    margin-top: 0.25%;
+    margin-left: 0.4%;
+    transform: translateX(-50%);
+    top: 15px;
+}
 
 .btn:focus {
     border-color: #89c182;
@@ -147,6 +283,11 @@ h1:focus {
     .input-group:focus-within {
         border-color: greenyellow;
     }
+.accordion-button[aria-expanded="true"] {
+    background-color: #90c89a;
+    color: black;
+}
+
 .bi {
     position: relative;
     width: 1.7rem;
@@ -172,6 +313,12 @@ h1:focus {
     background: rgba(0, 0, 0, 0.3); /* Adds slight darkening */
     z-index: 999; /* Ensures it's behind the toast */
 }
+.carousel-container {
+    position: relative;
+    width: 100%;
+    height: auto;
+}
+
 .darker-background {
     position: fixed;
     top: 0;
@@ -201,12 +348,12 @@ h1:focus {
 }
 .toast-container-img {
     position: fixed;
-    top: 5%;
-    bottom: 5%;
-    left: 15%;
-    right: 15%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    padding: 16px;
     width: 70vw;
-    height: 60vh;
 }
 .form-check-input:focus {
     border-color: #89c182;
@@ -217,6 +364,16 @@ h1:focus {
     padding: 10px;
     color: #2f4f4f;
 }
+.carousel-control-prev,
+.carousel-control-next {
+    top: 20%;
+    bottom: 400px; /* Move controls 100px from bottom */
+    transform: none; /* Remove vertical centering */
+    color: white;
+    opacity: 100%;
+    height: min-content;
+}
+
 .center-container {
     display: flex;
     justify-content: center;
@@ -229,6 +386,15 @@ h1:focus {
     background-repeat: no-repeat;
     vertical-align: middle;
 }
+.overlay-container {
+    position: absolute;
+    padding-left: 30px;
+    top: 22rem;
+    width: 100%;
+    background: transparent;
+    text-align: center;
+}
+
 .page-item.active .page-link {
     background-color: #2f4f4f;
     border-color: #065151;
@@ -343,6 +509,13 @@ h1:focus {
     height: contain;
     background-color: #F5F5F5;
 }
+.form-check-input {
+    background-color: #e0e0e0;
+}
+    .form-check-input:checked {
+        background-color: #2f4f4f;
+        border-color: #2f4f4f;
+    }
 
 .element {
     justify-content: center;

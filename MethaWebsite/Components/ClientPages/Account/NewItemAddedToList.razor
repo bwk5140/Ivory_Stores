@@ -56,10 +56,10 @@
                                 <div class="card me-2" style="width: 300px;">
                                     <div class="card-body" style="text-align: center;">
                                         <div>
-                                            <a href="@($"/wishlist/details?id={ProductList.Id}")" class="mb-3 btn btn-secondary" style="border-bottom-left-radius: 15px; border-top-left-radius: 15px; border-bottom-right-radius: 15px;
+                                            <button @onclick="OnViewListClicked" class="mb-3 btn btn-secondary" style="border-bottom-left-radius: 15px; border-top-left-radius: 15px; border-bottom-right-radius: 15px;
                                                             border-top-right-radius: 15px; border: unset; padding: 5px; width: 250px;">
                                                 @Loc["ViewList"]
-                                            </a>
+                                            </button>
                                         </div>
                                         <div>
                                             <button class="mb-3" style="border-bottom-left-radius: 15px; border-top-left-radius: 15px; border-bottom-right-radius: 15px;
@@ -97,10 +97,18 @@
     [CascadingParameter]
     public Product? Product { get; set; }
 
+    private ApplicationUser? ApplicationUser;
+    public List<ProductList>? Lists { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         context = await DbFactory.CreateDbContextAsync();
-        ProductList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == ListName);
+        ApplicationUser = await ApplicationUserService.GetApplicationUser();
+        if (ApplicationUser is not null)
+        {
+            ProductList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == ListName && l.UserId == ApplicationUser.Id);
+            Lists = context.ProductList.Where(l => l.UserId == ApplicationUser.Id).ToList();
+        }
         if (Product is not null)
         {
             Images = context.ProductImage.Where(i => i.ProductColorGroupId == Product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
@@ -110,7 +118,10 @@
     protected override async Task OnParametersSetAsync()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        ProductList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == ListName);
+        if (ApplicationUser is not null)
+        {
+            ProductList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == ListName && l.UserId == ApplicationUser.Id);
+        }
         if (Product is not null)
         {
             Images = context.ProductImage.Where(i => i.ProductColorGroupId == Product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
@@ -122,10 +133,18 @@
         IsVisible = true;
         StateHasChanged();
     }
-    
     private void Close()
     {
         IsVisible = false;
         StateHasChanged();
+    }
+    private void OnViewListClicked()
+    {
+        if (Lists.Count() > 1)
+            NavigationManager.NavigateTo($"/wishlist/details?id={ProductList.Id}", true);
+        else
+        {
+            NavigationManager.NavigateTo($"/wishlist/details/default");
+        }
     }
 }

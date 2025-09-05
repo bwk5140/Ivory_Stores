@@ -1,6 +1,7 @@
 ﻿@page "/Account/countries/create"
 @using Microsoft.EntityFrameworkCore
 @using MethaWebsite.Data
+
 @inject IStringLocalizer<SharedResource> Loc
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
@@ -26,10 +27,15 @@
                 <EditForm method="post" Model="Country" OnValidSubmit="AddCountry" FormName="create" Enhance>
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger" role="alert" />
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Name:</label>
+                    <div class="mb-3 form form-floating">
                         <InputText id="name" @bind-Value="Country.Name" class="form-control" />
+                        <label for="name" class="form-label">Name:</label>
                         <ValidationMessage For="() => Country.Name" class="text-danger" />
+                    </div>
+                    <div class="mb-3 form form-floating">
+                        <InputText id="code" @bind-Value="Country.Code" class="form-control" />
+                        <label for="code" class="form-label">Code:</label>
+                        <ValidationMessage For="() => Country.Code" class="text-danger" />
                     </div>
                     <div class="ms-1" style="text-align: right;">
                         <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;
@@ -67,5 +73,6 @@
     {
         IsVisible = false;
         StateHasChanged();
+        NavigationManager.NavigateTo("/countries");
     }
 }

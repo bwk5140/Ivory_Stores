@@ -30,5 +30,10 @@ namespace MethaWebsite.Data.Contexts
         public DbSet<MethaWebsite.Data.SearchQueryVector> SearchQueryVector { get; set; } = default!;
         public DbSet<MethaWebsite.Data.Message> Message { get; set; } = default!;
         public DbSet<MethaWebsite.Data.OrderProblem> OrderProblem { get; set; } = default!;
+        public DbSet<MethaWebsite.Data.ProductIssue> ProductIssue { get; set; } = default!;
+        public DbSet<MethaWebsite.Data.Click> Click { get; set; } = default!;
+        public DbSet<MethaWebsite.Data.Notifications> Notifications { get; set; } = default!;
+        public DbSet<MethaWebsite.Data.ConversationStateEntity> ConversationStates { get; set; } = default!;
+
     }
 }

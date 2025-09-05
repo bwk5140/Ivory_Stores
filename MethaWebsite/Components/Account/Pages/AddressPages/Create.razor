@@ -18,8 +18,7 @@
     @{
         var showClass = IsVisible ? "d-block" : "d-none";
     }
-    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000"
-            style="top: 30%;">
+    <div class="toast-container p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000">
         <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
              style="width: fit-content; max-width: 550px; max-height: 600px; overflow-y: auto;
                     background-color: white;">
@@ -128,7 +127,11 @@
     private async Task AddAddress()
     {
         using var context = await DbFactory.CreateDbContextAsync();
-        applicationUser.DefaultAddressId = Address.Id;
+        if (Address.DefaultAddress)
+        {
+            applicationUser.DefaultAddressId = Address.Id;
+            context.Users.Attach(applicationUser).State = EntityState.Modified;
+        }
         var ClientAddresses = context.Address.Where(a => a.UserId == applicationUser.Id).ToList();
         if (ClientAddresses is not null && ClientAddresses.Any())
         {
@@ -141,7 +144,6 @@
                 }
             }
         }
-        context.Users.Attach(applicationUser).State = EntityState.Modified;
         context.Address.Add(Address);
         await context.SaveChangesAsync();
         await OnAddressAdded.InvokeAsync(Address);

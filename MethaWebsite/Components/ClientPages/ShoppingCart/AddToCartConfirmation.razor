@@ -19,7 +19,7 @@
 }
 else
 {
-    <div class="container-sm mt-5">
+@*     <div class="container-sm mt-5">
         @if (ShippingAddressProblem)
         {
             <div class="card mt-2 mb-1" style="border-color: red; max-width: 1200px; color: red; border-left: 3px solid red;">
@@ -31,7 +31,7 @@ else
                 </div>
             </div>
         }
-    </div>
+    </div> *@
     <div class="row mt-5">
         <div class="col" style="text-align: center;">
             <div class="card" style="height: 200px;">
@@ -146,14 +146,15 @@ else
     }
     public void GoToCart()
     {
-        if (DefaultAddress is not null)
-        {
-            ShippingAddressProblem = false;
-            NavigationManager.NavigateTo("/Checkout");
-        }
-        else
-        {
-            ShippingAddressProblem = true;
-        }
+        NavigationManager.NavigateTo("/Checkout");
+        // if (DefaultAddress is not null)
+        // {
+        //     ShippingAddressProblem = false;
+            
+        // }
+        // else
+        // {
+        //     ShippingAddressProblem = true;
+        // }
     }
 }

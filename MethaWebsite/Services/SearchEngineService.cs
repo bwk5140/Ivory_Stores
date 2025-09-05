@@ -34,7 +34,7 @@ namespace MethaWebsite.Services
             .Select(x => x.Product)
             .ToList();
         }
-        public async Task<List<Product>> SearchAsync(float[] queryVector, float queryNorm, List<Product> products, double threshold = 0.55)
+        public async Task<List<Product>> SearchAsync(float[] queryVector, float queryNorm, List<Product> products, double threshold = 0.65)
         {
             return products
                 .Select(p => new
@@ -47,7 +47,7 @@ namespace MethaWebsite.Services
                 .Select(x => x.Product)
                 .ToList();
         }
-        public async Task<List<Product>> SearchAsync(string query, List<Product> products, double threshold = 0.55)
+        public async Task<List<Product>> SearchAsync(string query, List<Product> products, double threshold = 0.65)
         {
             var result = await _embeddingService.GetEmbeddingAsync(query);
             var queryVector = result.Vector;

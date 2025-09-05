@@ -1,4 +1,4 @@
-﻿@page "/productreviews/edit"
+﻿@page "/product/review/edit"
 @using Microsoft.EntityFrameworkCore
 @using MethaWebsite.Data
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
@@ -54,7 +54,7 @@ else
 }
 
 <div>
-    <a href="/productreviews">Back to List</a>
+    <a href="/product/review">Back to List</a>
 </div>
 
 @code {
@@ -98,7 +98,7 @@ else
             }
         }
 
-        NavigationManager.NavigateTo("/productreviews");
+        NavigationManager.NavigateTo("/product/review");
     }
 
     private bool ProductReviewExists(string id)

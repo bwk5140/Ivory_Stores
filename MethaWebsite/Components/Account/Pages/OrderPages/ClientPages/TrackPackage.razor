@@ -1,0 +1,115 @@
+﻿@page "/Account/Order/details/track"
+
+@inject LayoutState LayoutStateService
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@if (order is not null)
+{
+    <div class="container-sm mt-5 mb-5">
+        <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="AccountSettings" style="text-decoration: none;">
+                        @Loc["YourAccount"]
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="/Account/Orders" style="text-decoration: none;">
+                        @Loc["YourOrders"]
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="@($"/Account/Order/details?id={order.Id}")" style="text-decoration: none;">
+                        @Loc["OrderDetails"]
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">@Loc["TrackPackageLg"]</li>
+            </ol>
+        </nav>
+        <div class="card mb-3" style="max-width: 1000px;">
+            <div class="card-body ms-5">
+                @{
+                    using var context = DbFactory.CreateDbContext();
+                }
+                @if (Products is not null)
+                {
+                    foreach (var product in Products)
+                    {
+                        product.Images = context.ProductImage.Where(p => p.ProductColorGroupId == product.ProductColorGroupID).OrderBy(p => p.Created).ToList();
+                        var CurrentImage = product.Images[0];
+                        @if (Products.IndexOf(product) == 0)
+                        {
+                            <div class="row mt-3 ms-1">
+                                <div class="col-sm-10" style="padding: 0px; color: #277a7a;">
+                                    <h5>@Loc["Arriving"] @order.Date.AddDays(order.ShippingTime).DayOfWeek.ToString(), @order.Date.AddDays(order.ShippingTime).Day @order.Date.AddDays(order.ShippingTime).ToString("MMMM")</h5>
+                                </div>
+                                <div class="col-sm-2" style="padding: 0px;">
+                                    <a href="@($"product/details?id={product.Id}")" class="btn">
+                                        <img class="card-img-top" src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(CurrentImage.Image!)))"
+                                             alt=@Loc["ProductImage"] style="width:100px; height:100px; object-fit:contain; vertical-align: central;" />
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+            </div>
+        </div>
+        <div class="card mb-5" style="max-width: 1000px;">
+            <div class="card-body">
+                @foreach (var step in Steps)
+                {
+                    <DeliveryStep StepName="@step.Name" IsCompleted="@step.Completed" IsNextCompleted="@step.NextCompleted" />
+                }
+            </div>
+        </div>
+    </div>
+
+}
+else
+{
+    <div class="card" style="z-index: 1400;  max-width: 70px;"><div class="card-body"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span> </div></div></div>
+}
+@code {
+    private List<(string Name, bool Completed, bool NextCompleted)> Steps = new();
+
+    [Parameter]
+    public Order? order { get; set; }
+
+    [Parameter]
+    public List<Product>? Products { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? Id { get; set; }
+
+    private DateTime ShippedDay { get; set; }
+    private string? ShippedDayOfWeek { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        LayoutStateService.SetBackground("track-package");
+        order = await context.Order.FirstOrDefaultAsync(o => o.Id == Id);
+        Products = context.Product.AsEnumerable().Where(p => order.ProductIds.Contains(p.Id)).Distinct()
+                        .ToList();
+        ShippedDay = order.Date.AddDays(order.ShippingTime);
+        if (ShippedDay.Date == DateTime.Now.Date)
+        {
+            ShippedDayOfWeek = "Today";
+        }
+        else
+        {
+            ShippedDayOfWeek = ShippedDay.DayOfWeek.ToString();
+        }
+        Steps.Add((Loc["Ordered"] + " " + order.Date.DayOfWeek.ToString() + ", " + order.Date.Day + " " +  order.Date.ToString("MMMM"), true, order.HasShipped));
+        if (order.HasShipped)
+            Steps.Add((Loc["Shipped"] + " " + ShippedDayOfWeek, order.HasShipped, false));
+        else
+        {
+            Steps.Add((Loc["Shipped"], order.HasShipped, false));
+        }
+        Steps.Add((Loc["OutForDelivery"], false, false));
+        Steps.Add((Loc["Arriving"] + " " + ShippedDay.DayOfWeek.ToString() + ", " + ShippedDay.Day + " " + ShippedDay.Date.ToString("MMMM"), false, false));
+    }
+}

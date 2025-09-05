@@ -9,6 +9,8 @@
 @implements IAsyncDisposable
 
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@inject TrackingService TrackingService
 @inject ProductRatingService ProductRatingService
 @inject RatingFilterService RatingFilterService
 @inject NavigationManager NavigationManager
@@ -143,7 +145,7 @@
                                                         overflow: hidden;">
                                             <div class="card-body" style="height: 450px;">
                                                 <div style="height: 400px;">
-                                                    <a href="@($"product/details?id={product.Product.Id}")" class="btn" @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
+                                                    <a href="@($"product/details?id={product.Product.Id}&clk={Click.Id}")" class="btn" @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
                                                         @if (product.Product.Images is not null && product.Product.Images.Count > 0)
                                                         {
                                                             <img src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(product.Product.Images.First().Image)))"
@@ -170,7 +172,7 @@
                                                                     {
                                                                         if (color_group.Color == product.Product.Color)
                                                                         {
-                                                                            <a href="@($"product/details?id={prod.Id}")" class="me-1 mb-2" style="border: none;background-color: transparent;"
+                                                                            <a href="@($"product/details?id={prod.Id}&clk={Click.Id}")" class="me-1 mb-2" style="border: none;background-color: transparent;"
                                                                                @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
                                                                                 <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg"
                                                                                      class="bi bi-circle-fill" viewBox="0 0 16 16">
@@ -182,7 +184,7 @@
                                                                         }
                                                                         else
                                                                         {
-                                                                            <a href="@($"product/details?id={prod.Id}")" class="me-1 mb-2" style="border: none;background-color: transparent;"
+                                                                            <a href="@($"product/details?id={prod.Id}&clk={Click.Id}")" class="me-1 mb-2" style="border: none;background-color: transparent;"
                                                                                @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
                                                                                 <svg width="48" height="48" xmlns="http://www.w3.org/2000/svg"
                                                                                      class="bi bi-circle-fill" viewBox="0 0 16 16">
@@ -199,7 +201,7 @@
                                                             var remaining_items = colorGroups.Count() - 6;
                                                             @if (remaining_items > 0)
                                                             {
-                                                                <a href="@($"product/details?id={prodct.Id}")" style="text-decoration: none;"
+                                                                <a href="@($"product/details?id={prodct.Id}&clk={Click.Id}")" style="text-decoration: none;"
                                                                    @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
                                                                     +@remaining_items
                                                                 </a>
@@ -214,15 +216,19 @@
                                                 </div>
                                                 <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
                                                                                                 text-overflow: ellipsis; ">
-                                                    <a href="@($"product/details?id={product.Product.Id}")" style="text-decoration: none; color: black;"
+                                                    <a href="@($"product/details?id={product.Product.Id}&clk={Click.Id}")" style="text-decoration: none; color: black;"
                                                        @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
                                                         @product.Product.Name
                                                     </a>
                                                 </div>
-                                                <div style="display: inline-block;">
-                                                    @product.Product.Rating
-                                                </div>
-                                                <div style="display: inline-block;">
+                                                @if (product.Product.Rating > 0)
+                                                {
+                                                    <div style="display: inline-block;">
+                                                        @product.Product.Rating
+                                                    </div>
+                                                }
+                                                
+                                                <div class="ms-1" style="display: inline-block;">
                                                     @{
                                                         var similar_prod_stars = ProductRatingService.GetStarImages(product.Product.Rating);
                                                     }
@@ -251,7 +257,7 @@
                                                             char leading_char = price[0];
                                                             int index = price_w_curr.IndexOf(leading_char);
                                                         }
-                                                        <a href="@($"product/details?id={product.Product.Id}")" style="text-decoration: none; color: black;"
+                                                        <a href="@($"product/details?id={product.Product.Id}&clk={Click.Id}")" style="text-decoration: none; color: black;"
                                                            @onclick="@(() => TrackClick(product.Product.Id, product.Position))">
                                                             <strong style="font-size: small; vertical-align: text-top;">@product.Product.Price.ToString("C0").Substring(0, index)</strong>
                                                             <strong style="font-size: x-large;">@product.Product.Price.ToString("C0").Substring(index)</strong>
@@ -281,28 +287,6 @@
             @if (Products is not null && Products.Any())
             {
                 <Pagination CurrentPage="@currentPage" TotalPages="@totalPages" OnPageChanged="HandlePageChange" />
-
-                @* <nav aria-label="..." style="display: flex; justify-content: center;">
-                    <ul class="pagination">
-                        <li class="page-item activePageClass[0.ToString()]">
-                            <a style="width: 90px; cursor:pointer;" @onclick="@(() => UpdatePaginationItems(currentPage - 1))" class="page-link">
-                                Previous
-                            </a>
-                        </li>
-                        <li class="page-item activePageClass[1.ToString()]">
-                            <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(1))">1</a>
-                        </li>
-                        <li class="page-item activePageClass[2.ToString()]">
-                            <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(2))" aria-current="page">2</a>
-                        </li>
-                        <li class="page-item activePageClass[3.ToString()]">
-                            <a class="page-link" style="cursor:pointer;" @onclick="@(() => UpdatePaginationItems(3))">3</a>
-                        </li>
-                        <li class="page-item activePageClass[4.ToString()]">
-                            <a style="width: 90px; cursor:pointer;" class="page-link" @onclick="@(() => UpdatePaginationItems(currentPage + 1))">Next</a>
-                        </li>
-                    </ul>
-                </nav> *@
             }
         </div>
     </div>
@@ -351,7 +335,7 @@
     private int prodLow = 0;
 
     private int prodCount = 50;
-
+    private Click? Click { get; set; } = new();
     private int currentPage = 1;
     private int totalPages { get; set; }
 
@@ -361,6 +345,9 @@
 
     [SupplyParameterFromQuery]
     public string? search { get; set; }
+
+    [SupplyParameterFromQuery]
+    public bool render { get; set; }
 
     [Parameter]
     public double Low { get; set; } = 1;
@@ -383,11 +370,158 @@
         {
             searchQueryVector = new();
             searchQueryVector.Query = search;
+            if (!string.IsNullOrWhiteSpace(filter) && !filter.Equals("All"))
+            {
+                search = filter + " " + search;
+            }
             var result = await LocalEmbeddingService.GetEmbeddingAsync(search);
             searchQueryVector.Embedding = result.Vector;
             searchQueryVector.Norm = result.Norm;
             context.SearchQueryVector.Add(searchQueryVector);
             await context.SaveChangesAsync();
+        }
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (render)
+        {
+            Products.Clear();
+            IsLoading = true;
+
+            using var Context = await DbFactory.CreateDbContextAsync();
+            if (High < TrueMin)
+            {
+                High = TrueMin;
+            }
+            TrueMax = High;
+            StateHasChanged();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var products = context.Product.ToList();
+                try
+                {
+                    products = context.Product.ToList().GetRange(prodLow, prodCount);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogInformation(ex.Message);
+                    products = context.Product.ToList();
+                    try
+                    {
+                        products = products.GetRange(prodLow, products.Count() - prodLow);
+                    }
+                    catch (Exception ex2)
+                    {
+                        Logger.LogInformation(ex2.Message);
+                    }
+
+                }
+                List<Product> newProds = new List<Product>();
+                if (!string.IsNullOrWhiteSpace(filter) && !filter.Equals("All"))
+                {
+                    search = filter + " " + search;
+                }
+                newProds = SearchEngineService.SearchWithScoring(search, context.Product.ToList());
+                if (newProds.Count() > 0)
+                {
+                    List<Product> search_prods;
+                    if (searchQueryVector is not null)
+                    {
+                        search_prods = await SearchEngineService.SearchAsync(searchQueryVector.Embedding, searchQueryVector.Norm, newProds);
+                    }
+                    else
+                    {
+                        search_prods = await SearchEngineService.SearchAsync(search, newProds);
+                    }
+
+                    if (search_prods.Any())
+                    {
+                        newProds = search_prods;
+                    }
+                }
+                else
+                {
+                    newProds = await SearchEngineService.SearchAsync(search, context.Product.ToList());
+                }
+                Products = newProds;
+            }
+
+            if (Products?.Any() != true)
+            {
+                IsLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            if (currentPage == 0)
+            {
+                currentPage = 1;
+            }
+
+            // Load images and collect product groups
+            productGroups = Products
+                .Select(p =>
+                {
+                    p.Images = context.ProductImage
+                        .Where(img => img.ProductColorGroupId == p.ProductColorGroupID)
+                        .OrderBy(img => img.Created)
+                        .ToList();
+
+                    return context.ProductGroup.FirstOrDefault(pg => pg.Name == p.Name);
+                })
+                .Where(pg => pg != null)
+                .Distinct()
+                .ToList();
+
+            // Load product color groups
+            productColorGroups = productGroups
+                .SelectMany(pg => context.ProductColorGroup.Where(pcg => pcg.ProductGroupID == pg.Id))
+                .Distinct()
+                .ToList();
+
+            // Load products from color groups
+            Products = productColorGroups
+                .Select(pcg => context.Product.FirstOrDefault(p => p.ProductColorGroupID == pcg.Id))
+                .Where(p => p != null)
+                .ToList();
+
+            Products = Products
+                .GroupBy(p => p.Name)
+                .Select(g => g.First())
+                .ToList();
+            double ProdCount = Products.Count();
+            totalPages = (int)Math.Ceiling(ProdCount / prodCount);
+
+            // Populate brand, lifestyle, and gender filters
+            foreach (var product in Products)
+            {
+                if (!Brands.Contains(product.Brand))
+                {
+                    Brands.Add(product.Brand);
+                    SelectedBrands[product.Brand] = false;
+                }
+                if (!Lifestyle.Contains(product.Lifestyle))
+                {
+                    Lifestyle.Add(product.Lifestyle);
+                    SelectedLifestyle[product.Lifestyle] = false;
+                }
+                if (!Genders.Contains(product.Gender))
+                {
+                    Genders.Add(product.Gender);
+                    SelectedGenders[product.Gender] = false;
+                }
+                if (product.Images is null)
+                {
+                    product.Images = context.ProductImage.Where(m => m.ProductColorGroupId == product.ProductColorGroupID).OrderBy(i => i.Created).ToList();
+                }
+            }
+            // Initialize rating filters
+            Rating = Enumerable.Range(0, 5)
+                .Select(_ => new Rating { Selected = false })
+                .ToList();
+
+            IsLoading = false;
+            StateHasChanged();
         }
     }
     public async ValueTask DisposeAsync()
@@ -463,7 +597,10 @@
 
                 }
                 List<Product> newProds = new List<Product>();
-
+                if (!string.IsNullOrWhiteSpace(filter))
+                {
+                    search = filter + " " + search;
+                }
                 newProds = SearchEngineService.SearchWithScoring(search, context.Product.ToList());
                 if (newProds.Count() > 0)
                 {
@@ -645,7 +782,26 @@
     }
     private async Task TrackClick(string productId, int position)
     {
-
+        var consent = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "consent_analytics");
+        if (consent == "true")
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            Click.position = position;
+            Click.ProductId = productId;
+            var user = await ApplicationUserService.GetApplicationUser();
+            if (user is not null)
+            {
+                Click.UserId = user.Id;
+            }
+            else
+            {
+                var Id = TrackingService.GetDeviceId();
+                Click.UserId = Id;
+            }
+            context.Click.Add(Click);
+            await context.SaveChangesAsync();
+            Click = new Click();
+        }
     }
 
     public async Task UpdateLifeStyleProducts()

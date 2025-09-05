@@ -1,4 +1,4 @@
-﻿@page "/productreviews/delete"
+﻿@page "/product/review/delete"
 @using Microsoft.EntityFrameworkCore
 @using MethaWebsite.Data
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
@@ -39,7 +39,7 @@
         </dl>
         <EditForm method="post" Model="productreview" OnValidSubmit="DeleteProductReview" FormName="delete" Enhance>
             <button type="submit" class="btn btn-danger" disabled="@(productreview is null)">Delete</button> |
-            <a href="/productreviews">Back to List</a>
+            <a href="/product/review">Back to List</a>
         </EditForm>
     }
 </div>
@@ -66,6 +66,6 @@
         using var context = DbFactory.CreateDbContext();
         context.ProductReview.Remove(productreview!);
         await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/productreviews");
+        NavigationManager.NavigateTo("/product/review");
     }
 }

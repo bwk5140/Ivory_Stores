@@ -1,0 +1,54 @@
+﻿@page "/productissues/create"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>ProductIssue</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="ProductIssue" OnValidSubmit="AddProductIssue" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="type" class="form-label">Type:</label> 
+                <InputText id="type" @bind-Value="ProductIssue.Type" class="form-control" /> 
+                <ValidationMessage For="() => ProductIssue.Type" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="description" class="form-label">Description:</label> 
+                <InputText id="description" @bind-Value="ProductIssue.Description" class="form-control" /> 
+                <ValidationMessage For="() => ProductIssue.Description" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="comments" class="form-label">Comments:</label> 
+                <InputText id="comments" @bind-Value="ProductIssue.Comments" class="form-control" /> 
+                <ValidationMessage For="() => ProductIssue.Comments" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/productissues">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private ProductIssue ProductIssue { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddProductIssue()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.ProductIssue.Add(ProductIssue);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/productissues");
+    }
+}

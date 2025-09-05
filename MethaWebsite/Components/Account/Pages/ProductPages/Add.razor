@@ -171,7 +171,7 @@
                                             var showClass = MultiColoredPopovers[product.Id] ? "d-block" : "d-none";
                                         }
                                         <div class="toast-container @showClass" data-bs-autohide="true" data-bs-delay="5000"
-                                                style="z-index: 999;">
+                                             style="z-index: 999; position: relative; transform: none; padding: 0px; max-width: 100%;  top: 0; left: 0;">
                                             <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
                                                     style="width: fit-content; border-radius: 25px;">
                                                 <div class="toast-header" style="width: fit-content; border-radius: 25px;">
@@ -223,7 +223,7 @@
                                         var showClass1 = MultiSizedPopovers[product.Id] ? "block" : "none";
                                      }
                                     <div class="toast-container @showClass1" data-bs-autohide="true" data-bs-delay="5000" draggable="true"
-                                        style="z-index: 999;">
+                                         style="z-index: 999; position: relative; transform: none; padding: 0px; max-width: 100%; top: 0; left: 0;">
                                         <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true" draggable="true"
                                              style="width: fit-content; border-radius: 25px;">
                                              <div class="toast-header" style="width: fit-content; border-radius: 25px;">
@@ -462,8 +462,7 @@
                                 </button>
 
                                 var showClassImages = showColoredImage[product.Id] ? "d-block" : "d-none";
-                                <div class="toast-container @showClassImages" style="top: 10%; left: 10%;"
-                                        data-bs-autohide="true" data-bs-delay="5000">
+                                <div class="toast-container @showClassImages" data-bs-autohide="true" data-bs-delay="5000">
                                     <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
                                          style="width: fit-content; max-width: 550px; max-height: 600px; overflow-y: auto;">
                                         <div class="toast-header">

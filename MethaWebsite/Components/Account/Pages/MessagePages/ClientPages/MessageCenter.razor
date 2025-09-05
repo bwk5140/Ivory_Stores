@@ -1,0 +1,86 @@
+﻿@page "/Account/MessageCenter"
+
+@implements IAsyncDisposable
+
+@inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResource> Loc
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+<div class="container-sm" style="padding: 0px;">
+    <nav class="navbar navbar-expand-lg navbar-light second-top-row-light">
+        <div class="container-fluid">
+            <ul class="navbar-nav nav-underline">
+                <li class="nav-item me-2">
+                    <a class="nav-link active" aria-current="true" href="/Account/MessageCenter" style="font-size: medium;">
+                        @Loc["AllMessages"]
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="card" style="border-color: gray; border-top-left-radius: 0px; border-top-right-radius: 0px; padding: 0px;">
+        <div class="card-body mb-4" style="padding: 12px;">
+            @if (Messages is not null)
+            {
+                foreach (var message in Messages)
+                {
+                    <div class="row">
+                        <button style="background-color: transparent; border-top: none; border-left: none; border-right: none; border-color: whitesmoke; border-bottom:groove; border-bottom-width: thin; padding: 10px;"
+                                @onclick="@(()=>OnMessageDetailsClicked(message))">
+                            <div class="row">
+                                <div class="col-sm-10" style="text-align: left;">
+                                    @if (!message.Read)
+                                    {
+                                        <strong>@message.Subject</strong>
+                                    }
+                                    else
+                                    {
+                                        <div style="font-size: medium;">
+                                            @message.Subject
+                                        </div>
+                                    }
+                                </div>
+                                <div class="col-sm-2" style="text-align: right; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;text-overflow: ellipsis; font-size: small;">
+                                    @if (!message.Read)
+                                    {
+                                        <strong>@message.Created.Value.Day/@message.Created.Value.Month/@message.Created.Value.Year, @message.Created.Value.Hour:@message.Created.Value.Minute:@message.Created.Value.Second</strong>
+                                    }
+                                    else
+                                    {
+                                        <div>@message.Created.Value.Day/@message.Created.Value.Month/@message.Created.Value.Year, @message.Created.Value.Hour:@message.Created.Value.Minute:@message.Created.Value.Second</div>
+                                    }
+                                    
+                                </div>
+                            </div>
+                            
+                        </button>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    [Parameter]
+    public List<Message>? Messages { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = DbFactory.CreateDbContext();
+        Messages = await context.Message.OrderByDescending(m => m.Created).ToListAsync();
+    }
+    public async Task OnMessageDetailsClicked(Message message)
+    {
+        NavigationManager.NavigateTo($"/Account/MessageCenter/Details?Id={message.Id}");
+        message.Read = true;
+        using var context = await DbFactory.CreateDbContextAsync();
+        context.Message.Attach(message).State = EntityState.Modified;
+        await context.SaveChangesAsync();
+    }
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

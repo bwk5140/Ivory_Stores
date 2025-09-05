@@ -2,6 +2,7 @@
 using MethaWebsite.Components.Account;
 using MethaWebsite.Data;
 using MethaWebsite.Data.Contexts;
+using MethaWebsite.Data.ResponseModel;
 using MethaWebsite.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -9,10 +10,20 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Stripe;
 using System.Globalization;
+using System.Security.Cryptography;
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Logging
+builder.Logging.ClearProviders();
+builder.Logging.AddSimpleConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Information);
+
+
 builder.Services.AddQuickGridEntityFrameworkAdapter();
 
 //var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("VaultUri")!);
@@ -22,7 +33,7 @@ builder.Services.AddQuickGridEntityFrameworkAdapter();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddRazorPages();
-
+builder.Services.AddSignalR();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders =
@@ -30,6 +41,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 builder.Services.AddCascadingAuthenticationState();
+
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
@@ -40,15 +52,21 @@ builder.Services.AddScoped<LayoutState>();
 builder.Services.AddScoped<ProductRatingService>();
 builder.Services.AddScoped<SearchEngineService>();
 builder.Services.AddScoped<LocalEmbeddingService>();
-builder.Services.AddScoped<HuggingFaceEmbeddingService>();
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:44338/") });
+builder.Services.AddScoped<TemplateResponseProvider>();
+
+//builder.Services.AddAuthentication(options =>
+//    {
+//        options.DefaultScheme = IdentityConstants.ApplicationScheme;
+//        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+//    })
+//    .AddIdentityCookies();
 
 builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-    })
-    .AddIdentityCookies();
+{
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+})
+.AddIdentityCookies();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection1") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
@@ -60,14 +78,53 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
+builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri("https://localhost:44338/") });
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddSingleton<FilterStateService>();
 builder.Services.AddSingleton<ShoppingCartService>();
+builder.Services.AddSingleton<ChatController>();
 builder.Services.AddSingleton<StateChangeService>();
 builder.Services.AddSingleton<CardSetupSevice>();
 builder.Services.AddSingleton<ApplicationUserService>();
 builder.Services.AddSingleton<EmailEncryptor>();
+builder.Services.AddSingleton<ShippingCalculator>();
 builder.Services.AddSingleton<MethaWebsite.Services.CheckoutService>();
+builder.Services.AddSingleton<EmailService>();
+builder.Services.AddSingleton<OTPGenerator>();
+builder.Services.AddSingleton<TrackingService>();
+builder.Services.AddSingleton<TrainingService>();
+builder.Services.AddSingleton<MlPredictionService>();
+builder.Services.AddSingleton<WorldClockService>();
+builder.Services.AddSingleton<CookieReaderService>();
+builder.Services.AddSingleton<SlotFillerRegistry>();
+builder.Services.AddSingleton<EntityRecognizer>();
+builder.Services.AddSingleton<ConversationState>();
+builder.Services.AddSingleton<ConversationManager>();
+builder.Services.AddSingleton<ConversationContext>();
+builder.Services.AddSingleton<IChatService, ChatService>();
+builder.Services.AddSingleton<ISlotFiller, DateTimeSlotFiller>();
+builder.Services.AddSingleton<IIntentRecognizer, SimpleIntentRecognizer>();
+builder.Services.AddSingleton<PersistentConversationStateStore>();
+builder.Services.AddSingleton<IConversationStore, ConversationStore>();
+builder.Services.AddSingleton<IConversationStateStore>(provider =>
+{
+    var cache = provider.GetRequiredService<IMemoryCache>();
+    var fallback = provider.GetRequiredService<PersistentConversationStateStore>();
+    var duration = TimeSpan.FromMinutes(10); // or pull from config
+
+    return new CachedConversationStateStore(cache, fallback, duration);
+});
+
+
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddSingleton<IConversationIdProvider, ConversationIdProvider>();
+builder.Services.AddResponseEngine(opts =>
+{
+    opts.GlobalMinIntentConfidence = 0.5;
+    opts.LogSlotValues = false;
+    opts.MissingAnchorLogLevel = LogLevel.Warning;
+    opts.LowConfidenceFallbackText = "Could you clarify what you need?";
+});
 
 builder.Services.AddSingleton(provider =>
 {
@@ -80,8 +137,21 @@ builder.Services.AddHttpClient<MpesaService>();
 builder.Services.AddLocalization();
 builder.Services.AddControllers();
 
-StripeConfiguration.ApiKey = builder.Configuration.GetValue<string>("StripeAPIKey");
+builder.Services.AddDistributedMemoryCache(); // Required for session
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
+
+StripeConfiguration.ApiKey = builder.Configuration.GetValue<string>("StripeAPIKey");
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.CheckConsentNeeded = context => true;
+    options.MinimumSameSitePolicy = SameSiteMode.None;
+});
 builder.Services.AddAuthentication()
    .AddCookie()
    .AddGoogle(options =>
@@ -103,8 +173,8 @@ builder.Services.AddAuthentication()
     });
 
 
-
 var app = builder.Build();
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -121,8 +191,8 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
     app.UseMigrationsEndPoint();
-    //app.UseHttpsRedirection();
 }
+app.MapHub<ChatHub>("/chathub");
 
 app.MapPost("/api/stripe/create-setup-intent", async (
     [Microsoft.AspNetCore.Mvc.FromBody] SetupIntentRequest req,
@@ -138,10 +208,33 @@ app.MapPost("/api/stripe/get-card-info", async (
     var cardInfo = await stripe.GetSavedCardDetailsAsync(req.PaymentMethodId);
     return Results.Ok(cardInfo);
 });
-
+//app.MapPost("/respond", ([FromBody] RespondRequest req,
+//    [FromServices] ResponseEngine engine) =>
+//{
+//    var res = engine.GenerateResponse(req.Action, req.Request);
+//    return Results.Ok(res);
+//});
 app.UseAntiforgery();
 app.UseHttpsRedirection();
+app.Use(async (context, next) =>
+{
+    if (!context.Request.Cookies.TryGetValue("device_id", out var deviceId))
+    {
+        deviceId = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
+        context.Response.Cookies.Append("device_id", deviceId, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Expires = DateTimeOffset.UtcNow.AddDays(90)
+        });
+    }
 
+    // Attach deviceId to context for downstream use
+    context.Items["DeviceId"] = deviceId;
+
+    await next();
+});
 var supportedCultures = new[] { "en-KE", "en-US", "en-GB", "es-US", "es-ES", "fr-FR", "fr-CA", "ar-SA", "zh-Hant", "de-DE", "ja-JP", "it-IT", "sw-KE" };
 var localizationOptions = new RequestLocalizationOptions
 {

@@ -1,19 +1,25 @@
 ﻿@inherits LayoutComponentBase
+
 @inject LayoutState LayoutState
 
 
-<div class="page @LayoutState.BackgroundClass">
-    <main>
-        <MainLayoutTopRow/>
-        <article>
-            @Body
-        </article>
-        @* <MainLayoutBottomRow/> *@
-    </main>
+<MainLayoutTopRow />
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 col-md-12">
+            <div class="page @LayoutState.BackgroundClass" >
+                <main>
+                    <article style="width: 100%; position: absolute; left: 0px;">
+                        @Body
+                    </article>
+                    <Cookies />
+                    @* <MainLayoutBottomRow/> *@
+                </main>
+            </div>
+        </div>
+    </div>
+
 </div>
-
-
-
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.

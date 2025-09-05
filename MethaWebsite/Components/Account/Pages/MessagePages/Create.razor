@@ -28,17 +28,16 @@
     [SupplyParameterFromForm]
     private Message Message { get; set; } = new();
 
-    private List<string>? Subjects { get; set; } = new List<string>();
+    [CascadingParameter]
+    public string? Subject { get; set; }
 
-    protected void SetSubject(string subject)
-    {
-        Message.Subject = subject;
-    }
+    private List<string>? Subjects { get; set; } = new List<string>();
 
     // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task AddMessage()
     {
         using var context = DbFactory.CreateDbContext();
+        Message.Subject = Subject;
         context.Message.Add(Message);
         await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/messages");

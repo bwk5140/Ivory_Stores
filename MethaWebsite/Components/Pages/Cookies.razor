@@ -1,0 +1,86 @@
+﻿@page "/Account/categories/create"
+@using System.Globalization
+@using MethaWebsite.Data
+@using MethaWebsite.Data.Contexts
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject IJSRuntime JSRuntime
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+@rendermode InteractiveServer
+
+@if (!consentGiven)
+{
+    <div class="container-sm">
+        @{
+            var showClass = IsVisible ? "d-block" : "d-none";
+        }
+        <div class="cookie-banner p-3 @showClass" data-bs-autohide="true" data-bs-delay="5000">
+                <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
+                     style="background-color: white; border: none;">
+                    <div class="toast-header">
+                        <strong class="me-auto">@Loc["SiteAnalytics"]</strong>
+                    </div>
+                    <div class="toast-body">
+                        <div>
+                            <p>We use analytics (cookies) to improve your experience. Do you consent?</p>
+                            <div style="text-align: right;">
+                                <div class="btn-group">
+                                    <button class="me-2" style="border-radius: 15px;" @onclick="Accept">Accept</button>
+                                    <button style="border-radius: 15px;" @onclick="Decline">Decline</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="@showClass darker-background"></div>
+        
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnCategoryAdded { get; set; }
+
+    bool consentGiven;
+
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var consent = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "consent_analytics");
+        consentGiven = consent == "true";
+        IsVisible = consent != null ? false : true;
+        StateHasChanged();
+    }
+    async Task Accept()
+    {
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "consent_analytics", "true");
+        consentGiven = true;
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    async Task Decline()
+    {
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "consent_analytics", "false");
+        consentGiven = false;
+        Close();
+    }
+
+    public void Show()
+    {
+        IsVisible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        IsVisible = false;
+        StateHasChanged();
+    }
+}

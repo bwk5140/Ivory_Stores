@@ -1,0 +1,47 @@
+﻿@using MethaWebsite.Data.Contexts
+@using MethaWebsite.Services
+@using Microsoft.AspNetCore.Identity
+@using MethaWebsite.Data
+@using Microsoft.EntityFrameworkCore
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationUserService ApplicationUserService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject LayoutRefreshService LayoutRefreshService
+
+@rendermode InteractiveServer
+
+<ul class="nav nav-pills flex-column">
+    <li class="nav-item" style="width: 200px;">
+        <NavLink class="nav-link" href="/Account/MessageCenter">
+            <div class="row" style="text-wrap: nowrap;">
+                <div class="col">
+                    @Loc["Inbox"]
+                </div>
+            </div>
+        </NavLink>
+    </li>
+</ul>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    [CascadingParameter]
+    public bool HasStateChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<SaveChangesEventArgs> OnStateChanged { get; set; }
+
+    private ApplicationUser? applicationUser { get; set; }
+
+    string? currentUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = await DbFactory.CreateDbContextAsync();
+        applicationUser ??= await ApplicationUserService.GetApplicationUser();
+    }
+}

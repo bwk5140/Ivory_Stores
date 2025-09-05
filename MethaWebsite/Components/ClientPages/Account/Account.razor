@@ -36,7 +36,7 @@
 
         </div>
         <div class="col-sm-4">
-            <a href="Account/Manage" style="border: none; background-color: transparent; text-decoration: none;">
+            <a href=@($"/Account/2FAVerification?ReturnUrl={"Account/Manage"}") style="border: none; background-color: transparent; text-decoration: none;">
                 <div class="card" style="max-width: 350px;">
                     <div class="card-body">
                         <div class="row">
@@ -139,7 +139,7 @@
 
         </div>
         <div class="col-sm-4">
-            <button style="border: none; background-color: transparent;">
+            <a href="/Account/CustomerService" style="border: none; background-color: transparent; text-decoration: none;">
                 <div class="card" style="max-width: 350px;">
                     <div class="card-body">
                         <div class="row">
@@ -160,7 +160,34 @@
                         </div>
                     </div>
                 </div>
-            </button>
+            </a>
+
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-sm-4">
+            <a href="/Account/MessageCenter" style="border: none; background-color: transparent; text-decoration: none;">
+                <div class="card" style="max-width: 350px;">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-4" style="position: relative; width: 80px; height: 80px;">
+                                <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="80" height="80">
+                                    <circle cx="40" cy="40" r="40" fill="lightblue" />
+                                </svg>
+                                <img src="envelope-paper-fill.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 50px; height: 50px;" />
+                            </div>
+                            <div class="col-lg-9">
+                                <div style="font-weight: 600;">
+                                    @Loc["YourMessages"]
+                                </div>
+                                <div style="color: gray;">
+                                    @Loc["ViewOrRespondToMsgs"]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
 
         </div>
     </div>

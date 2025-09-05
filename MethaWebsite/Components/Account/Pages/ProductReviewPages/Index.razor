@@ -1,4 +1,4 @@
-﻿@page "/productreviews"
+﻿@page "/product/review"
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using MethaWebsite.Data
@@ -11,7 +11,7 @@
 <h1>Index</h1>
 
 <p>
-    <a href="productreviews/create">Create New</a>
+    <a href="product/review/create">Create New</a>
 </p>
 
 <QuickGrid Class="table" Items="context.ProductReview">
@@ -23,9 +23,9 @@
     <PropertyColumn Property="productreview => productreview.ImageIds" />
 
     <TemplateColumn Context="productreview">
-        <a href="@($"productreviews/edit?id={productreview.Id}")">Edit</a> |
-        <a href="@($"productreviews/details?id={productreview.Id}")">Details</a> |
-        <a href="@($"productreviews/delete?id={productreview.Id}")">Delete</a>
+        <a href="@($"product/review/edit?id={productreview.Id}")">Edit</a> |
+        <a href="@($"product/review/details?id={productreview.Id}")">Details</a> |
+        <a href="@($"product/review/delete?id={productreview.Id}")">Delete</a>
     </TemplateColumn>
 </QuickGrid>
 

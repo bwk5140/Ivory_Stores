@@ -17,7 +17,7 @@ namespace MethaWebsite.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.7")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -167,10 +167,49 @@ namespace MethaWebsite.Migrations
                     b.ToTable("Category");
                 });
 
+            modelBuilder.Entity("MethaWebsite.Data.Click", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ProductId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("position")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Click");
+                });
+
+            modelBuilder.Entity("MethaWebsite.Data.ConversationStateEntity", b =>
+                {
+                    b.Property<string>("ConversationId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SerializedState")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ConversationId");
+
+                    b.ToTable("ConversationStates");
+                });
+
             modelBuilder.Entity("MethaWebsite.Data.Country", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
@@ -238,6 +277,12 @@ namespace MethaWebsite.Migrations
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("Read")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RecipientId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.PrimitiveCollection<string>("ReplyIds")
                         .HasColumnType("nvarchar(max)");
 
@@ -283,6 +328,40 @@ namespace MethaWebsite.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Mpesa");
+                });
+
+            modelBuilder.Entity("MethaWebsite.Data.Notifications", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("Account")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deals")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("NewReleases")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ProductRecommendations")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SalesEvents")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SeasonalAndCurrentTrends")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ShippingAndDelivery")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("MethaWebsite.Data.Order", b =>
@@ -405,6 +484,9 @@ namespace MethaWebsite.Migrations
                     b.Property<string>("ProductColorGroupID")
                         .HasColumnType("nvarchar(450)");
 
+                    b.PrimitiveCollection<string>("ProductIssueIds")
+                        .HasColumnType("nvarchar(max)");
+
                     b.PrimitiveCollection<string>("ProductReviewIds")
                         .HasColumnType("nvarchar(max)");
 
@@ -507,6 +589,28 @@ namespace MethaWebsite.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("ProductImage");
+                });
+
+            modelBuilder.Entity("MethaWebsite.Data.ProductIssue", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Comments")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProductIssue");
                 });
 
             modelBuilder.Entity("MethaWebsite.Data.ProductList", b =>

@@ -1,0 +1,203 @@
+﻿@page "/Account/CustomerService/Chat"
+@using MethaWebsite.Data.ResponseModel
+@using Microsoft.AspNetCore.SignalR.Client
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavManager
+@inject TemplateResponseProvider TemplateResponseProvider
+@inject IConversationStore ConversationStore
+@inject IJSRuntime JS
+@inject MlPredictionService MlService
+
+@rendermode InteractiveServer
+
+<div class="container-sm mt-5">
+    <div class="chat-container">
+        <div class="chat-header"><a style="padding: 0px;" href="/"><img src="CompanyLogoEmail.png" width="80" height="60" /></a></div>
+        <div @ref="ChatContainerRef" class="messages">
+            <div class="chat-header-connection">
+                @if (_hubConnection is not null && _hubConnection.State == HubConnectionState.Connected)
+                {
+                    <img src="circle-fill-green.svg" style="color: green; display: inline-block;" />
+                    <p style="color: green; display: inline-block;">Connected</p>
+                }
+                @if (_hubConnection is not null && _hubConnection.State == HubConnectionState.Reconnecting)
+                {
+                    <div class="card" style="z-index: 1400;  max-width: 70px;">
+                        <div class="card-body">
+                            <div class="spinner-border" role="status">
+                                <span class="ms-2" style="color: red;">
+                                    Reconnecting...
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (_hubConnection is not null && _hubConnection.State == HubConnectionState.Disconnected)
+                {
+                    <img src="circle-fill-red.svg" style="background-color: red; display: inline-block;" />
+                    <p style="color: red; display: inline-block;">Disconnected</p>
+                }
+            </div>
+            
+            @foreach (var message in Messages)
+            {
+                if (message.Role == "user")
+                {
+                    <div class="card mt-2 mb-2" style="border-radius: 15px; background-color: whitesmoke; width: fit-content; justify-self: right;">
+                        <div class="card-body">
+                            <div class="@message.Role me-2">@message.Text</div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card mt-2 mb-2" style="border-radius: 15px; background-color: whitesmoke; width: fit-content; justify-self: left;">
+                        <div class="card-body">
+                            <div class="@message.Role me-2">@((MarkupString)message.Text)</div>
+                        </div>
+                    </div>
+                }
+            }
+            @if (IsBotTyping)
+            {
+                <div class="typing-indicator">Bot is typing...</div>
+            }
+        </div>
+        <div class="form form-floating">
+            <input @bind="@UserInput" @bind:event="oninput" @onkeydown="HandleKey" placeholder="Type your message..." style="width: 100%; height: 50px;
+                    border-radius: 10px; border-color: lightgray; border:groove;" />
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private HubConnection? _hubConnection;
+    private List<ChatMessage> Messages = new();
+    private string UserInput = "";
+    private string BotResponse = "";
+    private (string Intent, string Sentiment, float[] score) Result;
+    private ChatBotService? _chatBot;
+    private ElementReference ChatContainerRef;
+    private bool IsBotTyping = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavManager.ToAbsoluteUri("/chathub"))
+            .WithAutomaticReconnect(new[]
+            {
+                TimeSpan.Zero,
+                TimeSpan.FromSeconds(2),
+                TimeSpan.FromSeconds(10),
+                TimeSpan.FromSeconds(30)
+            })
+            .ConfigureLogging(logging =>
+            {
+                logging.SetMinimumLevel(LogLevel.Debug);
+                logging.AddConsole();
+            })
+            .Build();
+        _hubConnection.ServerTimeout = TimeSpan.FromSeconds(60);
+        _hubConnection.KeepAliveInterval = TimeSpan.FromSeconds(20);
+
+        var recognizer = new SimpleIntentRecognizer();
+        _chatBot = new ChatBotService(recognizer, TemplateResponseProvider);
+
+        _hubConnection.Closed += async error =>
+        {
+            Console.WriteLine("Connection closed due to: " + error?.Message);
+            await Task.CompletedTask;
+        };
+
+        _hubConnection.Reconnecting += async error =>
+        {
+            Console.WriteLine("Reconnecting triggered: " + error?.Message);
+            await Task.CompletedTask;
+        };
+
+        _hubConnection.Reconnected += async id =>
+        {
+            Console.WriteLine($"Reconnected with ConnectionId: {id}");
+            await Task.CompletedTask;
+        };
+
+        _hubConnection.On<string, string>("ReceiveMessage", async (role, Message) =>
+         {
+             string finalReply = "";
+             if (role == "bot")
+             {
+                 finalReply = _chatBot.ModulateReply(Message, Result.Sentiment, Result.Intent);
+                 finalReply = "Bot: " + finalReply;
+             }
+             ConversationStore.GetOrCreate(_hubConnection.ConnectionId).AddMessage(role, Message, Result.Intent);
+             await InvokeAsync(async () =>
+             {
+                 if (role == "user")
+                 {
+                     Message = "You: " + Message;
+                     Messages.Add(new ChatMessage(role, Message, Result.Intent, "default", DateTime.Now));
+                     IsBotTyping = true;
+                     StateHasChanged();
+                     await JS.InvokeVoidAsync("scrollToBottom", ChatContainerRef);
+                 }
+                 else
+                 {
+                     await Task.Delay(500); // simulate delay
+                     Messages.Add(new ChatMessage(role, finalReply, string.Empty, "default", DateTime.Now));
+                     IsBotTyping = false;
+                     StateHasChanged();
+                     await JS.InvokeVoidAsync("scrollToBottom", ChatContainerRef);
+                 }
+             });
+         });
+
+        await _hubConnection.StartAsync();
+    }
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+            await _hubConnection.DisposeAsync();
+    }
+    public float GetIntentConfidence(float[] scores, float threshold = 0.6f)
+    {
+        if (scores == null || scores.Length == 0)
+            throw new ArgumentException("Score array must not be empty.");
+
+        // Find top intent
+        int topIndex = Array.IndexOf(scores, scores.Max());
+        float topScore = scores[topIndex];
+
+        // Find second-best score for margin-based calibration
+        float secondBest = scores
+            .Where((score, index) => index != topIndex)
+            .DefaultIfEmpty(0f)
+            .Max();
+
+        float margin = topScore - secondBest;
+        if (margin < 0.55f)
+            return topScore;
+
+        return (topScore * margin);
+    }
+    private async Task HandleKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(UserInput))
+        {
+            var result = MlService.AnalyzeText(UserInput);
+            var confidence = GetIntentConfidence(result.score);
+            if (confidence > 0.51f || Result.Intent is null)
+                Result = result;
+            if (_hubConnection is not null && _hubConnection.State == HubConnectionState.Connected)
+            {
+                await _hubConnection.SendAsync("SendMessage", UserInput);
+            }
+            if (TemplateResponseProvider._responses.TryGetValue(Result.Intent, out var route))
+            {
+                route.Action?.Invoke(UserInput); // Only runs if action is not null
+            }
+            UserInput = string.Empty;
+        }
+    }
+}

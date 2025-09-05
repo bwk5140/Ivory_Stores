@@ -996,9 +996,6 @@
   <data name="ordersPlacedIn" xml:space="preserve">
     <value>pedidos realizados en</value>
   </data>
-  <data name="3Months" xml:space="preserve">
-    <value>Últimos 3 meses </value>
-  </data>
   <data name="30Days" xml:space="preserve">
     <value>últimos 30 días</value>
   </data>
@@ -1292,5 +1289,692 @@
   </data>
   <data name="ContactUs" xml:space="preserve">
     <value>Envíanos un mensaje</value>
+  </data>
+  <data name="BestSelling" xml:space="preserve">
+    <value>Mejor vendido</value>
+  </data>
+  <data name="NewlyReleased" xml:space="preserve">
+    <value>Recién lanzado</value>
+  </data>
+  <data name="Sandals" xml:space="preserve">
+    <value>Sandalias</value>
+  </data>
+  <data name="Jackets" xml:space="preserve">
+    <value>Chaquetas</value>
+  </data>
+  <data name="Trousers" xml:space="preserve">
+    <value>Pantalones</value>
+  </data>
+  <data name="Jeans" xml:space="preserve">
+    <value>Vaqueras</value>
+  </data>
+  <data name="HelpAndSettings" xml:space="preserve">
+    <value>Ayuda y configuración</value>
+  </data>
+  <data name="Cart" xml:space="preserve">
+    <value>Carro</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Pants" xml:space="preserve">
+    <value>Pantalones</value>
+  </data>
+  <data name="ReviewThisProduct" xml:space="preserve">
+    <value>Revisar este producto</value>
+  </data>
+  <data name="ShareThoughts" xml:space="preserve">
+    <value>Comparte tus ideas con otros</value>
+  </data>
+  <data name="ReviewPurchases" xml:space="preserve">
+    <value>Revisa tus compras</value>
+  </data>
+  <data name="IneligibleAccount" xml:space="preserve">
+    <value>Nos disculpamos, pero esta cuenta no cumple con los requisitos mínimos de elegibilidad para escribir una reseña.</value>
+  </data>
+  <data name="ProductReviewed" xml:space="preserve">
+    <value>Ya has reseñado este producto. Puedes editarla o eliminarla y crear una nueva.</value>
+  </data>
+  <data name="ReportIssue" xml:space="preserve">
+    <value>Informar un problema</value>
+  </data>
+  <data name="TellUsAboutTheIssue" xml:space="preserve">
+    <value>Por favor, cuéntenos sobre el problema.</value>
+  </data>
+  <data name="WhatsWrongWithPage" xml:space="preserve">
+    <value>¿Qué está mal en esta página?</value>
+  </data>
+  <data name="ProblemWithMyOrder" xml:space="preserve">
+    <value>Hay un problema con mi pedido</value>
+  </data>
+  <data name="MissingInformation" xml:space="preserve">
+    <value>Falta información del producto, es inexacta o podría mejorarse.</value>
+  </data>
+  <data name="SizeDimension" xml:space="preserve">
+    <value>Tamaño/dimensiones</value>
+  </data>
+  <data name="ReleaseInfo" xml:space="preserve">
+    <value>Información de lanzamiento</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Otra</value>
+  </data>
+  <data name="OffensiveContent" xml:space="preserve">
+    <value>Este producto o contenido es ofensivo.</value>
+  </data>
+  <data name="SexuallyExplicit" xml:space="preserve">
+    <value>Contenido sexualmente explícito</value>
+  </data>
+  <data name="IllegalOrSuspicious" xml:space="preserve">
+    <value>Este producto o contenido es ilegal, inseguro o sospechoso.</value>
+  </data>
+  <data name="Counterfeit" xml:space="preserve">
+    <value>Es una falsificación</value>
+  </data>
+  <data name="IntellectualProperty" xml:space="preserve">
+    <value>Utiliza mi propiedad intelectual sin mi permiso.</value>
+  </data>
+  <data name="NonComplianceWithSafetyRegs" xml:space="preserve">
+    <value>No es seguro ni cumple con las normas de seguridad del producto.</value>
+  </data>
+  <data name="IllegalProduct" xml:space="preserve">
+    <value>Este producto/contenido es ilegal de otro modo.</value>
+  </data>
+  <data name="ProhibitedMaterialsOrSubstances" xml:space="preserve">
+    <value>Contiene materiales o sustancias prohibidas</value>
+  </data>
+  <data name="ImageDescriptionContainsIllegal" xml:space="preserve">
+    <value>La imagen/descripción del producto contiene contenido ilegal</value>
+  </data>
+  <data name="IllegalReview" xml:space="preserve">
+    <value>Las reseñas contienen contenido ilegal</value>
+  </data>
+  <data name="FakeIllegalReview" xml:space="preserve">
+    <value>La reseña del producto es falsa o ilegal</value>
+  </data>
+  <data name="IllegalProfileInfo" xml:space="preserve">
+    <value>La información del perfil de usuario (nombre/imagen) en las reseñas contiene contenido ilegal</value>
+  </data>
+  <data name="WhatsMissing" xml:space="preserve">
+    <value>¿Qué información falta o necesita mejorarse?</value>
+  </data>
+  <data name="WhatsOffensive" xml:space="preserve">
+    <value>¿Por qué es ofensivo?</value>
+  </data>
+  <data name="WhatsTheIssue" xml:space="preserve">
+    <value>¿Cuál es el problema?</value>
+  </data>
+  <data name="WhyIsntItCompliantOrSafe" xml:space="preserve">
+    <value>¿Por qué este producto no es seguro o no cumple con las normas?</value>
+  </data>
+  <data name="WheresTheIssue" xml:space="preserve">
+    <value>¿Dónde está el problema?</value>
+  </data>
+  <data name="WhatsIllegal" xml:space="preserve">
+    <value>¿Por qué es ilegal?</value>
+  </data>
+  <data name="Comments(optional)" xml:space="preserve">
+    <value>Comentarios (opcional)</value>
+  </data>
+  <data name="Choose" xml:space="preserve">
+    <value>Elegir</value>
+  </data>
+  <data name="HelpWithOrder" xml:space="preserve">
+    <value>Si necesita ayuda con un pedido, haga clic aquí.</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Detalles</value>
+  </data>
+  <data name="AccurateInfo" xml:space="preserve">
+    <value>Creo que la información y las alegaciones presentadas aquí son precisas y completas.</value>
+  </data>
+  <data name="InformationShowingNotSafe" xml:space="preserve">
+    <value>Tengo información que muestra que el artículo no es seguro.</value>
+  </data>
+  <data name="InstructionsForUse" xml:space="preserve">
+    <value>Instrucciones de uso</value>
+  </data>
+  <data name="ContactDetails" xml:space="preserve">
+    <value>Datos de contacto (fabricante, persona responsable)</value>
+  </data>
+  <data name="ToSubmitPleaseAgreeWithAccurateInfo" xml:space="preserve">
+    <value>Para enviar este formulario, confirme que la información proporcionada es precisa y completa marcando la casilla</value>
+  </data>
+  <data name="PleaseProvideDetails" xml:space="preserve">
+    <value>Proporcione algunos detalles sobre el problema reclamado.</value>
+  </data>
+  <data name="WelcomeToCustomerService" xml:space="preserve">
+    <value>Bienvenido al servicio de atención al cliente de Ivory Stores</value>
+  </data>
+  <data name="HowCanWeHelp" xml:space="preserve">
+    <value>¿Con qué necesitas ayuda hoy? Aquí puedes solucionar casi cualquier problema rápidamente.</value>
+  </data>
+  <data name="DeliveryOrderOrReturn" xml:space="preserve">
+    <value>Una entrega, un pedido o una devolución</value>
+  </data>
+  <data name="AccountInfoAddressesSecurity" xml:space="preserve">
+    <value>Información de la cuenta, direcciones y seguridad</value>
+  </data>
+  <data name="Payments" xml:space="preserve">
+    <value>Pagos</value>
+  </data>
+  <data name="MessagesNotificationSettings" xml:space="preserve">
+    <value>Configuración de mensajes y notificaciones</value>
+  </data>
+  <data name="SomethingElse" xml:space="preserve">
+    <value>Otra cosa</value>
+  </data>
+  <data name="ReportSuspiciousActivity" xml:space="preserve">
+    <value>Informar actividad sospechosa</value>
+  </data>
+  <data name="WhichItemDoYouNeedHelpWith" xml:space="preserve">
+    <value>¿Con qué artículo necesitas ayuda?</value>
+  </data>
+  <data name="OrderedOn" xml:space="preserve">
+    <value>Ordenado el</value>
+  </data>
+  <data name="TellUsWhatYouNeedHelpWith" xml:space="preserve">
+    <value>Cuéntanos en qué necesitas ayuda</value>
+  </data>
+  <data name="DescribeWhatsGoingOn" xml:space="preserve">
+    <value>Describe lo que está pasando</value>
+  </data>
+  <data name="GetAnAnswer" xml:space="preserve">
+    <value>Obtener una respuesta</value>
+  </data>
+  <data name="ItemDetails" xml:space="preserve">
+    <value>DETALLES DEL ARTÍCULO</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="OrderNumber" xml:space="preserve">
+    <value>NÚMERO DE PEDIDO</value>
+  </data>
+  <data name="ShippingAddress" xml:space="preserve">
+    <value>DIRECCIÓN DE ENTREGA</value>
+  </data>
+  <data name="HowCanWeHelpWithThisItem" xml:space="preserve">
+    <value>¿Cómo podemos ayudarle con este artículo?</value>
+  </data>
+  <data name="SaysDelivered" xml:space="preserve">
+    <value>Dice entregada, pero no está aquí</value>
+  </data>
+  <data name="TrackPackage" xml:space="preserve">
+    <value>Rastrear envio</value>
+  </data>
+  <data name="ShareDeliveryFeedback" xml:space="preserve">
+    <value>Compartir comentarios de entrega</value>
+  </data>
+  <data name="OtherItemsInThisPackage" xml:space="preserve">
+    <value>Hay otros artículos en este paquete. ¿Falta todo el paquete o solo este artículo?</value>
+  </data>
+  <data name="EntirePackage" xml:space="preserve">
+    <value>Falta el paquete completo</value>
+  </data>
+  <data name="OneOrMoreItems" xml:space="preserve">
+    <value>Faltan uno o más elementos</value>
+  </data>
+  <data name="MostCustomersFindWithin24Hrs" xml:space="preserve">
+    <value>La mayoría de los clientes encuentran su paquete en 24 horas. Puede consultar en los alrededores o con quien lo haya recibido en su nombre.</value>
+  </data>
+  <data name="YouCanTrackPackage" xml:space="preserve">
+    <value>También puede rastrear su paquete para obtener más detalles, como la fecha o el lugar de entrega.</value>
+  </data>
+  <data name="YouCanContactUs" xml:space="preserve">
+    <value>Si no lo encuentra después de 24 horas, puede contactarnos para obtener más ayuda.</value>
+  </data>
+  <data name="MissingItem" xml:space="preserve">
+    <value>Artículo faltante</value>
+  </data>
+  <data name="WeAreSorryMissingItem" xml:space="preserve">
+    <value>Lamentamos que este artículo no esté en el paquete. Para su información, es posible que se entregue en un paquete diferente y tenga una fecha de entrega distinta.</value>
+  </data>
+  <data name="ToFindAMissingItem" xml:space="preserve">
+    <value>Para encontrar un artículo perdido, ve a "Tus Pedidos" y rastrea el paquete. Si aún no lo encuentras, puedes contactarnos para obtener más ayuda.</value>
+  </data>
+  <data name="ChooseItemToReview" xml:space="preserve">
+    <value>Elige el artículo que deseas revisar</value>
+  </data>
+  <data name="ProductNotElligibleForReturn" xml:space="preserve">
+    <value>Este producto no es elegible para devolución o reemplazo.</value>
+  </data>
+  <data name="ReadReturnPolicy" xml:space="preserve">
+    <value>Lea nuestra política de devoluciones</value>
+  </data>
+  <data name="WeAreSorryAboutThat" xml:space="preserve">
+    <value>Lo sentimos. ¿El paquete o sobre de envío exterior también estaba dañado?</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="WhatAboutProductPackaging" xml:space="preserve">
+    <value>¿Y el embalaje del producto? ¿Estaba dañado?</value>
+  </data>
+  <data name="NoOptionsFound" xml:space="preserve">
+    <value>No se encontraron opciones</value>
+  </data>
+  <data name="ContactOurCustomerServiceTeam" xml:space="preserve">
+    <value>Comuníquese con nuestro equipo de atención al cliente para obtener más ayuda.</value>
+  </data>
+  <data name="ReachOut" xml:space="preserve">
+    <value>Contacta con nosotras</value>
+  </data>
+  <data name="TrackPackageLg" xml:space="preserve">
+    <value>Rastrear Envio</value>
+  </data>
+  <data name="Arriving" xml:space="preserve">
+    <value>Llegando</value>
+  </data>
+  <data name="Shipped" xml:space="preserve">
+    <value>Enviada</value>
+  </data>
+  <data name="OutForDelivery" xml:space="preserve">
+    <value>Fuera para entrega</value>
+  </data>
+  <data name="HowWouldYouLikeToContactUs" xml:space="preserve">
+    <value>¿Cómo te gustaría contactar con nosotras?</value>
+  </data>
+  <data name="OurMessaginAssistantsCanHelp" xml:space="preserve">
+    <value>Nuestros asistentes de mensajería pueden resolver la mayoría de los problemas o conectarlo con el asociado adecuado.</value>
+  </data>
+  <data name="RequestCall" xml:space="preserve">
+    <value>Solicite una llamada telefónica</value>
+  </data>
+  <data name="RequestCallNow" xml:space="preserve">
+    <value>Solicitar llamada ahora</value>
+  </data>
+  <data name="EmailUs" xml:space="preserve">
+    <value>Envíenos un correo electrónico</value>
+  </data>
+  <data name="SendUsAnEmail" xml:space="preserve">
+    <value>Envíanos un correo electrónico</value>
+  </data>
+  <data name="DeleteFromList" xml:space="preserve">
+    <value>Eliminar elemento de la lista</value>
+  </data>
+  <data name="RequestPhoneCall" xml:space="preserve">
+    <value>Solicitar una llamada telefónica</value>
+  </data>
+  <data name="AndNo" xml:space="preserve">
+    <value>y no</value>
+  </data>
+  <data name="DamagedProductPackageHelp" xml:space="preserve">
+    <value>paquete de producto dañado</value>
+  </data>
+  <data name="DamagedPackage" xml:space="preserve">
+    <value>paquete de envío externo dañado</value>
+  </data>
+  <data name="Issue" xml:space="preserve">
+    <value>Asunto</value>
+  </data>
+  <data name="EditCountry" xml:space="preserve">
+    <value>Editar país</value>
+  </data>
+  <data name="CountryDetails" xml:space="preserve">
+    <value>Detalles del país</value>
+  </data>
+  <data name="DeleteCountry" xml:space="preserve">
+    <value>Eliminar país</value>
+  </data>
+  <data name="CallMeNow" xml:space="preserve">
+    <value>Llámame ahora</value>
+  </data>
+  <data name="WhatIsTheBestNumberToCall" xml:space="preserve">
+    <value>¿Cual es el mejor número para llamarte?</value>
+  </data>
+  <data name="EditAddress" xml:space="preserve">
+    <value>Editar dirección</value>
+  </data>
+  <data name="3Months" xml:space="preserve">
+    <value>Últimos 3 meses </value>
+  </data>
+  <data name="TypeYourMessageBelow" xml:space="preserve">
+    <value>Escribe tu mensaje a continuación</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>De</value>
+  </data>
+  <data name="SendEmail" xml:space="preserve">
+    <value>Enviar correo electrónico</value>
+  </data>
+  <data name="NeedHelpWith" xml:space="preserve">
+    <value>Necesito ayuda con ...</value>
+  </data>
+  <data name="TrackShipping" xml:space="preserve">
+    <value>Seguimiento del envío</value>
+  </data>
+  <data name="ItemWasDelivered" xml:space="preserve">
+    <value>Este artículo fue entregado. Puede consultar la información de seguimiento y las actualizaciones en la página "Seguimiento de paquete".</value>
+  </data>
+  <data name="YouCanViewTrackingInfo" xml:space="preserve">
+    <value>Puede ver la información de seguimiento y las actualizaciones en la página Seguir paquete.</value>
+  </data>
+  <data name="PickWhatYouNeedHelpWith" xml:space="preserve">
+    <value>Elige con qué necesitas ayuda</value>
+  </data>
+  <data name="CheckLoginInfo" xml:space="preserve">
+    <value>Verifique la información de inicio de sesión y la seguridad</value>
+  </data>
+  <data name="UpdateAddress" xml:space="preserve">
+    <value>Actualizar dirección</value>
+  </data>
+  <data name="RequestMyData" xml:space="preserve">
+    <value>Solicitar mis datos</value>
+  </data>
+  <data name="ManageMyAccount" xml:space="preserve">
+    <value>Administrar mi cuenta</value>
+  </data>
+  <data name="CloseMyAccount" xml:space="preserve">
+    <value>Cerrar mi cuenta</value>
+  </data>
+  <data name="PasswordEmailLogin" xml:space="preserve">
+    <value>Contraseña, correo electrónico o inicio de sesión</value>
+  </data>
+  <data name="Manage2StepVerification" xml:space="preserve">
+    <value>Administrar la verificación en dos pasos</value>
+  </data>
+  <data name="YouCanUpdateNameEmailOrPassword" xml:space="preserve">
+    <value>Puede actualizar su nombre, dirección de correo electrónico o contraseña en la sección Inicio de sesión y seguridad de la página Configuración de su cuenta.</value>
+  </data>
+  <data name="YourAccountSettings" xml:space="preserve">
+    <value>Configuración de su cuenta</value>
+  </data>
+  <data name="YouCanUpdate2StepVerification" xml:space="preserve">
+    <value>La verificación en dos pasos (2SV) es una función que añade una capa adicional de seguridad a tu cuenta enviándote un código de seguridad único al iniciar sesión. Puedes cambiar la configuración de la 2SV en la página de configuración de tu cuenta.</value>
+  </data>
+  <data name="CloseAccount" xml:space="preserve">
+    <value>Cierra tu cuenta</value>
+  </data>
+  <data name="OnceYourAccountIsClosed" xml:space="preserve">
+    <value>Una vez cerrada su cuenta, usted y cualquier otra persona ya no podrán acceder a ella. No podrá acceder a su historial de pedidos ni imprimir un comprobante de compra ni una factura.</value>
+  </data>
+  <data name="UpdateShippingAddress" xml:space="preserve">
+    <value>Actualizar direcciónes de envío</value>
+  </data>
+  <data name="UpdateBillingAddress" xml:space="preserve">
+    <value>Actualizar direcciones de facturación</value>
+  </data>
+  <data name="YouCanUpdateShippingAddresses" xml:space="preserve">
+    <value>Puede actualizar todas sus direcciones de envío en la página Administrar sus direcciones.</value>
+  </data>
+  <data name="ManageYourAddresses" xml:space="preserve">
+    <value>Administra tus direcciones</value>
+  </data>
+  <data name="YouCanManageBillingInfo" xml:space="preserve">
+    <value>Puede administrar su información de facturación en su página de Pago haciendo clic en editar debajo de su tarjeta.</value>
+  </data>
+  <data name="ManagePayment" xml:space="preserve">
+    <value>Gestionar pago</value>
+  </data>
+  <data name="DataPrivacyConcerns" xml:space="preserve">
+    <value>Preocupaciones sobre la privacidad de los datos</value>
+  </data>
+  <data name="YouCanRequestYourData" xml:space="preserve">
+    <value>Puede solicitar sus datos haciendo clic en la página Solicitar mis datos a continuación.</value>
+  </data>
+  <data name="RequestMyDataLg" xml:space="preserve">
+    <value>Solicitar mis datos</value>
+  </data>
+  <data name="DeleteDataCloseAccount" xml:space="preserve">
+    <value>Eliminar datos/Cerrar cuenta</value>
+  </data>
+  <data name="ToSubmitACloseAccountRequest" xml:space="preserve">
+    <value>Para enviar una solicitud para cerrar su cuenta de Ivory Stores y eliminar sus datos, visite nuestra página Administrar cuenta.</value>
+  </data>
+  <data name="NoOrdersYet" xml:space="preserve">
+    <value>Parece que aún no has realizado ningún pedido.</value>
+  </data>
+  <data name="ErrorIncorrectPassword" xml:space="preserve">
+    <value>Error: Contraseña incorrecta</value>
+  </data>
+  <data name="UnknownOrIncorrectCharges" xml:space="preserve">
+    <value>Cargos desconocidos o incorrectos</value>
+  </data>
+  <data name="YouCanViewAllChargesOnYourTransactionsPage" xml:space="preserve">
+    <value>Puede revisar todos los cargos en su cuenta en la página Sus transacciones.</value>
+  </data>
+  <data name="YourTransactions" xml:space="preserve">
+    <value>Tus transacciones</value>
+  </data>
+  <data name="PaymentDeclined" xml:space="preserve">
+    <value>Pago rechazado</value>
+  </data>
+  <data name="ToProtectYourSecurity" xml:space="preserve">
+    <value>Para proteger su seguridad y privacidad, su banco no puede proporcionar a Ivory Stores información sobre el motivo del rechazo de su pago. Entre las posibles razones de un pago rechazado se incluyen el exceso del límite de la tarjeta de crédito, la introducción incorrecta de la información de la tarjeta de crédito por parte del usuario, la introducción incorrecta de una contraseña de un solo uso o el bloqueo de una transacción por otros motivos de seguridad.</value>
+  </data>
+  <data name="UpdatePaymentMethod" xml:space="preserve">
+    <value>Actualizar método de pago</value>
+  </data>
+  <data name="YouCanChangeDefaultPaymentMethod" xml:space="preserve">
+    <value>Puede cambiar su método de pago predeterminado en su página de Pagos.</value>
+  </data>
+  <data name="ManagePayments" xml:space="preserve">
+    <value>Administrar pagos</value>
+  </data>
+  <data name="CancelledOrder" xml:space="preserve">
+    <value>Pedido cancelado</value>
+  </data>
+  <data name="OrdersGetCancelledForAVarietyOfReasons" xml:space="preserve">
+    <value>Los pedidos pueden cancelarse debido a una variedad de razones, o pueden cancelarse desde su parte si ya no desea recibir el artículo.</value>
+  </data>
+  <data name="IfYouChoseToPayWithCreditCard" xml:space="preserve">
+    <value>Si eligió pagar con tarjeta de crédito, no se le ha cobrado, pero es posible que aparezca una autorización en su cuenta. Debe eliminarla de acuerdo con las políticas de su institución financiera.</value>
+  </data>
+  <data name="IfYouChoseToPayWithDebitCard" xml:space="preserve">
+    <value>Si seleccionó tarjeta de débito, los fondos se retirarán de su cuenta bancaria el mismo día hábil. Si se le cobró, recibirá el reembolso en un plazo de 10 días hábiles.</value>
+  </data>
+  <data name="IfYouChoseToPayWithMpesa" xml:space="preserve">
+    <value>Si seleccionaste Mpesa, los fondos se retirarán de tu cuenta el mismo día. Si te cobraron, recibirás el reembolso en un plazo de 3 días.</value>
+  </data>
+  <data name="ManageAccount" xml:space="preserve">
+    <value>Administrar cuenta</value>
+  </data>
+  <data name="INeedHelpWithSomethingElse" xml:space="preserve">
+    <value>Necesito ayuda con algo más</value>
+  </data>
+  <data name="WeAreWorkingOnLiveChatFeature" xml:space="preserve">
+    <value>Estamos trabajando en nuestra función de chat en vivo. Disculpen las molestias. Mientras tanto, pueden encontrar respuestas útiles de nuestros agentes de chatbot experimentales.</value>
+  </data>
+  <data name="ChatWithAnAgent" xml:space="preserve">
+    <value>Chatear con una agente</value>
+  </data>
+  <data name="OtherIvoryStoresAccountSettings" xml:space="preserve">
+    <value>Otras configuraciones de la cuenta de Ivory Stores</value>
+  </data>
+  <data name="ManageEmailSettings" xml:space="preserve">
+    <value>Administrar la configuración de correo electrónico</value>
+  </data>
+  <data name="CheckMessagesFromIvoryStores" xml:space="preserve">
+    <value>Consulta los mensajes de Ivory Stores</value>
+  </data>
+  <data name="YouCanViewCommunicationsWithIvoryStores" xml:space="preserve">
+    <value>Puede ver las comunicaciones con Ivory Stores, ver confirmaciones de pedidos y envíos, y más en el Centro de mensajes.</value>
+  </data>
+  <data name="CheckYourMessages" xml:space="preserve">
+    <value>Revisa tus mensajes</value>
+  </data>
+  <data name="YouCanOptInOrOutOfIvoryStoresEmails" xml:space="preserve">
+    <value>Puede preferir suscribirse o no a correos electrónicos y correos promocionales y de marketing de Ivory Stores visitando nuestro Centro de preferencias de comunicación.</value>
+  </data>
+  <data name="ManageYourCommunicationPreferences" xml:space="preserve">
+    <value>Gestiona tus preferencias de comunicación</value>
+  </data>
+  <data name="MessageCenter" xml:space="preserve">
+    <value>Centro de mensajes</value>
+  </data>
+  <data name="Inbox" xml:space="preserve">
+    <value>Bandeja de entrada</value>
+  </data>
+  <data name="IvoryStoresAndAllRelatedMarks" xml:space="preserve">
+    <value>Ivory Stores y todas las marcas relacionadas son marcas comerciales de IvoryStores.com.</value>
+  </data>
+  <data name="BackToMessages" xml:space="preserve">
+    <value>Volver a mensajes</value>
+  </data>
+  <data name="YourMessages" xml:space="preserve">
+    <value>Tus Mensajes</value>
+  </data>
+  <data name="ViewOrRespondToMsgs" xml:space="preserve">
+    <value>Ver o responder mensajes de Ivory Stores</value>
+  </data>
+  <data name="AllMessages" xml:space="preserve">
+    <value>Todos los mensajes</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Notificaciones</value>
+  </data>
+  <data name="AccountAndShipping" xml:space="preserve">
+    <value>Cuenta y envío</value>
+  </data>
+  <data name="DealsAndRecommendations" xml:space="preserve">
+    <value>Ofertas y recomendaciones</value>
+  </data>
+  <data name="GeneralSettings" xml:space="preserve">
+    <value>Configuraciones generales</value>
+  </data>
+  <data name="ChooseTheUpdatesYouWant" xml:space="preserve">
+    <value>Elige las actualizaciones que deseas y cómo se envían</value>
+  </data>
+  <data name="GetNotifiedAboutAccountSecurity" xml:space="preserve">
+    <value>Reciba notificaciones sobre la seguridad de la cuenta, pagos y pedidos</value>
+  </data>
+  <data name="On" xml:space="preserve">
+    <value>En</value>
+  </data>
+  <data name="ShippingAndDelivery" xml:space="preserve">
+    <value>Envío y entrega</value>
+  </data>
+  <data name="FindOutWhenPackagesShipAndArrive" xml:space="preserve">
+    <value>Descubra cuándo se envían y llegan los paquetes</value>
+  </data>
+  <data name="YouWillAlwaysReceive" xml:space="preserve">
+    <value>Siempre recibirás correos electrónicos sobre tu cuenta, pedidos y envíos.</value>
+  </data>
+  <data name="Deals" xml:space="preserve">
+    <value>Ofertas</value>
+  </data>
+  <data name="ReceivedPersonalizedAndTopRatedDeals" xml:space="preserve">
+    <value>Reciba ofertas personalizadas y mejor valoradas</value>
+  </data>
+  <data name="Off" xml:space="preserve">
+    <value>Desactivado</value>
+  </data>
+  <data name="OurSalesEvents" xml:space="preserve">
+    <value>Nuestros eventos de ventas</value>
+  </data>
+  <data name="StayInformedAboutSpecialEvents" xml:space="preserve">
+    <value>Manténgase informado sobre ofertas de eventos especiales como el Black Friday.</value>
+  </data>
+  <data name="SeasonalAndCurrentTrends" xml:space="preserve">
+    <value>Tendencias estacionales y actuales</value>
+  </data>
+  <data name="DiscoverSeasonalAndHolidayTrends" xml:space="preserve">
+    <value>Descubra productos populares, así como artículos de temporada y festivos de tendencia.</value>
+  </data>
+  <data name="ProductRecommendations" xml:space="preserve">
+    <value>Recomendaciones de productos</value>
+  </data>
+  <data name="PersonalizedSuggestionsBasedOnViews" xml:space="preserve">
+    <value>Sugerencias personalizadas seleccionadas para usted en función de sus opiniones</value>
+  </data>
+  <data name="NewReleases" xml:space="preserve">
+    <value>Nuevos lanzamientos</value>
+  </data>
+  <data name="GetUpdatesOnProductLaunchesAndReleases" xml:space="preserve">
+    <value>Reciba actualizaciones sobre lanzamientos y lanzamientos de productos</value>
+  </data>
+  <data name="EmailsAreSentTo" xml:space="preserve">
+    <value>Los correos electrónicos de su cuenta se envían a</value>
+  </data>
+  <data name="ViewContactInfoForEmailAndText" xml:space="preserve">
+    <value>Ver su información de contacto para correo electrónico y mensajes de texto</value>
+  </data>
+  <data name="TextMessages" xml:space="preserve">
+    <value>Mensajes de texto</value>
+  </data>
+  <data name="TextsAreSentTo" xml:space="preserve">
+    <value>Los mensajes de texto de su cuenta se envían a</value>
+  </data>
+  <data name="CallRequestReceived" xml:space="preserve">
+    <value>Hemos recibido su solicitud de llamada. Un representante le llamará en un plazo de 2 días hábiles.</value>
+  </data>
+  <data name="EmailSent" xml:space="preserve">
+    <value>Su correo electrónico ha sido enviado exitosamente</value>
+  </data>
+  <data name="EnterAuthCodeBelow" xml:space="preserve">
+    <value>Introduzca su código de autenticador a continuación.</value>
+  </data>
+  <data name="Verify" xml:space="preserve">
+    <value>Verificar</value>
+  </data>
+  <data name="LogInWithRecoveryCode" xml:space="preserve">
+    <value>iniciar sesión con un código de recuperación</value>
+  </data>
+  <data name="DontHaveAccessToAuthDevice" xml:space="preserve">
+    <value>¿No tienes acceso a tu dispositivo de autenticación? Puedes </value>
+  </data>
+  <data name="VerifyWithRecoveryCode" xml:space="preserve">
+    <value>verificar con un código de recuperación</value>
+  </data>
+  <data name="InvalidCode" xml:space="preserve">
+    <value>Código no válido introducido</value>
+  </data>
+  <data name="CodeSentToYourEmailAndRegisteredPhone" xml:space="preserve">
+    <value>Ingresa el código enviado a tu correo electrónico y número de teléfono registrado</value>
+  </data>
+  <data name="SiteAnalytics" xml:space="preserve">
+    <value>Análisis del sitio</value>
+  </data>
+  <data name="LoginToYourAccount" xml:space="preserve">
+    <value>Inicia sesión en tu cuenta</value>
+  </data>
+  <data name="ReportSuspiciousCallOrMessage" xml:space="preserve">
+    <value>Reportar llamada o mensaje sospechoso</value>
+  </data>
+  <data name="ReportSuspiciousProduct" xml:space="preserve">
+    <value>Reportar producto sospechoso</value>
+  </data>
+  <data name="ReportUnsolicitedPackage" xml:space="preserve">
+    <value>Reportar paquete no solicitado</value>
+  </data>
+  <data name="IveSharedIvoryStoresAccountInfo" xml:space="preserve">
+    <value>He compartido la información de la cuenta de Ivory Stores</value>
+  </data>
+  <data name="IveSharedBankingInfo" xml:space="preserve">
+    <value>He compartido información bancaria</value>
+  </data>
+  <data name="IveSharedOtherInfo" xml:space="preserve">
+    <value>He compartido 'otra' información</value>
+  </data>
+  <data name="IHaventSharedAnyInfo" xml:space="preserve">
+    <value>No he compartido ninguna información</value>
+  </data>
+  <data name="DidYouKnow" xml:space="preserve">
+    <value>¿Sabías?</value>
+  </data>
+  <data name="ToReportASuspiciousCommunication" xml:space="preserve">
+    <value>Para informar una comunicación sospechosa a Ivory Stores y obtener sugerencias sobre las acciones recomendadas a tomar, haga clic en "Iniciar informe" a continuación.</value>
+  </data>
+  <data name="StartReport" xml:space="preserve">
+    <value>Iniciar informe</value>
+  </data>
+  <data name="IfYouReceiveAPackageThatYouDidNotOrder" xml:space="preserve">
+    <value>Si recibe un paquete que no pidió, confirme que no fue un regalo. Consulte con sus amigos y familiares para saber si lo pidieron. Si no es un regalo, repórtelo de inmediato.</value>
+  </data>
+  <data name="ReportUnsolicitedPackageLg" xml:space="preserve">
+    <value>Reportar paquetes no solicitados</value>
+  </data>
+  <data name="Chat" xml:space="preserve">
+    <value>Charlar</value>
+  </data>
+  <data name="ChatWithAgent" xml:space="preserve">
+    <value>Chatea con una de nuestras agentes</value>
+  </data>
+  <data name="ConnectToAgent" xml:space="preserve">
+    <value>Conectar a la agente</value>
   </data>
 </root>

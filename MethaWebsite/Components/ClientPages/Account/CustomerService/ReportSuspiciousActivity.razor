@@ -1,0 +1,393 @@
+﻿@page "/Account/CustomerService/ReportSuspiciousActivity"
+@using MethaWebsite.Components.Account
+@using Microsoft.AspNetCore.Authorization
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.Extensions.Logging
+
+@attribute [Authorize]
+
+@inject IStringLocalizer<SharedResource> Loc
+@inject ApplicationUserService ApplicationUserService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@inject LayoutState LayoutStateService
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+
+@rendermode InteractiveServer
+
+
+<div class="container-xxl mt-5 mb-5" style="display: block; justify-content: center;">
+    <div class="center-container">
+        <div style="display: inline-block;">
+            <div style="display: inline-block;">
+                <svg width="80" height="80">
+                    <circle cx="40" cy="40" r="20" fill="#277a7a" />
+                    <text x="33" y="50" font-size="24" fill="white">1</text>
+                </svg>
+            </div>
+            <div style="display: inline-block;">
+                <h6 class="ms-1">@Loc["TellUsWhatYouNeedHelpWith"]</h6>
+            </div>
+            <div style="display: inline-block;">
+                <svg width="163">
+                    <line x1="15" y1="75" x2="175" y2="75" stroke="lightgrey" stroke-width="1" />
+                </svg>
+            </div>
+        </div>
+        <div style="display: inline-block;">
+            <div style="display: inline-block;">
+                <svg width="80" height="80">
+                    <circle cx="40" cy="40" r="20" fill="#277a7a" />
+                    <text x="33" y="50" font-size="24" fill="white">2</text>
+                </svg>
+            </div>
+            <div style="display: inline-block;">
+                <h6 class="ms-1">@Loc["DescribeWhatsGoingOn"]</h6>
+            </div>
+            <div style="display: inline-block;">
+                <svg width="163">
+                    <line x1="15" y1="75" x2="175" y2="75" stroke="lightgrey" stroke-width="1" />
+                </svg>
+            </div>
+        </div>
+        @if (!HelpContent["ReportSuspiciousCallOrMessage"] && !HelpContent["ReportSuspiciousProduct"] && !HelpContent["ReportUnsolicitedPackage"])
+        {
+            <div style="display: inline-block;">
+                <div style="display: inline-block;">
+                    <svg width="80" height="80">
+                        <circle cx="40" cy="40" r="20" fill="gray" />
+                        <circle cx="40" cy="40" r="19" fill="white" />
+                        <text x="33" y="50" font-size="24" fill="gray">3</text>
+                    </svg>
+                </div>
+                <div style="display: inline-block; color: gray;">
+                    <h6 class="ms-1">@Loc["GetAnAnswer"]</h6>
+                </div>
+            </div>
+        }
+        else
+        {
+            if (!ReportSuspiciousCallOrMessageHelp["IveSharedIvoryStoresAccountInfo"] && !ReportSuspiciousCallOrMessageHelp["IveSharedBankingInfo"]
+            && !ReportSuspiciousCallOrMessageHelp["IveSharedOtherInfo"] && !ReportSuspiciousCallOrMessageHelp["IHaventSharedAnyInfo"] && !HelpContent["ReportUnsolicitedPackage"])
+            {
+                <div style="display: inline-block;">
+                    <div style="display: inline-block;">
+                        <svg width="80" height="80">
+                            <circle cx="40" cy="40" r="20" fill="gray" />
+                            <circle cx="40" cy="40" r="19" fill="white" />
+                            <text x="33" y="50" font-size="24" fill="gray">3</text>
+                        </svg>
+                    </div>
+                    <div style="display: inline-block; color: gray;">
+                        <h6 class="ms-1">@Loc["GetAnAnswer"]</h6>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div style="display: inline-block;">
+                    <div style="display: inline-block;">
+                        <svg width="80" height="80">
+                            <circle cx="40" cy="40" r="20" fill="#277a7a" />
+                            <text x="33" y="50" font-size="24" fill="white">3</text>
+                        </svg>
+                    </div>
+                    <div style="display: inline-block; color: black;">
+                        <h6 class="ms-1">@Loc["GetAnAnswer"]</h6>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+    <div class="center-container">
+        <div class="card mb-3 me-4" style="max-width: 700px; padding: 0px;">
+            <div class="card-body">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td class="border-end" style="width: 35%; vertical-align: text-top;">
+                                <div style="position: relative; width: 50px; height: 50px;">
+                                    <svg style="position: absolute; top: 0; left: 0; z-index: 0;" width="50" height="50">
+                                        <circle cx="25" cy="25" r="25" fill="#277a7a" />
+                                    </svg>
+                                    <img src="envelope-exclamation.svg" style="position: absolute; top: 20%; left: 20%; z-index: 1; width: 30px; height: 30px;" />
+                                </div>
+                                <div style="font-weight: 600; text-decoration: none;">
+                                    @Loc["ReportSuspiciousActivity"]
+                                </div>
+                            </td>
+                            <td style="width: 65%;">
+                                <div class="ms-4 me-4" style="vertical-align: text-top;">
+                                    @if (!HelpContent["ReportSuspiciousCallOrMessage"] && !HelpContent["ReportSuspiciousProduct"] && !HelpContent["ReportUnsolicitedPackage"])
+                                    {
+                                        <a href="/Account/CustomerService" style="text-decoration: none; color: black;">
+                                            <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                            @Loc["Back"]
+                                        </a>
+                                        <div>
+                                            <strong>@Loc["PickWhatYouNeedHelpWith"]</strong>
+                                        </div>
+                                        <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => HelpContent["ReportSuspiciousCallOrMessage"] = true)">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-sm-10" style="font-size: medium;">
+                                                        @Loc["ReportSuspiciousCallOrMessage"]
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card mt-4" style="cursor: pointer;" @onclick="@OnReportSuspiciousProduct">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-sm-10" style="font-size: medium;">
+                                                        @Loc["ReportSuspiciousProduct"]
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => HelpContent["ReportUnsolicitedPackage"] = true)">
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-sm-10" style="font-size: medium;">
+                                                        @Loc["ReportUnsolicitedPackage"]
+                                                    </div>
+                                                    <div class="col-sm-2">
+                                                        <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        if (HelpContent["ReportSuspiciousCallOrMessage"])
+                                        {
+                                            if (!ReportSuspiciousCallOrMessageHelp["IveSharedIvoryStoresAccountInfo"] && !ReportSuspiciousCallOrMessageHelp["IveSharedBankingInfo"]
+                                            && !ReportSuspiciousCallOrMessageHelp["IveSharedOtherInfo"] && !ReportSuspiciousCallOrMessageHelp["IHaventSharedAnyInfo"])
+                                            {
+                                                <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => HelpContent["ReportSuspiciousCallOrMessage"] = false)">
+                                                    <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                    @Loc["Back"]
+                                                </a>
+                                                <div>
+                                                    <strong>@Loc["PickWhatYouNeedHelpWith"]</strong>
+                                                </div>
+                                                <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => ReportSuspiciousCallOrMessageHelp["IveSharedIvoryStoresAccountInfo"] = true)">
+                                                    <div class="card-body">
+                                                        <div class="row">
+                                                            <div class="col-sm-10" style="font-size: medium;">
+                                                                @Loc["IveSharedIvoryStoresAccountInfo"]
+                                                            </div>
+                                                            <div class="col-sm-2">
+                                                                <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => ReportSuspiciousCallOrMessageHelp["IveSharedBankingInfo"] = true)">
+                                                    <div class="card-body">
+                                                        <div class="row">
+                                                            <div class="col-sm-10" style="font-size: medium;">
+                                                                @Loc["IveSharedBankingInfo"]
+                                                            </div>
+                                                            <div class="col-sm-2">
+                                                                <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => ReportSuspiciousCallOrMessageHelp["IveSharedOtherInfo"] = true)">
+                                                    <div class="card-body">
+                                                        <div class="row">
+                                                            <div class="col-sm-10" style="font-size: medium;">
+                                                                @Loc["IveSharedOtherInfo"]
+                                                            </div>
+                                                            <div class="col-sm-2">
+                                                                <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card mt-4" style="cursor: pointer;" @onclick="@(e => ReportSuspiciousCallOrMessageHelp["IHaventSharedAnyInfo"] = true)">
+                                                    <div class="card-body">
+                                                        <div class="row">
+                                                            <div class="col-sm-10" style="font-size: medium;">
+                                                                @Loc["IHaventSharedAnyInfo"]
+                                                            </div>
+                                                            <div class="col-sm-2">
+                                                                <img class="mb-1" src="chevron-right.svg" width="8" height="8" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            
+                                            if (ReportSuspiciousCallOrMessageHelp["IveSharedIvoryStoresAccountInfo"])
+                                            {
+                                                <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => ReportSuspiciousCallOrMessageHelp["IveSharedIvoryStoresAccountInfo"] = false)">
+                                                    <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                    @Loc["Back"]
+                                                </a>
+                                                <div>
+                                                    <strong>@Loc["DidYouKnow"]</strong>
+                                                </div>
+                                                <div class="mb-2 mt-3">
+                                                    <p>
+                                                        @Loc["ToReportASuspiciousCommunication"]
+                                                    </p>
+                                                </div>
+                                                <div class="mt-4" style="text-align: center;">
+                                                    <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;border-color:transparent; border-radius: 5px;" @onclick="OnIveSharedAccountInfoReport">
+                                                        @Loc["StartReport"]
+                                                    </button>
+                                                </div>
+                                            }
+                                            if (ReportSuspiciousCallOrMessageHelp["IveSharedBankingInfo"])
+                                            {
+                                                <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => ReportSuspiciousCallOrMessageHelp["IveSharedBankingInfo"] = false)">
+                                                    <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                    @Loc["Back"]
+                                                </a>
+                                                <div>
+                                                    <strong>@Loc["DidYouKnow"]</strong>
+                                                </div>
+                                                <div class="mb-2 mt-3">
+                                                    <p>
+                                                        @Loc["ToReportASuspiciousCommunication"]
+                                                    </p>
+                                                </div>
+                                                <div class="mt-4" style="text-align: center;">
+                                                    <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;border-color:transparent; border-radius: 5px;" @onclick="OnIveSharedBankingInfoReport">
+                                                        @Loc["StartReport"]
+                                                    </button>
+                                                </div>
+                                            }
+                                            if (ReportSuspiciousCallOrMessageHelp["IveSharedOtherInfo"])
+                                            {
+                                                <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => ReportSuspiciousCallOrMessageHelp["IveSharedOtherInfo"] = false)">
+                                                    <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                    @Loc["Back"]
+                                                </a>
+                                                <div>
+                                                    <strong>@Loc["DidYouKnow"]</strong>
+                                                </div>
+                                                <div class="mb-2 mt-3">
+                                                    <p>
+                                                        @Loc["ToReportASuspiciousCommunication"]
+                                                    </p>
+                                                </div>
+                                                <div class="mt-4" style="text-align: center;">
+                                                    <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;border-color:transparent; border-radius: 5px;" @onclick="OnIveSharedOtherInfoReport">
+                                                        @Loc["StartReport"]
+                                                    </button>
+                                                </div>
+                                            }
+                                            if (ReportSuspiciousCallOrMessageHelp["IHaventSharedAnyInfo"])
+                                            {
+                                                <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => ReportSuspiciousCallOrMessageHelp["IHaventSharedAnyInfo"] = false)">
+                                                    <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                    @Loc["Back"]
+                                                </a>
+                                                <div>
+                                                    <strong>@Loc["DidYouKnow"]</strong>
+                                                </div>
+                                                <div class="mb-2 mt-3">
+                                                    <p>
+                                                        @Loc["ToReportASuspiciousCommunication"]
+                                                    </p>
+                                                </div>
+                                                <div class="mt-4" style="text-align: center;">
+                                                    <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;border-color:transparent; border-radius: 5px;" @onclick="OnIHaventSharedAnyInfoReport">
+                                                        @Loc["StartReport"]
+                                                    </button>
+                                                </div>
+                                            }
+                                        }
+                                        if (HelpContent["ReportUnsolicitedPackage"])
+                                        {
+                                            <a style="text-decoration: none; color: black; cursor: pointer;" @onclick="@(e => HelpContent["ReportUnsolicitedPackage"] = false)">
+                                                <img class="mb-1" src="chevron-left.svg" width="12" height="12" />
+                                                @Loc["Back"]
+                                            </a>
+                                            <div>
+                                                <strong>@Loc["ReportUnsolicitedPackage"]</strong>
+                                            </div>
+                                            <div class="mb-2 mt-3">
+                                                <p>
+                                                    @Loc["IfYouReceiveAPackageThatYouDidNotOrder"]
+                                                </p>
+                                            </div>
+                                            <div class="mt-4" style="text-align: center;">
+                                                <button type="submit" class="btn btn-primary" style="background-color: #2f4f4f;border-color:transparent; border-radius: 5px;" @onclick="OnReportUnsolicitedPackage">
+                                                    @Loc["ReportUnsolicitedPackageLg"]
+                                                </button>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+
+    private ApplicationUser? ApplicationUser { get; set; }
+    private string Issue { get; set; }
+
+    [Parameter]
+    public Dictionary<string, bool>? HelpContent { get; set; } = new();
+
+    [Parameter]
+    public Dictionary<string, bool>? ReportSuspiciousCallOrMessageHelp { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
+        LayoutStateService.SetBackground("customer-service");
+        HelpContent["ReportSuspiciousCallOrMessage"] = false;
+        HelpContent["ReportSuspiciousProduct"] = false;
+        HelpContent["ReportUnsolicitedPackage"] = false;
+        ReportSuspiciousCallOrMessageHelp["IveSharedIvoryStoresAccountInfo"] = false;
+        ReportSuspiciousCallOrMessageHelp["IveSharedBankingInfo"] = false;
+        ReportSuspiciousCallOrMessageHelp["IveSharedOtherInfo"] = false;
+        ReportSuspiciousCallOrMessageHelp["IHaventSharedAnyInfo"] = false;
+    }
+    private void OnIveSharedAccountInfoReport()
+    {
+        NavigationManager.NavigateTo("");
+    }
+    private void OnChatWithAgentClicked()
+    {
+    }
+    private void OnIveSharedBankingInfoReport()
+    {
+        NavigationManager.NavigateTo("/AccountSettings");
+    }
+    private void OnIveSharedOtherInfoReport()
+    {
+        NavigationManager.NavigateTo("/Account/Notifications/Account");
+    }
+    private void OnReportUnsolicitedPackage()
+    {
+        NavigationManager.NavigateTo("/Account/MessageCenter");
+    }
+    private void OnReportSuspiciousProduct()
+    {
+        NavigationManager.NavigateTo($"/Account/CustomerService/Orders/Product/ContactUs?Issue={Loc["ReportSuspiciousProduct"]}");
+    }
+    private void OnIHaventSharedAnyInfoReport()
+    {
+        NavigationManager.NavigateTo("/Account/Orders/Cancelled");
+    }
+}

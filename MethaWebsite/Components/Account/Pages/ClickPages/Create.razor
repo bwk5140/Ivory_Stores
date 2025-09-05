@@ -1,0 +1,49 @@
+﻿@page "/clicks/create"
+@using Microsoft.EntityFrameworkCore
+@using MethaWebsite.Data
+@inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Click</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Click" OnValidSubmit="AddClick" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="position" class="form-label">position:</label> 
+                <InputNumber id="position" @bind-Value="Click.position" class="form-control" /> 
+                <ValidationMessage For="() => Click.position" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="productid" class="form-label">ProductId:</label> 
+                <InputText id="productid" @bind-Value="Click.ProductId" class="form-control" /> 
+                <ValidationMessage For="() => Click.ProductId" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/clicks">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Click Click { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddClick()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Click.Add(Click);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/clicks");
+    }
+}

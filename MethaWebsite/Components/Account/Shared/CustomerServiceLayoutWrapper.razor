@@ -1,0 +1,76 @@
+﻿@inject IStringLocalizer<SharedResource> Loc
+@inject NavigationManager NavigationManager
+
+@implements IDisposable
+
+@rendermode InteractiveServer
+
+<nav class="navbar navbar-expand-lg navbar-dark second-top-row-custom">
+    <div class="container-fluid">
+        <ul class="navbar-nav nav-underline">
+            <li class="ms-5 nav-item me-2">
+                <a class="nav-link @Active["CustomerService"]" aria-current="@IsActive["CustomerService"]" href="/Account/CustomerService" style="font-size: medium;">
+                    @Loc["CustomerService"]
+                </a>
+            </li>
+            <li class="ms-5 nav-item ms-2 me-2 border-end">
+            </li>
+            <li class="ms-5 nav-item me-2">
+                <a class="nav-link @Active["Home"]" aria-current="@IsActive["Home"]" href="/Account/CustomerService" style="font-size: medium;">
+                    @Loc["Home"]
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+@code {
+    [Parameter]
+    public Dictionary<string, bool> IsActive { get; set; } = new();
+
+    [Parameter]
+    public Dictionary<string, string> Active { get; set; } = new();
+
+    [Parameter]
+    public string? Username { get; set; }
+
+    string? currentUrl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsActive["Home"] = true;
+
+        Active["Home"] = "active";
+
+        IsActive["CustomerService"] = false;
+
+        Active["CustomerService"] = "none";
+
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+    private void UpdateNavItems()
+    {
+        foreach (var pair in Active)
+        {
+            if (currentUrl.EndsWith(pair.Key))
+            {
+                Active[pair.Key] = "active";
+            }
+            else
+            {
+                Active[pair.Key] = "none";
+            }
+        }
+        StateHasChanged();
+    }
+}

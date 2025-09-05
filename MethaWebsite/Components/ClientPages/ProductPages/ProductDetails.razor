@@ -12,6 +12,7 @@
 @inject ShoppingCartService ShoppingCartService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
+@inject TrackingService TrackingService
 @inject IStringLocalizer<SharedResource> Loc
 @inject IDbContextFactory<MethaWebsite.Data.Contexts.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
@@ -103,10 +104,12 @@
                     @{
                         var stars = ProductRatingService.GetStarImages(product.Rating);
                     }
-                    <div class="me-1" style="display: inline-block; font-size: medium;">
-                        @product.Rating
-                    </div>
-                    
+                    @if (product.Rating > 0)
+                    {
+                        <div class="me-1" style="display: inline-block; font-size: medium;">
+                            @product.Rating
+                        </div>
+                    }
                     @foreach (var star in stars)
                     {
                         <img src="@star" />
@@ -224,10 +227,11 @@
                 </div>
                 <div class="mt-3">
                     <button class="btn" style="border: unset; outline:none; background-color: transparent;
-                                        color: dodgerblue;">
+                                        color: dodgerblue;" @onclick="ShowProductIssuePopUp">
                         <img src="chat-right-text.svg"/>
                         @Loc["ProductIssue"]
                     </button>
+                    <ProductIssuePopOver @ref="ProductIssuePopUp" />
                     <hr />
                 </div>
                 @if (!IsLoading)
@@ -242,16 +246,16 @@
                                 <div class="card-header" style="border: none; background-color: transparent;">
                                     <h5>@Loc["SimilarItem"]</h5>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body" style="background-color: whitesmoke; padding-bottom: 5px; border-radius: 10px; border: groove; border-width: thin;">
                                     <div class="row">
                                         <div class="col-sm-3" style="background-color: transparent; padding: 0px;">
-                                            <a href="@($"product/details?id={SimilarProduct.Id}")" @onclick="(() => OnProductClicked(SimilarProduct))">
+                                            <a href="@($"product/details?id={SimilarProduct.Id}")" @onclick="(() => TrackClick(SimilarProduct.Id))">
                                                 <img src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(SimilarProdCurrentImage.Image!)))"
                                                      alt=@Loc["ProductImage"] style="width:100px; height:100px; object-fit:contain; vertical-align: central;" />
                                             </a>
                                         </div>
                                         <div class="col-sm-9">
-                                            <a href="@($"product/details?id={SimilarProduct.Id}")" @onclick="(() => OnProductClicked(SimilarProduct))" style="padding: 0px; text-decoration:none;">
+                                            <a href="@($"product/details?id={SimilarProduct.Id}")" @onclick="(() => TrackClick(SimilarProduct.Id))" style="padding: 0px; text-decoration:none; color: black;">
                                                 @SimilarProduct.Name
                                             </a>
                                             <div>
@@ -365,7 +369,6 @@
                                             <InputSelect id="list" @bind-Value="ListAddedTo" @bind-Value:after="OnListSelected" class="form-select-sm"
                                                          @onselect="OnListSelected" style="width: 200px;">
                                                 <option selected value="" disabled hidden>@Loc["AddToList"]</option>
-                                                <option value="@defaultList.Name" @onclick="OnListSelected">@defaultList.Name</option>
                                                 @if (Lists is not null && Lists.Any())
                                                 {
                                                     @foreach (var list in Lists)
@@ -376,14 +379,13 @@
                                                 <option value="@Loc[" CreateList"]">@Loc["CreateList"]</option>
                                             </InputSelect>
                                         </dd>
-                                        <MethaWebsite.Components.Account.Pages.ProductListPages.Create @ref=AddListPopUp OnAddToList="OnNewListItemCreated" OnCloseAddToList="UpdateInputSelect" />
+                                        <MethaWebsite.Components.Account.Pages.ProductListPages.Create @ref=AddListPopUp OnAddToList="OnNewListItemCreated" />
                                     </Authorized>
                                     <NotAuthorized>
                                         @{
                                             var showClass = IsVisible ? "d-block" : "d-none";
                                         }
-                                        <div class="toast-container @showClass" data-bs-autohide="true" data-bs-delay="5000"
-                                             style="top: 35%; display: block; justify-content: center;">
+                                        <div class="toast-container @showClass" data-bs-autohide="true" data-bs-delay="5000">
                                             <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true"
                                                  style="background-color: white;">
                                                 <div class="toast-header">
@@ -436,7 +438,7 @@
                                                 <div class="card mb-3" style="border: none; width: 150px;">
                                                     <div class="card-body">
                                                         <div class="row" style="background-color: transparent; height: 170px;">
-                                                            <a href="@($"product/details?id={similarProd.Id}")" @onclick="(() => OnProductClicked(similarProd))">
+                                                            <a href="@($"product/details?id={similarProd.Id}")" @onclick="(() => TrackClick(similarProd.Id, group.IndexOf(similarProd)))">
                                                                 <img src="@(string.Format("data:image/jpg;base64,{0}", Convert.ToBase64String(prodImage.Image!)))"
                                                                      alt=@Loc["ProductImage"] style="width:150px; height:150px; object-fit:contain; vertical-align: central;" />
                                                             </a>
@@ -444,7 +446,7 @@
                                                         <div class="row">
                                                             <div class="ms-3" style="display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
                                                                                                                                                                                                                                                     text-overflow: ellipsis; ">
-                                                                <a href="@($"product/details?id={similarProd.Id}")" @onclick="(() => OnProductClicked(similarProd))" style="padding: 0px; text-decoration:none;">
+                                                                <a href="@($"product/details?id={similarProd.Id}")" @onclick="(() => TrackClick(similarProd.Id, group.IndexOf(similarProd)))" style="padding: 0px; text-decoration:none;">
                                                                     @similarProd.Name
                                                                 </a>
                                                             </div>
@@ -596,6 +598,14 @@
                         </div>
                     </div>
                     <hr />
+                    <div class="col-sm-12 me-5">
+                        <h5>@Loc["ReviewThisProduct"]</h5>
+                        <p>@Loc["ShareThoughts"]</p>
+                    </div>
+                    <button class="btn btn-primary mt-1 me-2" style="background-color: transparent;border-color:black; border-radius: 25px; color: black; width: 245px;"
+                            @onclick="OnReviewThisProductClicked">
+                        @Loc["WriteReview"]
+                    </button>
                 </div>
             }
             else
@@ -832,6 +842,9 @@
     [SupplyParameterFromQuery]
     private string? Id { get; set; }
 
+    [SupplyParameterFromQuery]
+    private string? Clk { get; set; }
+
     private Category? category { get; set; }
     private Category? department { get; set; }
 
@@ -840,6 +853,7 @@
     private SizeGuidePages.ShoesSizeGuidePages.ShoeSizeGuidePopover? ShoeSizeGuidePopUp;
     private ProductReviewImageDetails ProductReviewImageDetailsPopUp;
     private ReturnPolicy ReturnPolicyPopUp;
+    private ProductIssuePopOver ProductIssuePopUp;
     private ReturnPolicy ReturnPolicyPopUp2;
     private ProductImagesPopOver? ProductImagesPopOver;
     private Create? AddListPopUp;
@@ -847,7 +861,7 @@
 
     private ApplicationUser? ApplicationUser { get; set; }
     private ShoppingCart? ShoppingCart { get; set; }
-
+    private Click Click { get; set; }
     private Dictionary<string, bool> ReviewImageClicked { get; set; } = new();
     protected override async Task OnInitializedAsync()
     {
@@ -855,7 +869,7 @@
         product = await context.Product.FirstOrDefaultAsync(m => m.Id == Id);
         CanExpand = product.Description.Length > MaxLength;
         ApplicationUser ??= await ApplicationUserService.GetApplicationUser();
-
+        Click = await context.Click.FirstOrDefaultAsync(c => c.Id == Clk);
         if (product is null)
         {
             NavigationManager.NavigateTo("notfound");
@@ -916,8 +930,6 @@
             if (ApplicationUser is not null)
             {
                 Lists = context.ProductList.Where(l => l.UserId == ApplicationUser.Id).ToList();
-                defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default");
-                Lists.Remove(defaultList);
             }
             Products = context.Product.ToList();
             foreach (var _product in products)
@@ -1040,14 +1052,14 @@
     {
         if (!string.IsNullOrWhiteSpace(ListAddedTo))
         {
-            if (ListAddedTo == "Create a list")
+            if (ListAddedTo == Loc["CreateList"])
             {
                 AddListPopUp.Show();
             }
             else
             {
                 using var context = await DbFactory.CreateDbContextAsync();
-                var list = await context.ProductList.FirstOrDefaultAsync(l => l.Name == ListAddedTo);
+                var list = await context.ProductList.FirstOrDefaultAsync(l => l.Name == ListAddedTo && l.UserId == ApplicationUser.Id);
                 if (list is not null && list.ProductIds is null)
                 {
                     list.ProductIds = new List<string>();
@@ -1066,16 +1078,11 @@
             }
         }
     }
-    private async Task OnNewListItemCreated()
+    private async Task OnNewListItemCreated(ProductList productList)
     {
         AddToListClicked = false;
         using var context = await DbFactory.CreateDbContextAsync();
-        if (ApplicationUser is not null)
-        {
-            Lists = context.ProductList.Where(l => l.UserId == ApplicationUser.Id).OrderBy(l => l.Created).ToList();
-            Lists.Remove(defaultList);
-        }
-        ListAddedTo = Lists.Last().Name;
+        ListAddedTo = productList.Name;
         await OnListSelected();
         newItemAddedToListPopUp.Show();
         StateHasChanged();
@@ -1233,7 +1240,10 @@
     }
     private void ReduceProductQuantity()
     {
-        shoppingCartProduct.Quantity -= 1;
+        if (shoppingCartProduct.Quantity > 1)
+        {
+            shoppingCartProduct.Quantity -= 1;
+        }
     }
     private void IncreaseProductQuantity()
     {
@@ -1292,5 +1302,85 @@
         ProductReview = await context.ProductReview.FirstOrDefaultAsync(p => p.ImageIds.Contains(image.Id));
         ProductReviewImageDetailsPopUp.SetReview(ProductReview);
         ProductReviewImageDetailsPopUp.Show();
+    }
+    private async Task OnReviewThisProductClicked()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        if (ApplicationUser is not null)
+        {
+            var order = await context.Order.FirstOrDefaultAsync(o => o.ProductIds.Contains(product.Id) && o.UserId == ApplicationUser.Id);
+            if (order is not null)
+            {
+                var review = await context.ProductReview.FirstOrDefaultAsync(r => r.ProductId == product.Id && r.UserId == ApplicationUser.Id);
+                if (review is null)
+                {
+                    NavigationManager.NavigateTo($"product/review/create?id={product.Id}");
+                }
+                else
+                {
+                    NavigationManager.NavigateTo("/Account/Product/Review/Complete");
+                }
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/Account/Product/Review");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("product/review/create");
+        }
+    }
+    private void ShowProductIssuePopUp()
+    {
+        ProductIssuePopUp.Show();
+    }
+    private async Task TrackClick(string productId, int position)
+    {
+        var consent = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "consent_analytics");
+        var Click = new Click();
+        if (consent == "true")
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            Click.position = position;
+            Click.ProductId = productId;
+            var user = await ApplicationUserService.GetApplicationUser();
+            if (user is not null)
+            {
+                Click.UserId = user.Id;
+            }
+            else
+            {
+                var Id = TrackingService.GetDeviceId();
+                Click.UserId = Id;
+            }
+            context.Click.Add(Click);
+            await context.SaveChangesAsync();
+        }
+        NavigationManager.NavigateTo($"product/details?id={productId}&clk={Click.Id}", true);
+    }
+    private async Task TrackClick(string productId)
+    {
+        var consent = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "consent_analytics");
+        var Click = new Click();
+        if (consent == "true")
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            Click.position = 0;
+            Click.ProductId = productId;
+            var user = await ApplicationUserService.GetApplicationUser();
+            if (user is not null)
+            {
+                Click.UserId = user.Id;
+            }
+            else
+            {
+                var Id = TrackingService.GetDeviceId();
+                Click.UserId = Id;
+            }
+            context.Click.Add(Click);
+            await context.SaveChangesAsync();
+        }
+        NavigationManager.NavigateTo($"product/details?id={productId}&clk={Click.Id}", true);
     }
 }

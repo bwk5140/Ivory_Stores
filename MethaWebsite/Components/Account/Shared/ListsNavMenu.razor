@@ -89,7 +89,11 @@
         
         applicationUser ??= await ApplicationUserService.GetApplicationUser();
         ProductLists = context.ProductList.Where(c => c.UserId == applicationUser.Id).ToList();
-        defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == "Default" && l.UserId == applicationUser.Id);
+        defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.Name == Loc["Default"] && l.UserId == applicationUser.Id);
+        if (defaultList is null)
+        {
+            defaultList = await context.ProductList.FirstOrDefaultAsync(l => l.UserId == applicationUser.Id);
+        }
         ProductLists.Remove(defaultList);
     }
 }
